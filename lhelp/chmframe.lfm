@@ -1,0 +1,225 @@
+object FrameChm: TFrameChm
+  Left = 0
+  Height = 483
+  Top = 0
+  Width = 704
+  ClientHeight = 483
+  ClientWidth = 704
+  TabOrder = 0
+  DesignLeft = 560
+  DesignTop = 440
+  object pgcNavigation: TPageControl
+    Left = 0
+    Height = 460
+    Top = 0
+    Width = 227
+    ActivePage = tsContents
+    Align = alLeft
+    TabIndex = 0
+    TabOrder = 0
+    object tsContents: TTabSheet
+      Caption = 'Contents'
+      ClientHeight = 432
+      ClientWidth = 219
+      object panContents: TPanel
+        Left = 0
+        Height = 432
+        Top = 0
+        Width = 219
+        Align = alClient
+        BevelOuter = bvNone
+        ClientHeight = 432
+        ClientWidth = 219
+        TabOrder = 0
+        object tvContents: TTreeView
+          Left = 6
+          Height = 420
+          Top = 6
+          Width = 207
+          Align = alClient
+          BorderSpacing.Around = 6
+          DefaultItemHeight = 18
+          ReadOnly = True
+          TabOrder = 0
+          OnCollapsed = tvContentsCollapsed
+          OnCreateNodeClass = tvContentsCreateNodeClass
+          OnExpanded = tvContentsExpanded
+          OnSelectionChanged = tvContentsSelectionChanged
+          Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+        end
+      end
+    end
+    object tsIndex: TTabSheet
+      Caption = 'Index'
+      ClientHeight = 432
+      ClientWidth = 219
+      object edIndexSearch: TLabeledEdit
+        AnchorSideLeft.Control = tsIndex
+        AnchorSideRight.Control = tsIndex
+        AnchorSideRight.Side = asrBottom
+        Left = 6
+        Height = 23
+        Top = 24
+        Width = 207
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        EditLabel.AnchorSideLeft.Control = edIndexSearch
+        EditLabel.AnchorSideRight.Control = edIndexSearch
+        EditLabel.AnchorSideRight.Side = asrBottom
+        EditLabel.AnchorSideBottom.Control = edIndexSearch
+        EditLabel.Left = 6
+        EditLabel.Height = 15
+        EditLabel.Top = 3
+        EditLabel.Width = 207
+        EditLabel.Caption = 'Search'
+        EditLabel.ParentColor = False
+        TabOrder = 0
+        OnChange = edIndexSearchChange
+      end
+      object tvIndex: TTreeView
+        AnchorSideLeft.Control = tsIndex
+        AnchorSideTop.Control = edIndexSearch
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tsIndex
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tsIndex
+        AnchorSideBottom.Side = asrBottom
+        Left = 6
+        Height = 373
+        Top = 53
+        Width = 207
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Around = 6
+        DefaultItemHeight = 18
+        ReadOnly = True
+        ShowButtons = False
+        ShowLines = False
+        ShowRoot = False
+        TabOrder = 1
+        OnCollapsing = tvIndexCollapsing
+        OnCreateNodeClass = tvIndexCreateNodeClass
+        OnDblClick = tvIndexDblClick
+        Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoToolTips, tvoThemedDraw]
+      end
+    end
+    object tsSearch: TTabSheet
+      Caption = 'Search'
+      ClientHeight = 432
+      ClientWidth = 219
+      object lbKeyword: TLabel
+        Left = 6
+        Height = 15
+        Top = 6
+        Width = 49
+        Caption = 'Keyword:'
+        ParentColor = False
+      end
+      object cboxKeyword: TComboBox
+        AnchorSideLeft.Control = tsSearch
+        AnchorSideTop.Control = lbKeyword
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tsSearch
+        AnchorSideRight.Side = asrBottom
+        Left = 6
+        Height = 23
+        Top = 27
+        Width = 207
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        ItemHeight = 15
+        OnKeyDown = cboxKeywordKeyDown
+        TabOrder = 0
+      end
+      object btnSearch: TButton
+        AnchorSideLeft.Control = tsSearch
+        AnchorSideTop.Control = cboxKeyword
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 25
+        Top = 56
+        Width = 75
+        BorderSpacing.Around = 6
+        Caption = 'Find'
+        OnClick = btnSearchClick
+        TabOrder = 1
+      end
+      object lbResults: TLabel
+        AnchorSideLeft.Control = tsSearch
+        AnchorSideTop.Control = btnSearch
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 15
+        Top = 87
+        Width = 75
+        BorderSpacing.Around = 6
+        Caption = 'Search results:'
+        ParentColor = False
+      end
+      object tvSearchResults: TTreeView
+        AnchorSideLeft.Control = tsSearch
+        AnchorSideTop.Control = lbResults
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tsSearch
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tsSearch
+        AnchorSideBottom.Side = asrBottom
+        Left = 6
+        Height = 318
+        Top = 108
+        Width = 207
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Around = 6
+        DefaultItemHeight = 18
+        ReadOnly = True
+        ShowButtons = False
+        ShowLines = False
+        ShowRoot = False
+        TabOrder = 2
+        OnDblClick = tvSearchResultsDblClick
+        Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoToolTips, tvoThemedDraw]
+      end
+    end
+  end
+  object IpHtmlPanel: TIpHtmlPanel
+    Left = 232
+    Height = 460
+    Top = 0
+    Width = 472
+    Align = alClient
+    FixedTypeface = 'Courier New'
+    DefaultTypeFace = 'default'
+    DefaultFontSize = 12
+    FlagErrors = False
+    PopupMenu = pmHtml
+    PrintSettings.MarginLeft = 0.5
+    PrintSettings.MarginTop = 0.5
+    PrintSettings.MarginRight = 0.5
+    PrintSettings.MarginBottom = 0.5
+    PrintSettings.Preview.Left = 480
+    PrintSettings.Preview.Top = 270
+    PrintSettings.Preview.Width = 1440
+    PrintSettings.Preview.Height = 810
+    TabOrder = 1
+  end
+  object Splitter1: TSplitter
+    Left = 227
+    Height = 460
+    Top = 0
+    Width = 5
+  end
+  object StatusBar: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 460
+    Width = 704
+    Panels = <>
+  end
+  object pmHtml: TPopupMenu
+    left = 341
+    top = 96
+    object miCopy: TMenuItem
+      Caption = 'Copy'
+      OnClick = miCopyClick
+    end
+  end
+end
