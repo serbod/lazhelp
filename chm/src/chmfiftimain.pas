@@ -63,9 +63,11 @@ type
   { TFIftiNode }
 
   TFIftiNode = class(TObject)
+  protected
     FLastWord: String;
     FWriteStream: TStream;
     FBlockStream: TMemoryStream;
+  public
     ParentNode: TFIftiNode;
     OwnsParentNode : boolean;
     function  AdjustedWord(AWord: String; out AOffset: Byte; AOldWord: String): String;
@@ -151,6 +153,7 @@ type
 { TIndexNode }
 
   TIndexNode = class(TFIftiNode)
+  public
     function  GuessIfCanHold(AWord: String): Boolean; override;
     procedure ChildIsFull(AWord: String; ANodeOffset: DWord ); override;
     procedure Flush(NewBlockNeeded: Boolean); override;
@@ -159,17 +162,20 @@ type
   { TLeafNode }
 
   TLeafNode = class(TFIftiNode)
+  private
     FLeafNodeCount: DWord;
     FLastNodeStart: DWord;
-    FreeSpace: DWord;
     FDocRootSize,
     FCodeRootSize,
     FLocRootSize: Byte;
+  public
+    FreeSpace: DWord;
     procedure WriteInitialHeader;
     Destructor Destroy; override;
     function  GuessIfCanHold(AWord: String): Boolean; override;
     procedure Flush(NewBlockNeeded: Boolean); override;
     procedure AddWord(AWord: TIndexedWord);
+    procedure ChildIsFull(AWord: String; ANodeOffset: DWord); override;
     function WriteWLCEntries(AWord: TIndexedWord; ADocRootSize, ACodeRootSize, ALocRootSize: Byte): DWord;
     property LeafNodeCount: DWord read FLeafNodeCount;
     property DocRootSize: Byte read FDocRootSize write FDocRootSize;
@@ -403,17 +409,17 @@ begin
   Result := FIFTI_NODE_SIZE - FBlockStream.Position;
 end;
 
-constructor TFIftiNode.Create ( AStream: TStream ) ;
+constructor TFIftiNode.Create(AStream: TStream);
 begin
   inherited Create;
   FWriteStream := AStream;
   FBlockStream := TMemoryStream.Create;
-  OwnsParentNode :=false;
+  OwnsParentNode := False;
 end;
 
 destructor TFIftiNode.Destroy;
 begin
-  FBlockStream.Free;
+  FreeAndNil(FBlockStream);
   if OwnsParentNode then ParentNode.Free;
   inherited Destroy;
 end;
@@ -424,7 +430,7 @@ begin
     FBlockStream.WriteByte(0);
 end;
 
-function TFIftiNode.AdjustedWord ( AWord: String; out AOffset: Byte; AOldWord: String ) : String;
+function TFIftiNode.AdjustedWord(AWord: String; out AOffset: Byte; AOldWord: String): String;
 var
   Count1,
   Count2: Integer;
@@ -440,7 +446,7 @@ begin
   Count1 := Length(AOldWord);
   Count2 := Length(AWord);
 
-  if Count1<Count2 then
+  if Count1 < Count2 then
     Count := Count1
   else
     Count := Count2;
@@ -551,6 +557,11 @@ begin
   WriteCompressedIntegerBE(FBlockStream, WLCSize);
   if FBlockStream.Position > FIFTI_NODE_SIZE then
     raise Exception.Create('FIFTIMAIN Leaf node has written past the block!');
+end;
+
+procedure TLeafNode.ChildIsFull(AWord: String; ANodeOffset: DWord);
+begin
+  // ???
 end;
 
 function Min(AValue, BValue: Byte): Byte;

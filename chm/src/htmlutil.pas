@@ -34,7 +34,7 @@ unit HTMLUtil; {$ifdef fpc} {$MODE Delphi} {$H+}{$endif}
 interface
 
 uses 
-  SysUtils, strutils;
+  SysUtils;
 
 { most commonly used }
 function GetVal(tag, attribname_ci: string): string;

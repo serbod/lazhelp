@@ -27,7 +27,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   SysUtils, Classes, Controls, Dialogs, Forms, SimpleIPC, TurboPowerIPro,
-  chmpopup, lhelpcontrolpkg, lhelpcore, lhelpstrconsts, chmframe, laz_synapse;
+  chmpopup, lhelpcontrolpkg, lhelpcore, lhelpstrconsts, chmframe;
 
 var
   X: Integer;

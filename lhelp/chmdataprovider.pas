@@ -201,8 +201,9 @@ begin
     sNewURL := Copy(sNewURL, X+3, MaxInt);
   end;
 
-  ParentDirs := GetDirsParents(OldURL);
+  ParentDirs := TStringList.Create();
   try
+    ReadDirsParents(OldURL, ParentDirs);
     RemoveDirCount := 0;
     repeat
       X := Pos('../', sNewURL);
@@ -246,6 +247,7 @@ function TIpChmDataProvider.ReadDirsParents(const ADir: String; AStrings: TStrin
 var
   LastName: String;
 begin
+  Result := True;
   AStrings.Delimiter := '/';
   AStrings.StrictDelimiter := True;
   AStrings.DelimitedText := ADir;

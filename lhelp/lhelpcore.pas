@@ -128,7 +128,6 @@ type
     FOutputIPC: TSimpleIPCClient;
     FInputIPCTimer: TTimer;
     FContext: LongInt; // used once when we are started on the command line with --context
-    FHelpResponse: LongWord;
     FConfig: TXMLConfig;
     FShowSepTabs: Boolean;
     FShowStatus: Boolean;
@@ -196,7 +195,6 @@ uses
 
 const
   DigitsInPID = 5; // Number of digits in the formatted PID according to the Help Protocol
-  NO_NEED_RESPONSE = 999;
 
 type
   TRecentMenuItem = class(TMenuItem)
@@ -361,7 +359,6 @@ begin
   OpenDialog1.Filter := slhelp_HelpFilesChmChmAllFiles;
 
   FContext := -1;
-  FHelpResponse := NO_NEED_RESPONSE;
 
   // Safe default:
   FHide := false;
@@ -505,8 +502,8 @@ begin
   for i := RecentCount-1 downto 0 do
     AddRecentFile(FConfig.GetValue('Recent/Item'+IntToStr(i)+'/Value',''));
 
-  FShowSepTabs := FConfig.GetValue('OpenSepTabs/Value', true);
-  FShowStatus := FConfig.GetValue('OpenWithStatus/Value', true);
+  FShowSepTabs := FConfig.GetValue('OpenSepTabs/Value', False);
+  FShowStatus := FConfig.GetValue('OpenWithStatus/Value', True);
 end;
 
 procedure THelpForm.SavePreferences;
@@ -616,13 +613,6 @@ var
   Res: LongWord;
   Url: String='';
 begin
-  if FHelpResponse <> NO_NEED_RESPONSE then
-  begin
-    //SendResponse(FHelpResponse);
-    FHelpResponse := NO_NEED_RESPONSE;
-    Exit;
-  end;
-
   while FInputIPC.PeekMessage(0, True) do
   begin
     Stream := FInputIPC.MsgData;
@@ -728,7 +718,6 @@ begin
     // so perhaps wait a bit?
     // Unfortunately, the delay time is guesswork=>Sleep(80)?
     SendResponse(Res); //send response again in case first wasn't picked up
-    FHelpResponse := Res;
     // Keep after SendResponse to avoid timing issues (e.g. writing to log file):
     DebugLn('sent TLHelpResponse code: '+IntToStr(Res));
 

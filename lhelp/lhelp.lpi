@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="9"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -73,20 +73,17 @@
         <Display Value="192.168.0.250:0"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="4">
+    <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="laz_synapse"/>
-      </Item1>
-      <Item2>
         <PackageName Value="TurboPowerIPro"/>
         <MinVersion Major="1" Valid="True"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="lhelpcontrolpkg"/>
       </Item2>
       <Item3>
-        <PackageName Value="lhelpcontrolpkg"/>
-      </Item3>
-      <Item4>
         <PackageName Value="LCL"/>
-      </Item4>
+      </Item3>
     </RequiredPackages>
     <Units Count="11">
       <Unit0>
