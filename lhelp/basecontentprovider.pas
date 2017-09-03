@@ -15,12 +15,12 @@ type
   TBaseContentProvider = class(TObject)
   private
     FOnTitleChange: TNotifyEvent;
-    fParent: TWinControl;
+    FParent: TWinControl;
     FTitle: String;
     FConfig: TXMLConfig;
     FUpdateCount: Integer;
   protected
-    fImageList: TImageList;
+    FImageList: TImageList;
     function GetTitle: String; virtual;
     procedure SetTitle(const AValue: String); virtual;
     function IsUpdating(): Boolean;
@@ -28,7 +28,7 @@ type
     function CanGoBack: Boolean; virtual; abstract;
     function CanGoForward: Boolean; virtual; abstract;
     function GetHistory: TStrings; virtual; abstract;
-    function LoadURL(const AURL: String; const AContext: THelpContext=-1): Boolean; virtual; abstract;
+    function LoadURL(const AURL: String; const AContext: THelpContext = -1): Boolean; virtual; abstract;
     procedure GoHome; virtual; abstract;
     procedure GoBack; virtual; abstract;
     procedure GoForward; virtual; abstract;
@@ -39,7 +39,7 @@ type
     class function GetProperContentProviderClass(const AURL: String): TBaseContentProviderClass; virtual; abstract;
     constructor Create(AParent: TWinControl; AImageList: TImageList); virtual;
     destructor Destroy; override;
-    property Parent: TWinControl read fParent;
+    property Parent: TWinControl read FParent;
     property Title: String read GetTitle write SetTitle;
     property OnTitleChange: TNotifyEvent read FOnTitleChange write FOnTitleChange;
   end;
@@ -70,13 +70,13 @@ end;
 
 function GetContentProviderClass(const Protocol: String): TBaseContentProviderClass;
 var
-  fIndex: Integer;
+  iIndex: Integer;
 begin
   Result := nil;
-  fIndex := ContentProviders.IndexOf(Protocol);
-  if fIndex = -1 then Exit;
+  iIndex := ContentProviders.IndexOf(Protocol);
+  if iIndex = -1 then Exit;
   
-  Result := TBaseContentProviderClass(ContentProviders.Objects[fIndex]);
+  Result := TBaseContentProviderClass(ContentProviders.Objects[iIndex]);
 end;
 
 procedure ReadContentProviderList(AValue: TStrings);
@@ -129,8 +129,8 @@ end;
 
 constructor TBaseContentProvider.Create(AParent: TWinControl; AImageList: TImageList);
 begin
-  fParent:= AParent;
-  fImageList:= AImageList;
+  FParent:= AParent;
+  FImageList:= AImageList;
 end;
 
 destructor TBaseContentProvider.Destroy;

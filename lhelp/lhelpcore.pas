@@ -62,11 +62,11 @@ type
 
   TContentTab = class(TTabSheet)
   private
-    fContentProvider: TBaseContentProvider;
+    FContentProvider: TBaseContentProvider;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    property ContentProvider: TBaseContentProvider read fContentProvider write fContentProvider;
+    property ContentProvider: TBaseContentProvider read FContentProvider write FContentProvider;
   end;
 
   { THelpForm }
@@ -570,7 +570,7 @@ procedure THelpForm.ContentTitleChange(sender: TObject);
 begin
   if ActivePage = nil then
     Exit;
-  Caption := Format(slhelp_LHelp2, [ActivePage.fContentProvider.Title]);
+  Caption := Format(slhelp_LHelp2, [ActivePage.FContentProvider.Title]);
 end;
 
 procedure THelpForm.OpenRecentItemClick(Sender: TObject);
@@ -590,7 +590,7 @@ begin
     Stream.WriteDWord(Response);
     if Assigned(FOutputIPC) then
     begin
-      // reset output IPC, to avoid strange begavior, that other side not receives messages
+      // reset output IPC, to avoid strange behavior, that other side not receives messages
       // tested on win32
       FOutputIPC.Active := False;
       FOutputIPC.Active := True;
@@ -950,9 +950,9 @@ begin
 end;
 
 
-procedure THelpForm.LateOpenURL ( Url: PStringItem ) ;
+procedure THelpForm.LateOpenURL(Url: PStringItem) ;
 begin
-  if OpenURL(URL^.FString, FContext) = ord(srSuccess) then
+  if OpenURL(URL^.FString, FContext) = Ord(srSuccess) then
     AddRecentFile(URL^.FString);
   // we reset the context because at this point the file has been loaded and the
   // context shown
@@ -1007,7 +1007,7 @@ begin
   ViewMenuContents.Enabled := en;
 
   if en and not (csDestroying in ActivePage.ComponentState) then
-    Caption := Format(slhelp_LHelp2, [ActivePage.fContentProvider.Title])
+    Caption := Format(slhelp_LHelp2, [ActivePage.FContentProvider.Title])
   else
     Caption := slhelp_LHelp;
 end;
@@ -1074,7 +1074,7 @@ end;
 
 destructor TContentTab.Destroy;
 begin
-  fContentProvider.Free;
+  FContentProvider.Free;
   inherited Destroy;
 end;
 

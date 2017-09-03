@@ -1,0 +1,44 @@
+object FormMain: TFormMain
+  Left = 410
+  Height = 610
+  Top = 183
+  Width = 1040
+  Caption = 'CHM test'
+  ClientHeight = 610
+  ClientWidth = 1040
+  Font.Height = -13
+  OnCreate = FormCreate
+  LCLVersion = '1.9.0.0'
+  object Memo1: TMemo
+    Left = 311
+    Height = 470
+    Top = 10
+    Width = 721
+    Lines.Strings = (
+      'Memo1'
+    )
+    ScrollBars = ssAutoVertical
+    TabOrder = 0
+  end
+  object lvEntries: TListView
+    Left = 11
+    Height = 470
+    Top = 10
+    Width = 293
+    Columns = <    
+      item
+        Caption = 'Name'
+        Width = 200
+      end    
+      item
+        Caption = 'Size'
+        Width = 80
+      end>
+    GridLines = True
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 1
+    ViewStyle = vsReport
+    OnSelectItem = lvEntriesSelectItem
+  end
+end

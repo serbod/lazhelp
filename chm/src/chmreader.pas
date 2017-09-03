@@ -47,10 +47,11 @@ type
     procedure Clear(); override;
   end;
 
-  { TITSFReader }
 
   TFileEntryForEach = procedure(Name: String; Offset, UncompressedSize, Section: Integer) of object;
 
+  { TITSFReader }
+  { Provide access to CHM internal files directory listing and content. }
   TITSFReader = class(TObject)
   private
     FSectionNames: TStringList;
@@ -60,19 +61,25 @@ type
     procedure LookupPMGLchunk(Stream: TMemoryStream; out PMGLChunk: TPMGListChunk);
     procedure LookupPMGIchunk(Stream: TMemoryStream; out PMGIChunk: TPMGIIndexChunk);
 
+    { Read content from ::DataSpace/Storage/ file }
     function ReadBlockFromSection(SectionPrefix: String; StartPos: QWord; BlockLength: QWord; AData: TStream): Boolean;
+    { Returns the blocksize }
     function FindBlocksFromUnCompressedAddr(const ResetTableEntry: TPMGListChunkEntry;
-       out CompressedSize: QWord; out UnCompressedSize: QWord; out LZXResetTable: TLZXResetTableArr): QWord;  // Returns the blocksize
+       out CompressedSize: QWord; out UnCompressedSize: QWord; out LZXResetTable: TLZXResetTableArr): QWord;
   protected
+    { CHM file stream }
     FStream: TStream;
     FFreeStreamOnDestroy: Boolean;
+    { main CHM file header }
     FITSFHeader: TITSFHeader;
     FHeaderSuffix: TITSFHeaderSuffix;
+    { CHM directory header }
     FDirectoryHeader: TITSPHeader;
     FDirectoryHeaderPos: QWord;
     FDirectoryHeaderLength: QWord;
     FDirectoryEntriesStartPos: QWord;
-    FCachedEntry: TPMGListChunkEntry; //contains the last entry found by ObjectExists
+    { contains the last entry found by ObjectExists }
+    FCachedEntry: TPMGListChunkEntry;
     FDirectoryEntriesCount: LongWord;
     procedure ReadHeader(); virtual;
     procedure ReadHeaderEntries(); virtual;
@@ -82,20 +89,25 @@ type
     { Read sections names to strings list }
     function ReadSections(ASections: TStrings): Boolean;
   public
+    { Assign CHM file stream, read CHM main header and header entries from beginning of stream }
     constructor Create(AStream: TStream; FreeStreamOnDestroy: Boolean); virtual;
     destructor Destroy; override;
   public
     ChmLastError: LongInt;
+    { Check CHM header and return True if data valid }
     function IsValidFile(): Boolean;
+    { Read directory listing entries and pass every entry into ForEach callback method }
     procedure GetCompleteFileList(ForEach: TFileEntryForEach; AIncludeInternalFiles: Boolean = True); virtual;
     // Returns zero if no. Otherwise it is the size of the object
     // NOTE directories will return zero size even if they exist
     function ObjectExists(const AName: String): QWord; virtual;
-    // Returns memory block from given section name
-    // YOU must Free the stream
+    { Returns memory block from given section name
+      !! YOU must Free the stream! }
     function GetObject(Name: String): TMemoryStream; virtual; deprecated;
-    // Read memory block from given section name, return True on success
-    function GetObjectData(Name: String; AData: TStream): Boolean; virtual;
+    { Seek internal file by his Name and read file content into AData stream, return True on success }
+    function ReadFileContent(const AName: String; AData: TStream): Boolean; virtual;
+    { Seek internal file by his AEntry and read file content into AData stream }
+    function ReadFileContentByEntry(const AEntry: TPMGListChunkEntry; AData: TStream): Boolean; virtual;
     // Chunk entry from last ObjectExists() call
     property CachedEntry: TPMGListChunkEntry read FCachedEntry;
   end;
@@ -242,7 +254,7 @@ begin
   FStream := AStream;
   FStream.Position := 0;
   FFreeStreamOnDestroy := FreeStreamOnDestroy;
-  ReadHeader;
+  ReadHeader();
   if not IsValidFile then Exit;
 end;
 
@@ -582,29 +594,36 @@ end;
 function TITSFReader.GetObject(Name: String): TMemoryStream;
 begin
   Result := TMemoryStream.Create();
-  if not GetObjectData(Name, Result) then
+  if not ReadFileContent(Name, Result) then
     FreeAndNil(Result);
 end;
 
-function TITSFReader.GetObjectData(Name: String; AData: TStream): Boolean;
-var
-  Entry: TPMGListChunkEntry;
-  SectionName: String;
+function TITSFReader.ReadFileContent(const AName: String; AData: TStream): Boolean;
 begin
   Result := False;
   if not Assigned(AData) then Exit;
 
-  if ObjectExists(Name) = 0 then
+  if ObjectExists(AName) = 0 then
   begin
     //WriteLn('Object ', name,' Doesn''t exist or is zero sized.');
     Exit;
   end;
 
-  Entry := FCachedEntry;
+  Result := ReadFileContentByEntry(FCachedEntry, AData);
+end;
+
+function TITSFReader.ReadFileContentByEntry(const AEntry: TPMGListChunkEntry;
+  AData: TStream): Boolean;
+var
+ SectionName: String;
+begin
+  Result := False;
+  if not Assigned(AData) then Exit;
+
   AData.Position := 0;
-  if Entry.ContentSection = 0 then
+  if AEntry.ContentSection = 0 then
   begin
-    FStream.Position := FHeaderSuffix.Offset + Entry.ContentOffset;
+    FStream.Position := FHeaderSuffix.Offset + AEntry.ContentOffset;
     AData.CopyFrom(FStream, FCachedEntry.DecompressedLength);
     Result := True;
   end
@@ -613,8 +632,8 @@ begin
     if FSectionNames.Count = 0 then
       ReadSections(FSectionNames);
 
-    FmtStr(SectionName, '::DataSpace/Storage/%s/',[FSectionNames[Entry.ContentSection]]);
-    Result := ReadBlockFromSection(SectionName, Entry.ContentOffset, Entry.DecompressedLength, AData);
+    FmtStr(SectionName, '::DataSpace/Storage/%s/',[FSectionNames[AEntry.ContentSection]]);
+    Result := ReadBlockFromSection(SectionName, AEntry.ContentOffset, AEntry.DecompressedLength, AData);
   end;
   AData.Position := 0;
 end;
@@ -642,21 +661,21 @@ end;
 
 procedure TITSFReader.ReadHeaderEntries();
 var
-  fHeaderEntries: array [0..1] of TITSFHeaderEntry;
+  HeaderEntries: array [0..1] of TITSFHeaderEntry;
 begin
   // Copy EntryData into memory
-  FStream.Read(fHeaderEntries[0], SizeOf(fHeaderEntries));
+  FStream.Read(HeaderEntries[0], SizeOf(HeaderEntries));
 
   if FITSFHeader.Version = 3 then
     FStream.Read(FHeaderSuffix.Offset, SizeOf(QWord));
   FHeaderSuffix.Offset := LEtoN(FHeaderSuffix.Offset);
   // otherwise this is set in fill directory entries
 
-  FStream.Position := LEtoN(fHeaderEntries[1].PosFromZero);
-  FDirectoryHeaderPos := LEtoN(fHeaderEntries[1].PosFromZero);
+  FStream.Position := LEtoN(HeaderEntries[1].PosFromZero);
+  FDirectoryHeaderPos := LEtoN(HeaderEntries[1].PosFromZero);
   FStream.Read(FDirectoryHeader, SizeOf(FDirectoryHeader));
   {$IFDEF ENDIAN_BIG}
-  with fDirectoryHeader do
+  with FDirectoryHeader do
   begin
     Version := LEtoN(Version);
     DirHeaderLength := LEtoN(DirHeaderLength);
@@ -675,12 +694,12 @@ begin
   end;
   {$ENDIF}
   {$IFDEF CHM_DEBUG}
-  WriteLn('PMGI depth = ', fDirectoryHeader.IndexTreeDepth);
-  WriteLn('PMGI Root =  ', fDirectoryHeader.IndexOfRootChunk);
-  Writeln('DirCount  =  ', fDirectoryHeader.DirectoryChunkCount);
+  WriteLn('PMGI depth = ', FDirectoryHeader.IndexTreeDepth);
+  WriteLn('PMGI Root =  ', FDirectoryHeader.IndexOfRootChunk);
+  Writeln('DirCount  =  ', FDirectoryHeader.DirectoryChunkCount);
   {$ENDIF}
   FDirectoryEntriesStartPos := FStream.Position;
-  FDirectoryHeaderLength := LEtoN(fHeaderEntries[1].Length);
+  FDirectoryHeaderLength := LEtoN(HeaderEntries[1].Length);
 end;
 
 procedure TITSFReader.GetSections(out Sections: TStringList);
@@ -706,7 +725,7 @@ begin
   //WriteLn('::DataSpace/NameList Size = ', ObjectExists('::DataSpace/NameList'));
   ms := TMemoryStream.Create();
   try
-    if GetObjectData('::DataSpace/NameList', ms) then
+    if ReadFileContent('::DataSpace/NameList', ms) then
     begin
       ms.Position := 2;
       EntryCount := LEtoN(ms.ReadWord);
@@ -942,7 +961,7 @@ begin
   FURLSTRStream := TMemoryStream.Create();
   FURLTBLStream := TMemoryStream.Create();
   FStringsStream := TMemoryStream.Create();
-  FDefaultWindow:='';
+  FDefaultWindow := '';
 
   inherited Create(AStream, FreeStreamOnDestroy);
   if not IsValidFile then Exit;
@@ -974,7 +993,7 @@ var
 begin
   msWindows := TMemoryStream.Create();
   try
-    GetObjectData('/#WINDOWS', msWindows);
+    ReadFileContent('/#WINDOWS', msWindows);
     if (msWindows.Size > (SizeOf(DWord) * 2)) then
     begin
       EntryCount := LEtoN(msWindows.ReadDWord);
@@ -1022,7 +1041,7 @@ var
 begin
   ms := TMemoryStream.Create();
   try
-    if GetObjectData('/#SYSTEM', ms) and (ms.Size >= SizeOf(DWord)) then
+    if ReadFileContent('/#SYSTEM', ms) and (ms.Size >= SizeOf(DWord)) then
     begin
       ms.Position := 0;
       {Version := }LEtoN(ms.ReadDWord);
@@ -1114,7 +1133,7 @@ var
 begin
   msIVB := TMemoryStream.Create();
   try
-    if GetObjectData('/#IVB', msIVB) and (msIVB.Size > SizeOf(DWord)) then
+    if ReadFileContent('/#IVB', msIVB) and (msIVB.Size > SizeOf(DWord)) then
     begin;
       msIVB.Position := 0;
       {TotalSize := }LEtoN(msIVB.ReadDWord);
@@ -1133,10 +1152,10 @@ end;
 
 procedure TChmReader.ReadCommonData();
 begin
-  GetObjectData('/#STRINGS', FStringsStream);
-  GetObjectData('/#TOPICS', FTOPICSStream);
-  GetObjectData('/#URLSTR', FURLSTRStream);
-  GetObjectData('/#URLTBL', FURLTBLStream);
+  ReadFileContent('/#STRINGS', FStringsStream);
+  ReadFileContent('/#TOPICS', FTOPICSStream);
+  ReadFileContent('/#URLSTR', FURLSTRStream);
+  ReadFileContent('/#URLTBL', FURLTBLStream);
   ReadFromSystem();
   ReadFromWindows();
   ReadContextIds();
@@ -1486,7 +1505,7 @@ begin
   // First Try Binary
   msIndex := TMemoryStream.Create();
   try
-    if (not GetObjectData('/$WWKeywordLinks/BTree', msIndex)) then
+    if (not ReadFileContent('/$WWKeywordLinks/BTree', msIndex)) then
     begin
       ForceXML := True;
     end;
@@ -1524,7 +1543,7 @@ begin
     begin
       msIndex.Size := 0;
       // Second Try text Index
-      if GetObjectData(IndexFile, msIndex) then
+      if ReadFileContent(IndexFile, msIndex) then
       begin
         SiteMap.LoadFromStream(msIndex);
         Result := True;
@@ -1582,7 +1601,7 @@ begin
   msTOC := TMemoryStream.Create();
   try
     // First Try Binary
-    if (not GetObjectData('/#TOCIDX', msTOC)) then
+    if (not ReadFileContent('/#TOCIDX', msTOC)) then
     begin
       ForceXML := True;
     end;
@@ -1617,7 +1636,7 @@ begin
     begin
       msToc.Size := 0;
       // Second Try text mstoc
-      if GetObjectData(TOCFile, msTOC) then
+      if ReadFileContent(TOCFile, msTOC) then
       begin
         SiteMap.LoadFromStream(msTOC);
         Result := True;
@@ -1808,7 +1827,7 @@ function TChmFileList.MetaGetObjectData(Name: String; AData: TStream): Boolean;
 begin
   Result := False;
   if Assigned(AData) and (MetaObjectExists(Name) > 0) then
-    Result := FLastChm.GetObjectData(Name, AData);
+    Result := FLastChm.ReadFileContent(Name, AData);
 end;
 
 procedure TChmFileList.SetOnOpenNewFile(AValue: TChmFileOpenEvent);
@@ -1858,7 +1877,7 @@ function TChmFileList.GetObjectData(const AName: String; AData: TStream
 begin
   Result := False;
   if Count = 0 then Exit;
-  Result := FLastChm.GetObjectData(AName, AData);
+  Result := FLastChm.ReadFileContent(AName, AData);
   if not Result then
     Result := MetaGetObjectData(AName, AData);
 end;

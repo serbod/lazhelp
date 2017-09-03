@@ -18,6 +18,11 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{
+CHM format reference
+http://www.russotto.net/chm/chmformat.html
+Copyright 2001-2003 Matthew T. Russotto
+}
 unit chmbase;
 
 {$mode objfpc}{$H+}
@@ -32,81 +37,99 @@ const
   
 type
   {$PACKRECORDS C}
+  { The .chm file begins with a short ($38 byte) initial header.
+    This is followed by the header section table and the offset to the content. }
   TITSFHeader = record
-    ITSFsig: array [0..3] of char;
-    Version: LongWord;
-    HeaderLength: LongWord;
-    Unknown_1: LongWord;
-    TimeStamp: LongWord; //bigendian
-    LanguageID: LongWord;
+    ITSFsig: array [0..3] of char; // 'ITSF'
+    Version: LongWord;      // 3 (Version number)
+    HeaderLength: LongWord; // Total header length, including header section table and following data.
+    Unknown_1: LongWord;    // 1 (unknown)
+    TimeStamp: LongWord;    { a timestamp.
+                              Considered as a big-endian DWORD, it appears to contain
+                              seconds (MSB) and fractional seconds (second byte).
+                              The third and fourth bytes may contain even more fractional
+                              bits.  The 4 least significant bits in the last byte are
+                              constant. }
+    LanguageID: LongWord;   // Windows Language ID.
   end;
+
+  { header section table, which is 2 entries, where each entry is $10 bytes long }
   TITSFHeaderEntry = record
-    PosFromZero: QWord;
-    Length: QWord;
+    PosFromZero: QWord;            // Offset of section from beginning of file
+    Length: QWord;                 // Length of section
   end;
   
-  //Version 3 has this qword. 2 does not
+  // Version 3 has this qword. 2 does not
   TITSFHeaderSuffix = record
     Offset: QWord; // offset within file of content section 0
   end;
   
+  { This section contains the total size of the file, and not much else }
   TITSPHeaderPrefix = record
-    Unknown1: LongWord;// = $01FE
-    Unknown2: LongWord;// = 0
-    FileSize: QWord;
-    Unknown3: LongWord;// =0
-    Unknown4: LongWord;// =0
+    Unknown1: LongWord; // = $01FE
+    Unknown2: LongWord; // = 0
+    FileSize: QWord;    // File Size
+    Unknown3: LongWord; // =0
+    Unknown4: LongWord; // =0
   end;
   
+  { The directory starts with a header }
   TITSPHeader = record
     ITSPsig: array [0..3] of char; // = 'ITSP'
-    Version: LongWord;             // =1
+    Version: LongWord;             // =1 Version number
     DirHeaderLength: Longword;     // Length of the directory header
     Unknown1: LongWord;            // =$0a
-    ChunkSize: LongWord;           // $1000
-    Density: LongWord; // usually = 2
-    IndexTreeDepth: LongWord;// 1 if there is no index 2 if there is one level of PMGI chunks
-    IndexOfRootChunk: LongInt;// -1 if no root chunk
-    FirstPMGLChunkIndex,
-    LastPMGLChunkIndex: LongWord;
-    Unknown2: LongInt; // = -1
-    DirectoryChunkCount: LongWord;
-    LanguageID: LongWord;
-    GUID: TGuid;
-    LengthAgain: LongWord; //??? $54
-    Unknown3: LongInt; // = -1
-    Unknown4: LongInt; // = -1
-    Unknown5: LongInt; // = -1
+    ChunkSize: LongWord;           // $1000 Directory chunk size
+    Density: LongWord;             // "Density" of quickref section, usually = 2
+    IndexTreeDepth: LongWord;      // Depth of the index tree, 1 if there is no index 2 if there is one level of PMGI chunks
+    IndexOfRootChunk: LongInt;     // Chunk number of root index chunk, -1 if there is none
+    FirstPMGLChunkIndex,           // Chunk number of first PMGL (listing) chunk
+    LastPMGLChunkIndex: LongWord;  // Chunk number of last PMGL (listing) chunk
+    Unknown2: LongInt;             // = -1
+    DirectoryChunkCount: LongWord; // Number of directory chunks (total)
+    LanguageID: LongWord;          // Windows language ID
+    GUID: TGuid;                   // {5D02926A-212E-11D0-9DF9-00A0C922E6EC}
+    LengthAgain: LongWord;         // $54 (This is the length again)
+    Unknown3: LongInt;             // = -1
+    Unknown4: LongInt;             // = -1
+    Unknown5: LongInt;             // = -1
   end;
   
   TDirChunkType = (ctPMGL, ctPMGI, ctAOLL, ctAOLI, ctUnknown);
-  
+
+  { The header is directly followed by the directory chunks.
+    There are two types of directory chunks -- index chunks, and listing chunks.
+    The index chunk will be omitted if there is only one listing chunk. }
   TPMGListChunk = record
-    PMGLsig: array [0..3] of char;
-    UnusedSpace: Longword; ///!!! this value can also represent the size of quickref area in the end of the chunk
-    Unknown1: Longword; //always 0
-    PreviousChunkIndex: LongInt; // chunk number of the prev listing chunk when reading dir in sequence
-                                 // (-1 if this is the first listing chunk)
-    NextChunkIndex: LongInt; // chunk number of the next listing chunk (-1 if this is the last chunk)
+    PMGLsig: array [0..3] of char; // 'PMGL'
+    UnusedSpace: Longword;         // Length of free space and/or (!!) quickref area at end of directory chunk
+    Unknown1: Longword;            // always 0
+    PreviousChunkIndex: LongInt;   { chunk number of the prev listing chunk when reading dir in sequence
+                                    (-1 if this is the first listing chunk) }
+    NextChunkIndex: LongInt;       // chunk number of the next listing chunk (-1 if this is the last chunk)
   end;
 
-  PPMGListChunkEntry = ^TPMGListChunkEntry;
+  { directory listing entry }
   TPMGListChunkEntry = record
     //NameLength: LongInt; we don't need this permanantly so I've moved it to a temp var
     Name: String;
-    ContentSection: LongWord;// QWord;
-    ContentOffset: QWord;
-    DecompressedLength: QWord;
+    ContentSection: LongWord;  // QWord content section
+    ContentOffset: QWord;      // offset
+    DecompressedLength: QWord; // length
   end;
-  
+  PPMGListChunkEntry = ^TPMGListChunkEntry;
+
+  { index chunk }
   TPMGIIndexChunk = record
-    PMGIsig: array [0..3] of char;
-    UnusedSpace: LongWord; // has a quickref area
+    PMGIsig: array [0..3] of char; // 'PMGI'
+    UnusedSpace: LongWord;         // Length of quickref / free area at end of directory chunk
   end;
   
+  { directory index entry }
   TPMGIIndexChunkEntry = record
-    Name: String;
-    ListingChunk: DWord;
+    //NameLength: LongInt; // length of name
+    Name: String;        //  (UTF-8 encoded)
+    ListingChunk: DWord; // directory listing chunk which starts with name
   end;
 
   

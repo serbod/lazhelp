@@ -1204,7 +1204,7 @@ begin
   FChmFrame.tvContents.OnExpanded := @TOCExpand;
   FChmFrame.tvContents.OnCollapsed := @TOCCollapse;
   FChmFrame.tvContents.OnCreateNodeClass := @GetTreeNodeClass;
-  FChmFrame.tvContents.Images := fImageList;
+  FChmFrame.tvContents.Images := FImageList;
 
   FChmFrame.tsIndex.Caption := slhelp_Index;
   FChmFrame.edIndexSearch.Caption := slhelp_Search;

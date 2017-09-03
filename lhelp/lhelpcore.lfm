@@ -52,7 +52,7 @@ object HelpForm: THelpForm
   OnKeyUp = FormKeyUp
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.2.0'
+  LCLVersion = '1.9.0.0'
   Visible = True
   object PageControl: TPageControl
     Left = 0
@@ -77,21 +77,21 @@ object HelpForm: THelpForm
     Images = ImageListToolbar
     TabOrder = 1
     object HomeBttn: TToolButton
-      Left = 65
+      Left = 41
       Top = 0
       Caption = 'HomeBttn'
       ImageIndex = 0
       OnClick = HomeToolBtnClick
     end
     object BackBttn: TToolButton
-      Left = 97
+      Left = 73
       Top = 0
       Caption = 'BackBttn'
       ImageIndex = 1
       OnClick = BackToolBtnClick
     end
     object ForwardBttn: TToolButton
-      Left = 129
+      Left = 105
       Top = 0
       Caption = 'ForwardBttn'
       ImageIndex = 2
@@ -108,14 +108,13 @@ object HelpForm: THelpForm
       Left = 33
       Height = 32
       Top = 0
-      Width = 32
       Caption = 'ToolButton1'
       Style = tbsSeparator
     end
   end
   object MainMenu1: TMainMenu
-    left = 208
-    top = 80
+    Left = 208
+    Top = 80
     object FileMenuItem: TMenuItem
       Caption = '&File'
       object FileMenuOpenItem: TMenuItem
@@ -176,12 +175,12 @@ object HelpForm: THelpForm
   object OpenDialog1: TOpenDialog
     Filter = 'Help files (*.chm)|*.chm|All files (*.*)|*'
     FilterIndex = 0
-    left = 248
-    top = 92
+    Left = 248
+    Top = 92
   end
   object ImageList1: TImageList
-    left = 80
-    top = 75
+    Left = 80
+    Top = 75
     Bitmap = {
       4C690400000010000000100000007001E300B0CE2A000000000000000000F609
       0200E1281B00005959000090AF00329FCCFF75888800003A3A00000E0E00FA11
@@ -317,14 +316,14 @@ object HelpForm: THelpForm
   object ApplicationProperties1: TApplicationProperties
     ShowButtonGlyphs = sbgSystem
     ShowMenuGlyphs = sbgSystem
-    left = 80
-    top = 136
+    Left = 80
+    Top = 136
   end
   object ImageListToolbar: TImageList
     Height = 22
     Width = 22
-    left = 120
-    top = 88
+    Left = 120
+    Top = 88
     Bitmap = {
       4C69040000001600000016000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000A4190000A4FF0000A4FF0000
