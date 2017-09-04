@@ -98,11 +98,12 @@ type
     function IsValidFile(): Boolean;
     { Read directory listing entries and pass every entry into ForEach callback method }
     procedure GetCompleteFileList(ForEach: TFileEntryForEach; AIncludeInternalFiles: Boolean = True); virtual;
-    // Returns zero if no. Otherwise it is the size of the object
-    // NOTE directories will return zero size even if they exist
+    { Returns zero if no. Otherwise it is the size of the object
+     Found AName directory entry is set as CachedEntry
+     NOTE directories will return zero size even if they exist }
     function ObjectExists(const AName: String): QWord; virtual;
     { Returns memory block from given section name
-      !! YOU must Free the stream! }
+      !! You MUST Free() the stream! }
     function GetObject(Name: String): TMemoryStream; virtual; deprecated;
     { Seek internal file by his Name and read file content into AData stream, return True on success }
     function ReadFileContent(const AName: String; AData: TStream): Boolean; virtual;
@@ -156,7 +157,9 @@ type
     function GetTOCSitemap(ForceXML: Boolean = False): TChmSiteMap; deprecated;
     { Result MUST be freed by caller }
     function GetIndexSitemap(ForceXML: Boolean = False): TChmSiteMap; deprecated;
+    { Read TOC (Table Of Content) items into SiteMap object }
     function ReadTOCSitemap(SiteMap: TChmSiteMap; ForceXML: Boolean = False): Boolean;
+    { Read Index items into SiteMap object }
     function ReadIndexSitemap(SiteMap: TChmSiteMap; ForceXML: Boolean = False): Boolean;
     function HasContextList(): Boolean;
     property DefaultPage: String read FDefaultPage;
@@ -255,6 +258,7 @@ begin
   FStream.Position := 0;
   FFreeStreamOnDestroy := FreeStreamOnDestroy;
   ReadHeader();
+  ReadSections(FSectionNames);
   if not IsValidFile then Exit;
 end;
 
@@ -599,9 +603,15 @@ begin
 end;
 
 function TITSFReader.ReadFileContent(const AName: String; AData: TStream): Boolean;
+var
+  TmpEntry: TPMGListChunkEntry;
 begin
   Result := False;
-  if not Assigned(AData) then Exit;
+  if not Assigned(AData) then
+  begin
+    ChmLastError := ERR_STREAM_NOT_ASSIGNED;
+    Exit;
+  end;
 
   if ObjectExists(AName) = 0 then
   begin
@@ -609,7 +619,11 @@ begin
     Exit;
   end;
 
-  Result := ReadFileContentByEntry(FCachedEntry, AData);
+  // FCachedEntry now contain AName directory entry
+  // FCachedEntry can change while reading!
+  TmpEntry := FCachedEntry;
+  Result := ReadFileContentByEntry(TmpEntry, AData);
+  FCachedEntry := TmpEntry;
 end;
 
 function TITSFReader.ReadFileContentByEntry(const AEntry: TPMGListChunkEntry;
@@ -624,16 +638,16 @@ begin
   if AEntry.ContentSection = 0 then
   begin
     FStream.Position := FHeaderSuffix.Offset + AEntry.ContentOffset;
-    AData.CopyFrom(FStream, FCachedEntry.DecompressedLength);
+    AData.CopyFrom(FStream, AEntry.DecompressedLength);
     Result := True;
   end
   else
   begin // we have to get it from ::DataSpace/Storage/[MSCompressed,Uncompressed]/ControlData
-    if FSectionNames.Count = 0 then
-      ReadSections(FSectionNames);
-
-    FmtStr(SectionName, '::DataSpace/Storage/%s/',[FSectionNames[AEntry.ContentSection]]);
-    Result := ReadBlockFromSection(SectionName, AEntry.ContentOffset, AEntry.DecompressedLength, AData);
+    if FSectionNames.Count >= AEntry.ContentSection then
+    begin
+      FmtStr(SectionName, '::DataSpace/Storage/%s/',[FSectionNames[AEntry.ContentSection]]);
+      Result := ReadBlockFromSection(SectionName, AEntry.ContentOffset, AEntry.DecompressedLength, AData);
+    end;
   end;
   AData.Position := 0;
 end;

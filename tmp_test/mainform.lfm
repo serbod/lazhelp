@@ -41,4 +41,31 @@ object FormMain: TFormMain
     ViewStyle = vsReport
     OnSelectItem = lvEntriesSelectItem
   end
+  object ButtonTestListing: TButton
+    Left = 22
+    Height = 25
+    Top = 511
+    Width = 75
+    Caption = 'Listing'
+    OnClick = ButtonTestListingClick
+    TabOrder = 2
+  end
+  object ButtonTestTOC: TButton
+    Left = 22
+    Height = 25
+    Top = 547
+    Width = 75
+    Caption = 'TOC'
+    OnClick = ButtonTestTOCClick
+    TabOrder = 3
+  end
+  object ButtonTestIndex: TButton
+    Left = 120
+    Height = 25
+    Top = 544
+    Width = 75
+    Caption = 'Index'
+    OnClick = ButtonTestIndexClick
+    TabOrder = 4
+  end
 end
