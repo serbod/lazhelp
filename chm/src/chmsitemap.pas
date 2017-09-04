@@ -25,7 +25,7 @@ unit chmsitemap;
 interface
 
 uses
-  Classes, SysUtils, fasthtmlparser;
+  Classes, SysUtils, FastHTMLParser;
 
 type
   TChmSiteMapItems = class; // forward
@@ -36,38 +36,39 @@ type
   TChmSiteMapItem = class(TPersistent)
   private
     FChildren: TChmSiteMapItems;
-    FComment: String;
+    FComment: string;
     FImageNumber: Integer;
     FIncreaseImageIndex: Boolean;
-    FKeyWord: String;
-    FLocal: String;
+    FKeyWord: string;
+    FLocal: string;
     FOwner: TChmSiteMapItems;
-    FSeeAlso: String;
-    FText: String;
-    FURL: String;
-    FMerge : String;
-    FFrameName : String;
-    FWindowName : String;
+    FSeeAlso: string;
+    FText: string;
+    FURL: string;
+    FMerge: string;
+    FFrameName: string;
+    FWindowName: string;
     procedure SetChildren(const AValue: TChmSiteMapItems);
   public
     constructor Create(AOwner: TChmSiteMapItems);
     destructor Destroy; override;
   published
     property Children: TChmSiteMapItems read FChildren write SetChildren;
-    property Text: String read FText write FText; // Name for TOC; KeyWord for index
-    property KeyWord: String read FKeyWord write FKeyWord;
-    property Local: String read FLocal write FLocal;
-    property URL: String read FURL write FURL;
-    property SeeAlso: String read FSeeAlso write FSeeAlso;
+    property Text: string read FText write FText; // Name for TOC; KeyWord for index
+    property KeyWord: string read FKeyWord write FKeyWord;
+    property Local: string read FLocal write FLocal;
+    property URL: string read FURL write FURL;
+    property SeeAlso: string read FSeeAlso write FSeeAlso;
     property ImageNumber: Integer read FImageNumber write FImageNumber default -1;
-    property IncreaseImageIndex: Boolean read FIncreaseImageIndex write FIncreaseImageIndex;
-    property Comment: String read FComment write FComment;
+    property IncreaseImageIndex: Boolean read FIncreaseImageIndex
+      write FIncreaseImageIndex;
+    property Comment: string read FComment write FComment;
     property Owner: TChmSiteMapItems read FOwner;
 
-    property FrameName: String read FFrameName write FFrameName;
-    property WindowName: String read FWindowName write FWindowName;
-//    property Type_: Integer read FType_ write FType_; either Local or URL
-    property Merge: String read FMerge write FMerge;
+    property FrameName: string read FFrameName write FFrameName;
+    property WindowName: string read FWindowName write FWindowName;
+    //    property Type_: Integer read FType_ write FType_; either Local or URL
+    property Merge: string read FMerge write FMerge;
   end;
 
   { TChmSiteMapItems }
@@ -96,17 +97,17 @@ type
     property Owner: TChmSiteMap read FOwner;
     property InternalData: Dword read FInternalData write FInternalData;
   end;
-  
+
 
   { TChmSiteMapTree }
   TSiteMapType = (stTOC, stIndex);
-  
+
   TSiteMapTag = (smtUnknown, smtNone, smtHTML, smtHEAD, smtBODY);
   TSiteMapTags = set of TSiteMapTag;
 
   TSiteMapBodyTag = (smbtUnknown, smbtNone, smbtUL, smbtLI, smbtOBJECT, smbtPARAM);
   TSiteMapBodyTags = set of TSiteMapBodyTag;
-  
+
   TLIObjectParamType = (ptName, ptLocal, ptKeyword);
 
   TChmSiteMap = class
@@ -115,10 +116,10 @@ type
     FBackgroundColor: LongInt;
     FCurrentItems: TChmSiteMapItems;
     FExWindowStyles: LongInt;
-    FFont: String;
+    FFont: string;
     FForegroundColor: LongInt;
-    FFrameName: String;
-    FImageList: String;
+    FFrameName: string;
+    FImageList: string;
     FImageWidth: Integer;
     FSiteMapTags: TSiteMapTags;
     FSiteMapBodyTags: TSiteMapBodyTags;
@@ -126,78 +127,87 @@ type
     FItems: TChmSiteMapItems;
     FSiteMapType: TSiteMapType;
     FUseFolderImages: Boolean;
-    FWindowName: String;
+    FWindowName: string;
     FLevel: Integer;
     FLevelForced: Boolean;
     FWindowStyles: LongInt;
     procedure SetItems(const AValue: TChmSiteMapItems);
   protected
-    procedure FoundTag (ACaseInsensitiveTag, AActualTag: string);
+    procedure FoundTag(ACaseInsensitiveTag, AActualTag: string);
     procedure FoundText(AText: string);
   public
     constructor Create(AType: TSiteMapType);
     destructor Destroy; override;
-    procedure LoadFromFile(AFileName: String);
+    procedure LoadFromFile(AFileName: string);
     procedure LoadFromStream(AStream: TStream);
-    procedure SaveToFile(AFileName:String);
+    procedure SaveToFile(AFileName: string);
     procedure SaveToStream(AStream: TStream);
     property Items: TChmSiteMapItems read FItems write SetItems;
     property SiteMapType: TSiteMapType read FSiteMapType;
     // SiteMap properties. most of these are invalid for the index
-    property FrameName: String read FFrameName write FFrameName;
-    property WindowName: String read FWindowName write FWindowName;
-    property ImageList: String read FImageList write FImageList;
+    property FrameName: string read FFrameName write FFrameName;
+    property WindowName: string read FWindowName write FWindowName;
+    property ImageList: string read FImageList write FImageList;
     property ImageWidth: Integer read FImageWidth write FImageWidth;
     property BackgroundColor: LongInt read FBackgroundColor write FBackgroundColor;
     property ForegroundColor: LongInt read FForegroundColor write FForegroundColor;
     property ExWindowStyles: LongInt read FExWindowStyles write FExWindowStyles;
     property WindowStyles: LongInt read FWindowStyles write FWindowStyles;
     property UseFolderImages: Boolean read FUseFolderImages write FUseFolderImages;
-    property Font: String read FFont write FFont;
+    property Font: string read FFont write FFont;
     property AutoGenerated: Boolean read FAutoGenerated write FAutoGenerated;
   end;
 
 implementation
+
 uses HTMLUtil;
 
 { TChmSiteMapTree }
 
 procedure TChmSiteMap.SetItems(const AValue: TChmSiteMapItems);
 begin
-  if FItems=AValue then exit;
-  FItems:=AValue;
+  if FItems = AValue then
+    exit;
+  FItems := AValue;
 end;
 
 procedure TChmSiteMap.FoundTag(ACaseInsensitiveTag, AActualTag: string);
-    function ActiveItem: TChmSiteMapItem;
+
+  function ActiveItem: TChmSiteMapItem;
+  begin
+    Result := FCurrentItems.Item[FCurrentItems.Count - 1];
+  end;
+
+  procedure IncreaseULevel;
+  begin
+    if FCurrentItems = nil then
+      FCurrentItems := Items
+    else
     begin
-      Result := FCurrentItems.Item[FCurrentItems.Count-1]
+      //WriteLn('NewLevel. Count = ', FCurrentItems.Count, ' Index = ',Items.Count-1);
+      FCurrentItems := ActiveItem.Children;
     end;
-    procedure IncreaseULevel;
-    begin
-      if FCurrentItems = nil then FCurrentItems := Items
-      else begin
-        //WriteLn('NewLevel. Count = ', FCurrentItems.Count, ' Index = ',Items.Count-1);
-        FCurrentItems := ActiveItem.Children;
-      end;
-      Inc(FLevel);
-    end;
-    procedure DecreaseULevel;
-    begin
-      if Assigned(FCurrentItems) and Assigned(FCurrentItems.ParentItem) then
-        FCurrentItems := FCurrentItems.ParentItem.Owner
-      else FCurrentItems := nil;
-      Dec(FLevel);
-    end;
-    procedure NewSiteMapItem;
-    begin
-      FCurrentItems.Add(TChmSiteMapItem.Create(FCurrentItems));
-    end;
+    Inc(FLevel);
+  end;
+
+  procedure DecreaseULevel;
+  begin
+    if Assigned(FCurrentItems) and Assigned(FCurrentItems.ParentItem) then
+      FCurrentItems := FCurrentItems.ParentItem.Owner
+    else
+      FCurrentItems := nil;
+    Dec(FLevel);
+  end;
+
+  procedure NewSiteMapItem;
+  begin
+    FCurrentItems.Add(TChmSiteMapItem.Create(FCurrentItems));
+  end;
+
 var
   TagName,
   //TagAttribute,
-  TagAttributeName,
-  TagAttributeValue: String;
+  TagAttributeName, TagAttributeValue: string;
   //isParam, IsMerged : string;
 begin
   //WriteLn('TAG:', AActualTag);
@@ -211,114 +221,137 @@ begin
   end;}
 
   //if (smtHTML in FSiteMapTags) then begin
-     if not (smtBODY in FSiteMapTags) then begin
-       if TagName = 'BODY' then Include(FSiteMapTags, smtBODY);
-     end
-     else begin
-       if TagName = '/BODY' then Exclude(FSiteMapTags, smtBODY);
-     end;
+  if not (smtBODY in FSiteMapTags) then
+  begin
+    if TagName = 'BODY' then
+      Include(FSiteMapTags, smtBODY);
+  end
+  else
+  begin
+    if TagName = '/BODY' then
+      Exclude(FSiteMapTags, smtBODY);
+  end;
 
-     if (smtBODY in FSiteMapTags) then begin
-       //WriteLn('GOT TAG: ', AActualTag);
-       if TagName = 'UL' then begin
-         //WriteLN('Inc Level');
-         IncreaseULevel;
-       end
-       else if TagName = '/UL' then begin
-         //WriteLN('Dec Level');
-         DecreaseULevel;
-       end
-       else if (TagName = 'LI') and (FLevel = 0) then
-         FLevelForced := True
-       else if TagName = 'OBJECT' then begin
-         Include(FSiteMapBodyTags, smbtOBJECT);
-         if FLevelForced then
-           IncreaseULevel;
-         If FLevel > 0 then // if it is zero it is the site properties
-           NewSiteMapItem;
-       end
-       else if TagName = '/OBJECT' then begin
-         Exclude(FSiteMapBodyTags, smbtOBJECT);
-         if FLevelForced then
-         begin
-           DecreaseULevel;
-           FLevelForced := False;
-         end;
-       end
-       else begin // we are the properties of the object tag
-         if (smbtOBJECT in FSiteMapBodyTags) then
-           begin
-            if (FLevel > 0 ) then 
-             begin
+  if (smtBODY in FSiteMapTags) then
+  begin
+    //WriteLn('GOT TAG: ', AActualTag);
+    if TagName = 'UL' then
+    begin
+      //WriteLN('Inc Level');
+      IncreaseULevel();
+    end
+    else if TagName = '/UL' then
+    begin
+      //WriteLN('Dec Level');
+      DecreaseULevel();
+    end
+    else if (TagName = 'LI') and (FLevel = 0) then
+      FLevelForced := True
+    else if TagName = 'OBJECT' then
+    begin
+      Include(FSiteMapBodyTags, smbtOBJECT);
+      if FLevelForced then
+        IncreaseULevel();
+      if FLevel > 0 then // if it is zero it is the site properties
+        NewSiteMapItem();
+    end
+    else if TagName = '/OBJECT' then
+    begin
+      Exclude(FSiteMapBodyTags, smbtOBJECT);
+      if FLevelForced then
+      begin
+        DecreaseULevel();
+        FLevelForced := False;
+      end;
+    end
+    else
+    begin // we are the properties of the object tag
+      if (smbtOBJECT in FSiteMapBodyTags) then
+      begin
+        if (FLevel > 0) then
+        begin
 
-              if LowerCase(GetTagName(AActualTag)) = 'param' then begin
+          if LowerCase(GetTagName(AActualTag)) = 'param' then
+          begin
 
-                TagAttributeName := GetVal(AActualTag, 'name');
-                TagAttributeValue := GetVal(AActualTag, 'value');
-                //writeln('name,value',tagattributename, ' ',tagattributevalue);
-                if TagAttributeName <> '' then begin
-                  if CompareText(TagAttributeName, 'keyword') = 0 then begin
-                    ActiveItem.Text := TagAttributeValue;
-                  end
-                  else if CompareText(TagAttributeName, 'name') = 0 then begin
-                    if ActiveItem.Text = '' then ActiveItem.Text := TagAttributeValue;
-                  end
-                  else if CompareText(TagAttributeName, 'local') = 0 then begin
-                    ActiveItem.Local := TagAttributeValue;
-                  end
-                  else if CompareText(TagAttributeName, 'URL') = 0 then begin
-                    ActiveItem.URL := TagAttributeValue;
-                  end
-                  else if CompareText(TagAttributeName, 'ImageNumber') = 0 then begin
-                    ActiveItem.ImageNumber := StrToInt(TagAttributeValue);
-                  end
-                  else if CompareText(TagAttributeName, 'New') = 0 then begin
-                    ActiveItem.IncreaseImageIndex := (LowerCase(TagAttributeValue) = 'yes');
-                  end
-                  else if CompareText(TagAttributeName, 'Comment') = 0 then begin
-                    ActiveItem.Comment := TagAttributeValue
-                  end
-                  else if CompareText(TagAttributeName, 'Merge') = 0 then begin
-                    ActiveItem.Merge:= TagAttributeValue
-                  end;
-                  //else if CompareText(TagAttributeName, '') = 0 then begin
-                  //end;
-                end;
+            TagAttributeName := GetVal(AActualTag, 'name');
+            TagAttributeValue := GetVal(AActualTag, 'value');
+            //writeln('name,value',tagattributename, ' ',tagattributevalue);
+            if TagAttributeName <> '' then
+            begin
+              if CompareText(TagAttributeName, 'keyword') = 0 then
+              begin
+                ActiveItem.Text := TagAttributeValue;
+              end
+              else if CompareText(TagAttributeName, 'name') = 0 then
+              begin
+                if ActiveItem.Text = '' then
+                  ActiveItem.Text := TagAttributeValue;
+              end
+              else if CompareText(TagAttributeName, 'local') = 0 then
+              begin
+                ActiveItem.Local := TagAttributeValue;
+              end
+              else if CompareText(TagAttributeName, 'URL') = 0 then
+              begin
+                ActiveItem.URL := TagAttributeValue;
+              end
+              else if CompareText(TagAttributeName, 'ImageNumber') = 0 then
+              begin
+                ActiveItem.ImageNumber := StrToInt(TagAttributeValue);
+              end
+              else if CompareText(TagAttributeName, 'New') = 0 then
+              begin
+                ActiveItem.IncreaseImageIndex :=
+                  (LowerCase(TagAttributeValue) = 'yes');
+              end
+              else if CompareText(TagAttributeName, 'Comment') = 0 then
+              begin
+                ActiveItem.Comment := TagAttributeValue;
+              end
+              else if CompareText(TagAttributeName, 'Merge') = 0 then
+              begin
+                ActiveItem.Merge := TagAttributeValue;
               end;
-            end
-           else
-             begin // object and level is zero?
-               if LowerCase(GetTagName(AActualTag)) = 'param' then begin
-                 begin
-                   TagAttributeName := uppercase(GetVal(AActualTag, 'name'));
-                   TagAttributeValue := GetVal(AActualTag, 'value');
-                   if TagAttributeName = 'FRAMENAME' then
-                     framename:=TagAttributeValue
-                   else
-                     if TagAttributeName = 'WINDOWNAME' then
-                       WINDOWname:=TagAttributeValue
-                   else
-                     if TagAttributeName = 'WINDOW STYLES' then
-                       WindowStyles:=StrToIntDef(TagAttributeValue,0)
-                   else
-                     if TagAttributeName = 'EXWINDOW STYLES' then
-                       ExWindowStyles:=StrToIntDef(TagAttributeValue,0)
-                   else
-                     if TagAttributeName = 'FONT' then
-                       FONT:=TagAttributeValue
-                   else
-                     if TagAttributeName = 'IMAGELIST' then
-                      IMAGELIST:=TagAttributeValue
-                    else
-                     if TagAttributeName = 'IMAGETYPE' then
-                      UseFolderImages:=uppercase(TagAttributeValue)='FOLDER';
-                  // writeln('0:',flevel,' ' ,aactualtag,' ',tagname,' ' ,tagattributename, ' ' ,tagattributevalue);
-                 end;
-                 end;
-             end;
+              //else if CompareText(TagAttributeName, '') = 0 then begin
+              //end;
+            end;
           end;
-       end;
-     end;
+        end
+        else
+        begin // object and level is zero?
+          if LowerCase(GetTagName(AActualTag)) = 'param' then
+          begin
+            begin
+              TagAttributeName := uppercase(GetVal(AActualTag, 'name'));
+              TagAttributeValue := GetVal(AActualTag, 'value');
+              if TagAttributeName = 'FRAMENAME' then
+                framename := TagAttributeValue
+              else
+              if TagAttributeName = 'WINDOWNAME' then
+                WINDOWname := TagAttributeValue
+              else
+              if TagAttributeName = 'WINDOW STYLES' then
+                WindowStyles := StrToIntDef(TagAttributeValue, 0)
+              else
+              if TagAttributeName = 'EXWINDOW STYLES' then
+                ExWindowStyles := StrToIntDef(TagAttributeValue, 0)
+              else
+              if TagAttributeName = 'FONT' then
+                FONT := TagAttributeValue
+              else
+              if TagAttributeName = 'IMAGELIST' then
+                IMAGELIST := TagAttributeValue
+              else
+              if TagAttributeName = 'IMAGETYPE' then
+                UseFolderImages := uppercase(TagAttributeValue) = 'FOLDER';
+              // writeln('0:',flevel,' ' ,aactualtag,' ',tagname,' ' ,tagattributename, ' ' ,tagattributevalue);
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
   //end
 end;
 
@@ -329,7 +362,7 @@ end;
 
 constructor TChmSiteMap.Create(AType: TSiteMapType);
 begin
-  Inherited Create;
+  inherited Create;
   FSiteMapType := AType;
   FSiteMapTags := [smtNone];
   FSiteMapBodyTags := [smbtNone];
@@ -342,21 +375,20 @@ begin
   if Assigned(FHTMLParser) then
     FreeAndNil(FHTMLParser);
   FreeAndNil(FItems);
-  Inherited Destroy;
+  inherited Destroy;
 end;
 
-procedure TChmSiteMap.LoadFromFile(AFileName: String);
+procedure TChmSiteMap.LoadFromFile(AFileName: string);
 var
-  Buffer: String;
+  Buffer: string;
   TmpStream: TMemoryStream;
 begin
-  if Assigned(FHTMLParser) then FHTMLParser.Free;
+  if Assigned(FHTMLParser) then
+    FHTMLParser.Free;
   TmpStream := TMemoryStream.Create;
   try
     TmpStream.LoadFromFile(AFileName);
-    SetLength(Buffer, TmpStream.Size);
-    TmpStream.Position := 0;
-    TmpStream.Read(Buffer[1], TmpStream.Size);
+    SetString(Buffer, PChar(TmpStream.Memory), TmpStream.Size);
   finally
     TmpStream.Free;
   end;
@@ -372,11 +404,14 @@ end;
 
 procedure TChmSiteMap.LoadFromStream(AStream: TStream);
 var
-  Buffer: String;
+  Buffer: string;
 begin
-  if Assigned(FHTMLParser) then FHTMLParser.Free;
-  SetLength(Buffer, AStream.Size-AStream.Position);
-  if AStream.Read(Buffer[1], AStream.Size-AStream.Position) > 0 then begin;
+  if Assigned(FHTMLParser) then
+    FHTMLParser.Free();
+
+  SetLength(Buffer, AStream.Size - AStream.Position);
+  if AStream.Read(PChar(Buffer)^, AStream.Size - AStream.Position) > 0 then
+  begin
     FHTMLParser := THTMLParser.Create(Buffer);
     FHTMLParser.OnFoundTag := @FoundTag;
     FHTMLParser.OnFoundText := @FoundText;
@@ -385,62 +420,75 @@ begin
   end;
 end;
 
-procedure TChmSiteMap.SaveToFile(AFileName:String);
+procedure TChmSiteMap.SaveToFile(AFileName: string);
 var
-  fs : TFileStream;
+  fs: TFileStream;
 begin
-  fs:=TFileStream.Create(AFileName,fmcreate);
+  fs := TFileStream.Create(AFileName, fmcreate);
   try
     SaveToStream(fs);
   finally
-    fs.free;
-    end;
+    fs.Free;
+  end;
 end;
 
 procedure TChmSiteMap.SaveToStream(AStream: TStream);
 var
   Indent: Integer;
-  procedure WriteString(AString: String);
+
+  procedure WriteString(const AString: string);
   var
     I: Integer;
   begin
-     for I := 0 to Indent-1 do AStream.WriteByte(Byte(' '));
-     AStream.Write(AString[1], Length(AString));
-     AStream.WriteByte(10);
+    for I := 0 to Indent - 1 do
+      AStream.WriteByte(byte(' '));
+    AStream.Write(PChar(AString)^, Length(AString));
+    AStream.WriteByte(10);
   end;
-  procedure WriteParam(AName: String; AValue: String);
+
+  procedure WriteParam(const AName: string; const AValue: string);
   begin
-    WriteString('<param name="'+AName+'" value="'+AValue+'">');
+    WriteString('<param name="' + AName + '" value="' + AValue + '">');
   end;
+
   procedure WriteEntries(AItems: TChmSiteMapItems);
   var
-    I : Integer;
+    I: Integer;
     Item: TChmSiteMapItem;
   begin
-    for I := 0 to AItems.Count-1 do begin
+    for I := 0 to AItems.Count - 1 do
+    begin
       Item := AItems.Item[I];
       WriteString('<LI> <OBJECT type="text/sitemap">');
       Inc(Indent, 8);
 
       if (SiteMapType = stIndex) and (Item.Children.Count > 0) then
-         WriteParam('Keyword', Item.Text);
+        WriteParam('Keyword', Item.Text);
       //if Item.KeyWord <> '' then WriteParam('Keyword', Item.KeyWord);
-      if Item.Text <> '' then WriteParam('Name', Item.Text);
-      if (Item.Local <> '') or (SiteMapType = stIndex) then WriteParam('Local', StringReplace(Item.Local, '\', '/', [rfReplaceAll]));
-      if Item.URL <> '' then WriteParam('URL', StringReplace(Item.URL, '\', '/', [rfReplaceAll]));
-      if (SiteMapType = stIndex) and (Item.SeeAlso <> '') then WriteParam('See Also', Item.SeeAlso);
+      if Item.Text <> '' then
+        WriteParam('Name', Item.Text);
+      if (Item.Local <> '') or (SiteMapType = stIndex) then
+        WriteParam('Local', StringReplace(Item.Local, '\', '/', [rfReplaceAll]));
+      if Item.URL <> '' then
+        WriteParam('URL', StringReplace(Item.URL, '\', '/', [rfReplaceAll]));
+      if (SiteMapType = stIndex) and (Item.SeeAlso <> '') then
+        WriteParam('See Also', Item.SeeAlso);
       //if Item.FrameName <> '' then WriteParam('FrameName', Item.FrameName);
       //if Item.WindowName <> '' then WriteParam('WindowName', Item.WindowName);
-      if Item.Comment <> '' then WriteParam('Comment', Item.Comment);
-      if (SiteMapType = stTOC) and (Item.IncreaseImageIndex) then WriteParam('New', 'yes'); // is this a correct value?
-      if (SiteMapType = stTOC) and (Item.ImageNumber <> -1) then WriteParam('ImageNumber', IntToStr(Item.ImageNumber));
+      if Item.Comment <> '' then
+        WriteParam('Comment', Item.Comment);
+      if (SiteMapType = stTOC) and (Item.IncreaseImageIndex) then
+        WriteParam('New', 'yes'); // is this a correct value?
+      if (SiteMapType = stTOC) and (Item.ImageNumber <> -1) then
+        WriteParam('ImageNumber', IntToStr(Item.ImageNumber));
 
       Dec(Indent, 3);
       WriteString('</OBJECT>');
       Dec(Indent, 5);
 
       // Now Sub Entries
-      if Item.Children.Count > 0 then begin
+      if Item.Children.Count > 0 then
+      begin
         WriteString('<UL>');
         Inc(Indent, 8);
         WriteEntries(Item.Children);
@@ -449,37 +497,50 @@ var
       end;
     end;
   end;
+
 begin
   Indent := 0;
   WriteString('<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">');
   WriteString('<HTML>');
   WriteString('<HEAD>');
-  WriteString('<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">');  // Should we change this?
+  WriteString('<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">');
+  // Should we change this?
   WriteString('<!-- Sitemap 1.0 -->');
   WriteString('</HEAD><BODY>');
 
   // Site Properties
   WriteString('<OBJECT type="text/site properties">');
   Inc(Indent, 8);
-    if SiteMapType = stTOC then begin
-      if FrameName <> '' then WriteParam('FrameName', FrameName);
-      if WindowName <> '' then WriteParam('WindowName', WindowName);
-      if ImageList <> '' then WriteParam('ImageList', ImageList);
-      if ImageWidth > 0 then WriteParam('Image Width', IntToStr(ImageWidth));
-      if BackgroundColor <> 0 then WriteParam('Background', hexStr(BackgroundColor, 4));
-      if ForegroundColor <> 0 then WriteParam('Foreground', hexStr(ForegroundColor, 4));
-      if ExWindowStyles <> 0 then WriteParam('ExWindow Styles', hexStr(ExWindowStyles, 4));
-      if WindowStyles <> 0 then WriteParam('Window Styles', hexStr(WindowStyles, 4));
-      if UseFolderImages then WriteParam('ImageType', 'Folder');
-    end;
-    // both TOC and Index have font
-    if Font <> '' then
-      WriteParam('Font', Font);
-    Dec(Indent, 8);
+  if SiteMapType = stTOC then
+  begin
+    if FrameName <> '' then
+      WriteParam('FrameName', FrameName);
+    if WindowName <> '' then
+      WriteParam('WindowName', WindowName);
+    if ImageList <> '' then
+      WriteParam('ImageList', ImageList);
+    if ImageWidth > 0 then
+      WriteParam('Image Width', IntToStr(ImageWidth));
+    if BackgroundColor <> 0 then
+      WriteParam('Background', hexStr(BackgroundColor, 4));
+    if ForegroundColor <> 0 then
+      WriteParam('Foreground', hexStr(ForegroundColor, 4));
+    if ExWindowStyles <> 0 then
+      WriteParam('ExWindow Styles', hexStr(ExWindowStyles, 4));
+    if WindowStyles <> 0 then
+      WriteParam('Window Styles', hexStr(WindowStyles, 4));
+    if UseFolderImages then
+      WriteParam('ImageType', 'Folder');
+  end;
+  // both TOC and Index have font
+  if Font <> '' then
+    WriteParam('Font', Font);
+  Dec(Indent, 8);
   WriteString('</OBJECT>');
-  
+
   // And now the items
-  if Items.Count > 0 then begin
+  if Items.Count > 0 then
+  begin
     WriteString('<UL>');
     Inc(Indent, 8);
     // WriteEntries
@@ -487,9 +548,9 @@ begin
     Dec(Indent, 8);
     WriteString('</UL>');
   end;
-  
+
   WriteString('</BODY></HTML>');
-  
+
   AStream.Size := AStream.Position;
 end;
 
@@ -497,21 +558,22 @@ end;
 
 procedure TChmSiteMapItem.SetChildren(const AValue: TChmSiteMapItems);
 begin
-  if FChildren = AValue then exit;
+  if FChildren = AValue then
+    exit;
   FChildren := AValue;
 end;
 
 constructor TChmSiteMapItem.Create(AOwner: TChmSiteMapItems);
 begin
-  Inherited Create;
+  inherited Create;
   FOwner := AOwner;
   FChildren := TChmSiteMapItems.Create(Owner.Owner, Self);
 end;
 
 destructor TChmSiteMapItem.Destroy;
 begin
-  FChildren.Free;
-  Inherited Destroy;
+  FreeAndNil(FChildren);
+  inherited Destroy;
 end;
 
 { TChmSiteMapItems }
@@ -533,7 +595,7 @@ end;
 
 constructor TChmSiteMapItems.Create(AOwner: TChmSiteMap; AParentItem: TChmSiteMapItem);
 begin
-  FList := TList.Create;
+  FList := TList.Create();
   FParentItem := AParentItem;
   FOwner := AOwner;
   FInternalData := maxLongint;
@@ -541,14 +603,14 @@ end;
 
 destructor TChmSiteMapItems.Destroy;
 begin
-  Clear;
-  FList.Free;
+  Clear();
+  FreeAndNil(FList);
   inherited Destroy;
 end;
 
 procedure TChmSiteMapItems.Delete(AIndex: Integer);
 begin
-  Item[AIndex].Free;
+  Item[AIndex].Free();
   FList.Delete(AIndex);
 end;
 
@@ -573,7 +635,8 @@ procedure TChmSiteMapItems.Clear;
 var
   I: LongInt;
 begin
-  for I := Count-1 downto 0 do Delete(I);
+  for I := Count - 1 downto 0 do
+    Delete(I);
 end;
 
 procedure TChmSiteMapItems.Sort(Compare: TListSortCompare);
@@ -582,4 +645,3 @@ begin
 end;
 
 end.
-

@@ -102,18 +102,17 @@
              Changed case insensitive version to a new class instead of
              the old ExecUpcase
 
+ 0.4L.1c -  serbod:
+             Fixed potential string refcount and ''[1] errors
                                                                                                                                                           //
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 }
+unit FastHTMLParser;
 
 {$IFDEF FPC}{$MODE DELPHI}{$H+}{$ENDIF}
 
-
 // {$DEFINE DEBUGLN_ON}
-
-unit FastHTMLParser;
-
 
 interface
 
@@ -126,10 +125,11 @@ uses
 
 
 {$IFDEF DEBUGLN_ON}
-  // dummy, default debugging
-  procedure debugproc(s: string);
-  // for custom debugging, assign this in your units 
-  var debugln: procedure(s: string) = debugproc;
+// dummy, default debugging
+procedure DebugProcDummy(s: string);
+// for custom debugging, assign this in your units
+var
+  debugln: procedure(s: string) = DebugProcDummy;
 {$ENDIF}
 
 type
@@ -141,26 +141,28 @@ type
   // when text  found in the HTML
   TOnFoundText = procedure(Text: string) of object;
 
-  // Lars's modified html parser, case insensitive or case sensitive 
+  // Lars's modified html parser, case insensitive or case sensitive
 
   { THTMLParser }
 
   THTMLParser = class(TObject)
-    private
-      FDone: Boolean;
-    public
-      OnFoundTag: TOnFoundTag;
-      OnFoundText: TOnFoundText;
-      Raw: Pchar;
-      FCurrent : PChar;
-      constructor Create(sRaw: string);overload;
-      constructor Create(pRaw: PChar);overload;
-      procedure Exec;
-      procedure NilOnFoundTag(NoCaseTag, ActualTag: string);
-      procedure NilOnFoundText(Text: string);
-    Public
-      Function CurrentPos : Integer;
-      property Done: Boolean read FDone write FDone;
+  private
+    { keep local refcount-independent copy of string }
+    FRaw: string;
+    FDone: Boolean;
+    FCurrent: PChar;
+    procedure OnFoundTagDummy(NoCaseTag, ActualTag: string);
+    procedure OnFoundTextDummy(Text: string);
+  public
+    OnFoundTag: TOnFoundTag;
+    OnFoundText: TOnFoundText;
+    Raw: PChar;
+    constructor Create(sRaw: string); overload;
+    constructor Create(pRaw: PChar); overload;
+    procedure Exec;
+  public
+    function CurrentPos: Integer;
+    property Done: Boolean read FDone write FDone;
   end;
 
 
@@ -168,141 +170,152 @@ implementation
 
 
 // default debugging, do nothing, let user do his own by assigning DebugLn var
-procedure debugproc(s: string);
-begin 
+procedure DebugProcDummy(s: string);
+begin
 end;
 
 function CopyBuffer(StartIndex: PChar; Length: Integer): string;
 begin
   SetLength(Result, Length);
-  StrLCopy(@Result[1], StartIndex, Length);
+  StrLCopy(PChar(Result), StartIndex, Length);
 end;
 
 
 
 { ************************ THTMLParser ************************************** }
 
-constructor THTMLParser.Create(pRaw: Pchar);
+constructor THTMLParser.Create(pRaw: PChar);
 begin
-  if pRaw = '' then exit;
-  if pRaw = nil then exit;
-  Raw:= pRaw;
+  if (pRaw = nil) or (pRaw = '') then
+    Exit;
+  FRaw := pRaw;
+  Raw := PChar(FRaw);
 end;
 
 constructor THTMLParser.Create(sRaw: string);
 begin
-  if sRaw = '' then exit;
-  Raw:= Pchar(sRaw);
+  if sRaw = '' then
+    exit;
+  FRaw := sRaw;
+  Raw := PChar(FRaw);
 end;
 
 { default dummy "do nothing" events if events are unassigned }
-procedure THTMLParser.NilOnFoundTag(NoCaseTag, ActualTag: string);
-begin 
+procedure THTMLParser.OnFoundTagDummy(NoCaseTag, ActualTag: string);
+begin
 end;
 
-procedure THTMLParser.NilOnFoundText(Text: string);
-begin 
+procedure THTMLParser.OnFoundTextDummy(Text: string);
+begin
 end;
 
 function THTMLParser.CurrentPos: Integer;
 begin
   if Assigned(Raw) and Assigned(FCurrent) then
-    Result:=FCurrent-Raw
+    Result := FCurrent - Raw
   else
-    Result:=0;
+    Result := 0;
 end;
 
-procedure THTMLParser.Exec;
+procedure THTMLParser.Exec();
 var
   L: Integer;
   TL: Integer;
   I: Integer;
-  TagStart,
-  TextStart,
-  P: PChar;   // Pointer to current char.
-  C: Char;
+  TagStart, TextStart, P: PChar;   // Pointer to current char.
+  C: char;
 begin
-  {$IFDEF DEBUGLN_ON}debugln('FastHtmlParser Exec Begin');{$ENDIF}
+  {$IFDEF DEBUGLN_ON}
+  debugln('FastHtmlParser Exec Begin');
+  {$ENDIF}
   { set nil events once rather than checking for nil each time tag is found }
-  if not assigned(OnFoundText) then
-    OnFoundText:= NilOnFoundText;
-  if not assigned(OnFoundTag) then
-    OnFoundTag:= NilOnFoundTag;
+  if not Assigned(OnFoundText) then
+    OnFoundText := OnFoundTextDummy;
+  if not Assigned(OnFoundTag) then
+    OnFoundTag := OnFoundTagDummy;
 
-  TL:= StrLen(Raw);
-  I:= 0;
-  P:= Raw;
-  Done:= False;
+  TL := StrLen(Raw);
+  I := 0;
+  P := Raw;
+  Done := False;
   if P <> nil then
   begin
-    TagStart:= nil;
+    TagStart := nil;
     repeat
-      TextStart:= P;
+      TextStart := P;
       { Get next tag position }
-      while Not (P^ in [ '<', #0 ]) do
+      while not (P^ in ['<', #0]) do
       begin
-        Inc(P); Inc(I);
+        Inc(P);
+        Inc(I);
         if I >= TL then
         begin
-          Done:= True;
+          Done := True;
           Break;
         end;
       end;
-      if Done then Break;
+      if Done then
+        Break;
 
       { Is there any text before ? }
       if (TextStart <> nil) and (P > TextStart) then
       begin
-        L:= P - TextStart;
+        L := P - TextStart;
         { Yes, copy to buffer }
-        FCurrent:=P;
-        OnFoundText( CopyBuffer(TextStart, L) );
-      end else
+        FCurrent := P;
+        OnFoundText(CopyBuffer(TextStart, L));
+      end
+      else
       begin
-        TextStart:= nil;
+        TextStart := nil;
       end;
       { No }
 
-      TagStart:= P;
-      while Not (P^ in [ '>', #0]) do
+      TagStart := P;
+      while not (P^ in ['>', #0]) do
       begin
         // Find string in tag
         if (P^ = '"') or (P^ = '''') then
         begin
-          C:= P^;
-          Inc(P); Inc(I); // Skip current char " or '
+          C := P^;
+          Inc(P);
+          Inc(I); // Skip current char " or '
 
           // Skip until string end
-          while Not (P^ in [C, #0]) do
+          while not (P^ in [C, #0]) do
           begin
-            Inc(P);Inc(I);
+            Inc(P);
+            Inc(I);
           end;
         end;
 
-        Inc(P);Inc(I);
+        Inc(P);
+        Inc(I);
         if I >= TL then
         begin
-          Done:= True;
+          Done := True;
           Break;
         end;
       end;
-      if Done then Break;
+      if Done then
+        Break;
 
       { Copy this tag to buffer }
-      L:= P - TagStart + 1;
+      L := P - TagStart + 1;
 
-      FCurrent:=P;
-      OnFoundTag( uppercase(CopyBuffer(TagStart, L )), CopyBuffer(TagStart, L ) ); //L505: added uppercase
-      Inc(P); Inc(I);
-      if I >= TL then Break;
+      FCurrent := P;
+      OnFoundTag(UpperCase(CopyBuffer(TagStart, L)), CopyBuffer(TagStart, L));
+      //L505: added uppercase
+      Inc(P);
+      Inc(I);
+      if I >= TL then
+        Break;
     until (Done);
   end;
-  {$IFDEF DEBUGLN_ON}debugln('FastHtmlParser Exec End');{$ENDIF}
+  {$IFDEF DEBUGLN_ON}
+  debugln('FastHtmlParser Exec End');
+  {$ENDIF}
 end;
 
 
 end.
-
-
-
-

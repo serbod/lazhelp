@@ -28,22 +28,23 @@
   http://z505.com 
 
  Note: this isn't perfect, it needs to be improved.. see comments  }
-  
-unit HTMLUtil; {$ifdef fpc} {$MODE Delphi} {$H+}{$endif}
+
+unit HTMLUtil;
+{$ifdef fpc} {$MODE Delphi} {$H+}{$endif}
 
 interface
 
-uses 
+uses
   SysUtils;
 
 { most commonly used }
-function GetVal(tag, attribname_ci: string): string;
-function GetTagName(Tag: string): string;
+function GetVal(const tag, attribname_ci: string): string;
+function GetTagName(const Tag: string): string;
 
 { less commonly used, but useful }
-function GetUpTagName(tag: string): string;
-function GetNameValPair(tag, attribname_ci: string): string;
-function GetValFromNameVal(namevalpair: string): string;
+function GetUpTagName(const tag: string): string;
+function GetNameValPair(const tag, attribname_ci: string): string;
+function GetValFromNameVal(const namevalpair: string): string;
 
 { old buggy code}
 function GetVal_JAMES(tag, attribname_ci: string): string;
@@ -55,147 +56,148 @@ function GetNameValPair_cs(tag, attribname: string): string;
 
 implementation
 
-function CopyBuffer(StartIndex: PChar; Len: integer): string;
-var s : String;
-begin
-  SetLength(s, Len);
-  StrLCopy(@s[1], StartIndex, Len);
-  result:= s;
-end;
-
 { Return tag name, case preserved }
-function GetTagName(Tag: string): string;
+function GetTagName(const Tag: string): string;
 var
-  P : Pchar;
-  S : Pchar;
+  P: PChar;
+  S: PChar;
 begin
-  P := Pchar(Tag);
-  while P^ in ['<',' ',#9] do inc(P);
+  P := PChar(Tag);
+  while P^ in ['<', ' ', #9] do
+    Inc(P);
   S := P;
-  while Not (P^ in [' ','>',#0]) do inc(P);
+  while not (P^ in [' ', '>', #0]) do
+    Inc(P);
   if P > S then
-    Result := CopyBuffer( S, P-S)
+    SetString(Result, S, P - S)
   else
-   Result := '';
+    Result := '';
 end;
 
 { Return tag name in uppercase }
-function GetUpTagName(tag: string): string;
+function GetUpTagName(const tag: string): string;
 var
-  P : Pchar;
-  S : Pchar;
+  P: PChar;
+  S: PChar;
 begin
-  P := Pchar(uppercase(Tag));
-  while P^ in ['<',' ',#9] do inc(P);
+  P := PChar(uppercase(Tag));
+  while P^ in ['<', ' ', #9] do
+    Inc(P);
   S := P;
-  while Not (P^ in [' ','>',#0]) do inc(P);
+  while not (P^ in [' ', '>', #0]) do
+    Inc(P);
   if P > S then
-    Result := CopyBuffer( S, P-S)
+    SetString(Result, S, P - S)
   else
-   Result := '';
+    Result := '';
 end;
 
 
 { Return name=value pair ignoring case of NAME, preserving case of VALUE
   Lars' fixed version }
-function GetNameValPair(tag, attribname_ci: string): string;
+function GetNameValPair(const tag, attribname_ci: string): string;
 var
-  P    : Pchar;
-  S    : Pchar;
-  UpperTag,
-  UpperAttrib   : string;
-  Start: integer;
-  L    : integer;
-  C    : char;
+  P: PChar;
+  S: PChar;
+  UpperTag, UpperAttrib: string;
+  Start: Integer;
+  L: Integer;
+  C: char;
 begin
   // must be space before case insensitive NAME, i.e. <a HREF="" STYLE=""
-  UpperAttrib:= ' ' + Uppercase(attribname_ci);
-  UpperTag:= Uppercase(Tag);
-  P:= Pchar(UpperTag);
-  S:= StrPos(P, Pchar(UpperAttrib));
+  UpperAttrib := ' ' + Uppercase(attribname_ci);
+  UpperTag := Uppercase(Tag);
+  P := PChar(UpperTag);
+  S := StrPos(P, PChar(UpperAttrib));
 
   if S <> nil then
   begin
-    inc(S); // skip space
-    P:= S;
+    Inc(S); // skip space
+    P := S;
 
-    // Skip 
+    // Skip
     while not (P^ in ['=', ' ', '>', #0]) do
-      inc(P);
+      Inc(P);
 
-    if (P^ = '=') then inc(P);
-    
-    while not (P^ in [' ','>',#0]) do
+    if (P^ = '=') then
+      Inc(P);
+
+    while not (P^ in [' ', '>', #0]) do
     begin
-      if (P^ in ['"','''']) then
+      if (P^ in ['"', '''']) then
       begin
-        C:= P^;
-        inc(P); { Skip quote }
-      end else
-        C:= ' ';
+        C := P^;
+        Inc(P); { Skip quote }
+      end
+      else
+        C := ' ';
 
       { thanks to Dmitry [mail@vader.ru] }
       while not (P^ in [C, '>', #0]) do
         Inc(P);
 
-      if (P^ <> '>') then inc(P); { Skip current character, except '>' }
+      if (P^ <> '>') then
+        Inc(P); { Skip current character, except '>' }
 
       break;
     end;
 
-    L:= P - S;
-    Start:= S - Pchar(UpperTag);
-    P:= Pchar(Tag);
-    S:= P;
-    inc(S, Start);
- 
-    result:= CopyBuffer(S, L);
+    L := P - S;
+    Start := S - PChar(UpperTag);
+    P := PChar(Tag);
+    S := P;
+    Inc(S, Start);
+
+    SetString(Result, S, L);
   end;
 end;
 
 
 { Get value of attribute, e.g WIDTH=36 -return-> 36, preserves case sensitive }
-function GetValFromNameVal(namevalpair: string): string;
+function GetValFromNameVal(const namevalpair: string): string;
 var
-  P: Pchar;
-  S: Pchar;
-  C: Char;
+  P: PChar;
+  S: PChar;
+  C: char;
 begin
-  P:= Pchar(namevalpair);
-  S:= StrPos(P, '=');
+  P := PChar(namevalpair);
+  S := StrPos(P, '=');
 
-  if S <> nil then     
+  if S <> nil then
   begin
-    inc(S); // skip equal
-    P:= S;  // set P to a character after =
+    Inc(S); // skip equal
+    P := S;  // set P to a character after =
 
-    if (P^ in ['"','''']) then
+    if (P^ in ['"', '''']) then
     begin
-      C:= P^;
+      C := P^;
       Inc(P); { Skip current character }
-    end else
-      C:= ' ';
+    end
+    else
+      C := ' ';
 
-    S:= P;
+    S := P;
     while not (P^ in [C, #0]) do
-      inc(P);
+      Inc(P);
 
     if (P <> S) then { Thanks to Dave Keighan (keighand@yahoo.com) }
-      Result:= CopyBuffer(S, P - S) 
+      SetString(Result, S, P - S)
     else
-      Result:= '';
+      Result := '';
   end;
 end;
 
 
-{ return value of an attribute (attribname_ci), case ignored for NAME portion, but return value case is preserved } 
-function GetVal(tag, attribname_ci: string): string;
-var namevalpair: string;
+{ return value of an attribute (attribname_ci), case ignored for NAME portion, but return value case is preserved }
+
+function GetVal(const tag, attribname_ci: string): string;
+var
+  namevalpair: string;
 begin
   // returns full name=value pair
-  namevalpair:= GetNameValPair(tag, attribname_ci);
+  namevalpair := GetNameValPair(tag, attribname_ci);
   // extracts value portion only
-  result:= GetValFromNameVal(namevalpair);
+  Result := GetValFromNameVal(namevalpair);
 end;
 
 
@@ -203,132 +205,133 @@ end;
   BELOW FUNCTIONS ARE OBSOLETE OR RARELY NEEDED SINCE THEY EITHER CONTAIN BUGS
   OR THEY ARE TOO CASE SENSITIVE (FOR THE TAG NAME PORTION OF THE ATTRIBUTE  }
 
-{ James old buggy code for testing purposes. 
+{ James old buggy code for testing purposes.
   Bug: when finding 'ID', function finds "width", even though width <> "id" }
 function GetNameValPair_JAMES(tag, attribname_ci: string): string;
 var
-  P    : Pchar;
-  S    : Pchar;
-  UT,
-  UA   : string;
-  Start: integer;
-  L    : integer;
-  C    : char;
+  P: PChar;
+  S: PChar;
+  UT, UA: string;
+  Start: Integer;
+  L: Integer;
+  C: char;
 begin
-  UA:= Uppercase(attribname_ci);
-  UT:= Uppercase(Tag);
-  P:= Pchar(UT);
-  S:= StrPos(P, Pchar(UA));
+  UA := Uppercase(attribname_ci);
+  UT := Uppercase(Tag);
+  P := PChar(UT);
+  S := StrPos(P, PChar(UA));
   if S <> nil then
   begin
 
     P := S;
 
     // Skip attribute name
-    while not (P^ in ['=',' ','>',#0]) do
-      inc(P);
+    while not (P^ in ['=', ' ', '>', #0]) do
+      Inc(P);
 
-    if (P^ = '=') then inc(P);
-    
-    while not (P^ in [' ','>',#0]) do
+    if (P^ = '=') then
+      Inc(P);
+
+    while not (P^ in [' ', '>', #0]) do
     begin
 
-      if (P^ in ['"','''']) then
+      if (P^ in ['"', '''']) then
       begin
-        C:= P^;
-        inc(P); { Skip current character }
-      end else
-        C:= ' ';
+        C := P^;
+        Inc(P); { Skip current character }
+      end
+      else
+        C := ' ';
 
       { thanks to Dmitry [mail@vader.ru] }
       while not (P^ in [C, '>', #0]) do
         Inc(P);
 
-      if (P^ <> '>') then inc(P); { Skip current character, except '>' }
+      if (P^ <> '>') then
+        Inc(P); { Skip current character, except '>' }
       break;
     end;
 
-    L:= P - S;
-    Start:= S - Pchar(UT);
-    P:= Pchar(Tag);
-    S:= P;
-    inc(S, Start);
-    result:= CopyBuffer(S, L);
+    L := P - S;
+    Start := S - PChar(UT);
+    P := PChar(Tag);
+    S := P;
+    Inc(S, Start);
+    SetString(Result, S, L);
   end;
 end;
 
 
 { James old buggy code for testing purposes }
 function GetVal_JAMES(tag, attribname_ci: string): string;
-var namevalpair: string;
+var
+  namevalpair: string;
 begin
-  namevalpair:= GetNameValPair_JAMES(tag, attribname_ci);
-  result:= GetValFromNameVal(namevalpair);
+  namevalpair := GetNameValPair_JAMES(tag, attribname_ci);
+  Result := GetValFromNameVal(namevalpair);
 end;
 
 { return name=value portion, case sensitive, case preserved }
 function GetNameValPair_cs(Tag, attribname: string): string;
 var
-  P    : Pchar;
-  S    : Pchar;
-  C    : Char;
+  P: PChar;
+  S: PChar;
+  C: char;
 begin
-  P := Pchar(Tag);
-  S := StrPos(P, Pchar(attribname));
-  if S<>nil then
+  P := PChar(Tag);
+  S := StrPos(P, PChar(attribname));
+  if S <> nil then
   begin
     P := S;
 
     // Skip attribute name
-    while not (P^ in ['=',' ','>',#0]) do
-      inc(P);
+    while not (P^ in ['=', ' ', '>', #0]) do
+      Inc(P);
 
-    if (P^ = '=') then inc(P);
-    
-    while not (P^ in [' ','>',#0]) do
+    if (P^ = '=') then
+      Inc(P);
+
+    while not (P^ in [' ', '>', #0]) do
     begin
 
-      if (P^ in ['"','''']) then
+      if (P^ in ['"', '''']) then
       begin
-        C:= P^;
-        inc(P); { Skip current character }
-      end else
-        C:= ' ';
+        C := P^;
+        Inc(P); { Skip current character }
+      end
+      else
+        C := ' ';
 
       { thanks to Dmitry [mail@vader.ru] }
       while not (P^ in [C, '>', #0]) do
-        inc(P);
+        Inc(P);
 
-      if (P^<>'>') then inc(P); { Skip current character, except '>' }
+      if (P^ <> '>') then
+        Inc(P); { Skip current character, except '>' }
       break;
     end;
 
     if P > S then
-      Result:= CopyBuffer(S, P - S) 
+      SetString(Result, S, P - S)
     else
-      Result:= '';
+      Result := '';
   end;
 end;
 
 
 end.
-
-
-
-
-
 (* alternative, not needed
 
 { return value (case preserved) from a name=value pair, ignores case in given NAME= portion }
 function GetValFromNameVal(namevalpair: string): string;
 
-  type 
+  type
     TAttribPos = record
       startpos: longword; // start pos of value
       len: longword;      // length of value
     end;
 
-  { returns case insensitive start position and length of just the value 
+  { returns case insensitive start position and length of just the value
     substring in name=value pair}
   function ReturnPos(attribute: string): TAttribPos;
   var
@@ -341,20 +344,20 @@ function GetValFromNameVal(namevalpair: string): string;
     P:= Pchar(uppercase(Attribute));
     // get substring including and everything after equal
     S:= StrPos(P, '=');
-    result.startpos:= pos('=', P); 
+    result.startpos:= pos('=', P);
 
     if S <> nil then
     begin
-      inc(S);  
+      inc(S);
       // set to character after =
       inc(result.startpos);
-      P:= S; 
+      P:= S;
 
       if (P^ in ['"','''']) then
       begin
         C:= P^;
-        // skip quote 
-        inc(P); 
+        // skip quote
+        inc(P);
         inc(result.startpos);
       end else
         C:= ' ';
@@ -364,7 +367,7 @@ function GetValFromNameVal(namevalpair: string): string;
       while not (P^ in [C, #0]) do
         inc(P);
 
-      if (P <> S) then 
+      if (P <> S) then
       begin
         result.len:= p - s;
       end;
@@ -372,7 +375,7 @@ function GetValFromNameVal(namevalpair: string): string;
 
   end;
 
-var 
+var
   found: TAttribPos;
 begin
   found:= ReturnPos(namevalpair);
@@ -381,7 +384,3 @@ begin
 end;
 
 *)
-
-
-
-
