@@ -56,6 +56,13 @@ function GetNameValPair_cs(tag, attribname: string): string;
 
 implementation
 
+function CopyBuffer(StartIndex: PChar; Length: Integer): string;
+begin
+  // works faster, than SetString() and Move()
+  SetLength(Result, Length);
+  StrLCopy(PChar(Result), StartIndex, Length);
+end;
+
 { Return tag name, case preserved }
 function GetTagName(const Tag: string): string;
 var
@@ -69,7 +76,7 @@ begin
   while not (P^ in [' ', '>', #0]) do
     Inc(P);
   if P > S then
-    SetString(Result, S, P - S)
+    Result := CopyBuffer(S, P - S)
   else
     Result := '';
 end;
@@ -87,7 +94,7 @@ begin
   while not (P^ in [' ', '>', #0]) do
     Inc(P);
   if P > S then
-    SetString(Result, S, P - S)
+    Result := CopyBuffer(S, P - S)
   else
     Result := '';
 end;
@@ -148,7 +155,7 @@ begin
     S := P;
     Inc(S, Start);
 
-    SetString(Result, S, L);
+    Result := CopyBuffer(S, L);
   end;
 end;
 
@@ -181,7 +188,7 @@ begin
       Inc(P);
 
     if (P <> S) then { Thanks to Dave Keighan (keighand@yahoo.com) }
-      SetString(Result, S, P - S)
+      Result := CopyBuffer(S, P - S)
     else
       Result := '';
   end;
@@ -257,7 +264,7 @@ begin
     P := PChar(Tag);
     S := P;
     Inc(S, Start);
-    SetString(Result, S, L);
+    Result := CopyBuffer(S, L);
   end;
 end;
 
@@ -312,7 +319,7 @@ begin
     end;
 
     if P > S then
-      SetString(Result, S, P - S)
+      Result := CopyBuffer(S, P - S)
     else
       Result := '';
   end;

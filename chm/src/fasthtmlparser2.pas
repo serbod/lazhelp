@@ -108,7 +108,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 }
-unit FastHTMLParser;
+unit FastHTMLParser2;
 
 {$IFDEF FPC}{$MODE DELPHI}{$H+}{$ENDIF}
 
