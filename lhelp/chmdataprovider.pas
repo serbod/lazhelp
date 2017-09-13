@@ -54,9 +54,13 @@ type
     procedure DoReference(const {%H-}URL: string); override;
     procedure DoGetImage(Sender: TIpHtmlNode; const URL: string;
       var Picture: TPicture); override;
+    { Return True if given URL exists in CHM and can be readed }
     function CanHandle(const AUrl: string): Boolean; override;
     function BuildURL(const OldURL, NewURL: string): string; override;
+    { Use ReadDirsParents }
     function GetDirsParents(ADir: String): TStringList; deprecated;
+    { Split directory path into list of directories names
+      /home/user/dir -> 'home', 'user', 'dir' }
     function ReadDirsParents(const ADir: String; AStrings: TStrings): Boolean;
     { Result must be Free() by caller! }
     function DoGetStream(const URL: string): TStream; override;
@@ -93,7 +97,7 @@ begin
   Result := TMemoryStream.Create();
   // If for some reason we were not able to get the page return something so that
   // we don't cause an AV
-  if not FChmFileList.GetObjectData(StripInPageLink(URL), Result) then
+  if not FChmFileList.ReadFileContent(StripInPageLink(URL), Result) then
   begin
     Result.Size := 0;
     Tmp := '<HTML>' + slhelp_PageCannotBeFound + '</HTML>';
@@ -144,7 +148,7 @@ begin
   Picture := TPicture.Create;
   Stream := TMemoryStream.Create();
   try
-    if FChmFileList.GetObjectData('/'+URL, Stream) then
+    if FChmFileList.ReadFileContent('/'+URL, Stream) then
     begin
       Stream.Position := 0;
       try

@@ -216,6 +216,7 @@ var
   l: TLabel;
   b: TButton;
 begin
+  DebugLn('about');
   f := TForm.Create(Application);
   try
     f.Caption := slhelp_About;
@@ -342,6 +343,11 @@ end;
 
 procedure THelpForm.FormCreate(Sender: TObject);
 begin
+  {$IFDEF DEBUG}
+  DebugLogger.LogName := 'C:\work\laz-projects\lazhelp\lhelp\lhelp.log';
+  DebugLogger.CloseLogFileBetweenWrites := True;
+  {$ENDIF}
+
   FileMenuItem.Caption := slhelp_File;
   FileMenuOpenItem.Caption := slhelp_Open;
   FileMenuOpenRecentItem.Caption := slhelp_OpenRecent;

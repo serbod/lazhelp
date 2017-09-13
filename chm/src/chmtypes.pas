@@ -25,7 +25,7 @@ unit chmtypes;
 interface
 
 uses
-  Classes, SysUtils,xmlcfg;
+  Classes, SysUtils, xmlcfg;
 
 type
   TSectionName = (snMSCompressed, snUnCompressed);
@@ -143,6 +143,17 @@ type
     procedure Assign(obj: TCHMWindow);
   end;
 
+  { TCHMWindowList }
+
+  TCHMWindowList = class(TList)
+  protected
+    procedure PutItem(Index: Integer; AValue: TCHMWindow);
+    function GetItem(Index: Integer): TCHMWindow;
+    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
+  public
+    OwnsObjects: Boolean;
+    property Items[Index: Integer]: TCHMWindow read GetItem write PutItem; default;
+  end;
 
   TTOCIdxHeader = record
     BlockSize: DWord; // 4096
@@ -255,6 +266,25 @@ begin
     Result := 28
   else
     Result := 20;
+end;
+
+{ TCHMWindowList }
+
+procedure TCHMWindowList.PutItem(Index: Integer; AValue: TCHMWindow);
+begin
+  Put(Index, AValue);
+end;
+
+procedure TCHMWindowList.Notify(Ptr: Pointer; Action: TListNotification);
+begin
+  inherited Notify(Ptr, Action);
+  if (Action = lnDeleted) and OwnsObjects then
+    TCHMWindow(Ptr).Free();
+end;
+
+function TCHMWindowList.GetItem(Index: Integer): TCHMWindow;
+begin
+  Result := TCHMWindow(Get(Index));
 end;
 
 { TDirectoryChunk }

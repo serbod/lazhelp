@@ -24,6 +24,7 @@ interface
 
 uses
   Classes, SysUtils, ChmReader,
+  {$ifdef DEBUG}LazLogger, {$else}LazLoggerDummy, {$endif}
   // LCL
   LCLIntf, Forms, StdCtrls, ExtCtrls, ComCtrls, Controls, Menus,
   // LazUtils
@@ -50,7 +51,7 @@ type
     procedure SetStatusText(AValue: string);
   protected
     FIsUsingHistory: Boolean;
-    FChms: TChmFileList;
+    FChmFileList: TChmFileList;
     FHistory: TStringList;
     FHistoryIndex: Integer;
     FStopTimer: Boolean;
@@ -101,6 +102,7 @@ type
     function CanGoBack: Boolean; override;
     function CanGoForward: Boolean; override;
     function GetHistory: TStrings; override;
+    { URL = 'file://filename.chm://url_string' }
     function LoadURL(const AURL: String; const AContext: THelpContext=-1): Boolean; override;
     procedure GoHome; override;
     procedure GoBack; override;
@@ -272,9 +274,9 @@ function TChmContentProvider.MakeURI(const AUrl: String; AChm: TChmReader): Stri
 var
   ChmIndex: Integer;
 begin
-  ChmIndex := FChms.IndexOfObject(AChm);
+  ChmIndex := FChmFileList.IndexOfObject(AChm);
 
-  Result := ChmURI(AUrl, FChms.FileName[ChmIndex]);
+  Result := ChmURI(AUrl, FChmFileList.FileName[ChmIndex]);
 end;
 
 procedure TChmContentProvider.BeginUpdate;
@@ -309,42 +311,44 @@ begin
   Inc(FHistoryIndex);
 end;
 
-type
-  TCHMHack = class(TChmFileList)
-  end;
-
 procedure TChmContentProvider.DoOpenChm(AFile: String; ACloseCurrent: Boolean = True);
 begin
-  if (FChms <> nil) and FChms.IsAnOpenFile(AFile) then Exit;
+  if (FChmFileList <> nil) and FChmFileList.IsAnOpenFile(AFile) then Exit;
   if ACloseCurrent then DoCloseChm;
   if not FileExistsUTF8(AFile) or DirectoryExistsUTF8(AFile) then
   begin
+    DebugLn('File not exists: ' + AFile);
     Exit;
   end;
-  if FChms = nil then
+  if FChmFileList = nil then
   begin
     try
-      FChms := TChmFileList.Create(Utf8ToSys(AFile));
-      if Not(FChms.ChmReaders[0].IsValidFile) then
+      FChmFileList := TChmFileList.Create(Utf8ToSys(AFile));
+      if Not(FChmFileList.ChmReaders[0].IsValidFile) then
       begin
-        FreeAndNil(FChms);
+        DebugLn('File not valid: ' + AFile);
+        FreeAndNil(FChmFileList);
         //DoError(INVALID_FILE_TYPE);
         Exit;
       end;
-      TIpChmDataProvider(FHtml.DataProvider).ChmFileList := FChms;
+      TIpChmDataProvider(FHtml.DataProvider).ChmFileList := FChmFileList;
     except
-      FreeAndNil(FChms);
+      FreeAndNil(FChmFileList);
       //DoError(INVALID_FILE_TYPE);
       Exit;
     end;
   end
   else
   begin
-    TCHMHack(FChms).OpenNewFile(AFile);
+    FChmFileList.OpenChmFile(AFile);
     //WriteLn('Loading new chm: ', AFile);
   end;
 
-  if FChms = nil then Exit;
+  if FChmFileList = nil then
+  begin
+    DebugLn('File not readed: ' + AFile);
+    Exit;
+  end;
 
   FHistoryIndex := -1;
   FHistory.Clear;
@@ -359,12 +363,12 @@ var
   i : integer;
 begin
   FStopTimer := True;
-  if Assigned(FChms) then
+  if Assigned(FChmFileList) then
   begin
-    for i := FChms.Count -1 downto 0 do
-      FChms.ChmReaders[i].Free();
+    for i := FChmFileList.Count -1 downto 0 do
+      FChmFileList.ChmReaders[i].Free();
   end;
-  FreeAndNil(FChms);
+  FreeAndNil(FChmFileList);
   UpdateTitle();
 end;
 
@@ -372,9 +376,9 @@ procedure TChmContentProvider.DoLoadContext(Context: THelpContext);
 var
  Str: String;
 begin
-  if FChms = nil then exit;
-  Str := FChms.ChmReaders[0].GetContextUrl(Context);
-  if Str <> '' then DoLoadUri(Str, FChms.ChmReaders[0]);
+  if FChmFileList = nil then exit;
+  Str := FChmFileList.ChmReaders[0].GetContextUrl(Context);
+  if Str <> '' then DoLoadUri(Str, FChmFileList.ChmReaders[0]);
 end;
 
 procedure TChmContentProvider.DoLoadUri(const AUri: String; AChm: TChmReader = nil);
@@ -387,7 +391,7 @@ var
   EndTime: TDateTime;
   Time: String;
 begin
-  if (FChms = nil) and (AChm = nil) then exit;
+  if (FChmFileList = nil) and (AChm = nil) then exit;
   StatusText := Format(slhelp_Loading, [AUri]);
   StartTime := Now;
 
@@ -397,7 +401,7 @@ begin
   else
     FilteredURL := AUri;
 
-  if FChms.ObjectExists(FilteredURL, AChm) = 0 then
+  if FChmFileList.ObjectExists(FilteredURL, AChm) = 0 then
   begin
     StatusText := Format(slhelp_NotFound, [AURI]);
     Exit;
@@ -405,8 +409,8 @@ begin
 
   if (Pos('ms-its', AUri) = 0) and (AChm <> nil) then
   begin
-    ChmIndex := FChms.IndexOfObject(AChm);
-    NewUrl := ExtractFileName(FChms.FileName[ChmIndex]);
+    ChmIndex := FChmFileList.IndexOfObject(AChm);
+    NewUrl := ExtractFileName(FChmFileList.FileName[ChmIndex]);
     NewUrl := 'ms-its:' + NewUrl + '::/' + AUri;
   end
   else
@@ -593,7 +597,7 @@ begin
     FFillingIndex := True;
 
     // we fill the index here too but only for the main file
-    if FChms.IndexOfObject(CHMReader) < 1 then
+    if FChmFileList.IndexOfObject(CHMReader) < 1 then
     begin
       SM := TChmSiteMap.Create(stTOC);
       try
@@ -632,10 +636,10 @@ begin
 
   {$IFDEF CHM_SEARCH}
   i := 0;
-  while (HasSearchIndex = False) and (i < FChms.Count) do
+  while (HasSearchIndex = False) and (i < FChmFileList.Count) do
   begin
     // Look for binary full text search index in CHM file
-    HasSearchIndex := FChms.ChmReaders[i].ObjectExists('/$FIftiMain') > 0;
+    HasSearchIndex := FChmFileList.ChmReaders[i].ObjectExists('/$FIftiMain') > 0;
     Inc(i);
   end;
 
@@ -723,8 +727,8 @@ begin
     if ContentTreeNode.Url <> '' then
     begin
       // !!!!
-      n := FChms.IndexOfObject(ChmReader);
-      Uri := 'file://' + FChms.FileName[n] + '://' + ContentTreeNode.Url;
+      n := FChmFileList.IndexOfObject(ChmReader);
+      Uri := 'file://' + FChmFileList.FileName[n] + '://' + ContentTreeNode.Url;
       LoadURL(Uri);
       { !!!
       Uri := MakeURI(ContentTreeNode.Url, ChmReader);
@@ -825,15 +829,15 @@ begin
   URL      := GetURIURL(AUrl);
   FoundNode := nil;
   Node := nil;
-  for i := 0 to FChms.Count-1 do
+  for i := 0 to FChmFileList.Count-1 do
   begin
-    if FileName = ExtractFileName(FChms.FileName[i]) then
+    if FileName = ExtractFileName(FChmFileList.FileName[i]) then
     begin
-      FActiveChmTitle := FChms.ChmReaders[i].Title;
+      FActiveChmTitle := FChmFileList.ChmReaders[i].Title;
       UpdateTitle();
 
-      RootNode := FChmFrame.tvContents.Items.FindNodeWithData(FChms.ChmReaders[i]);
-      if URL = FChms.ChmReaders[i].DefaultPage then
+      RootNode := FChmFrame.tvContents.Items.FindNodeWithData(FChmFileList.ChmReaders[i]);
+      if URL = FChmFileList.ChmReaders[i].DefaultPage then
       begin
         FoundNode := RootNode;
         Break;
@@ -982,20 +986,20 @@ begin
     FChmFrame.tvSearchResults.BeginUpdate;
     FChmFrame.tvSearchResults.Items.Clear;
     //WriteLn('Search words: ', SearchWords.Text);
-    for i := 0 to FChms.Count-1 do
+    for i := 0 to FChmFileList.Count-1 do
     begin
       for j := 0 to SearchWords.Count-1 do
       begin
-        if FChms.ChmReaders[i].SearchReader = nil then
+        if FChmFileList.ChmReaders[i].SearchReader = nil then
         begin
-          FIftiMainStream := FChms.ChmReaders[i].GetObject('/$FIftiMain');
+          FIftiMainStream := FChmFileList.ChmReaders[i].GetObject('/$FIftiMain');
           if FIftiMainStream = nil then
             continue;
           SearchReader := TChmSearchReader.Create(FIftiMainStream, True); //frees the stream when done
-          FChms.ChmReaders[i].SearchReader := SearchReader;
+          FChmFileList.ChmReaders[i].SearchReader := SearchReader;
         end
         else
-          SearchReader := FChms.ChmReaders[i].SearchReader;
+          SearchReader := FChmFileList.ChmReaders[i].SearchReader;
         TopicResults := SearchReader.LookupWord(SearchWords[j], TitleResults);
         // Body results
         for k := 0 to High(TopicResults) do
@@ -1025,13 +1029,13 @@ begin
       for j := 0 to High(FoundTopics) do
       begin
         try
-          DocURL := FChms.ChmReaders[i].LookupTopicByID(FoundTopics[j].Topic, DocTitle);
+          DocURL := FChmFileList.ChmReaders[i].LookupTopicByID(FoundTopics[j].Topic, DocTitle);
           if (Length(DocURL) > 0) and (DocURL[1] <> '/') then
             Insert('/', DocURL, 1);
           if DocTitle = '' then
             DocTitle := slhelp_Untitled;
           Item := TContentTreeNode(FChmFrame.tvSearchResults.Items.Add(Item, DocTitle));
-          Item.Data:= FChms.ChmReaders[i];
+          Item.Data:= FChmFileList.ChmReaders[i];
           Item.Url:= DocURL;
         except
           //WriteLn('Exception');
@@ -1093,35 +1097,48 @@ var
   ContextURL: String;
 begin
   Result := False;
-  sFile := Copy(AUrl,8, Length(AURL));
+
+  if Pos('file://', AUrl) = 1 then
+  begin
+    // AURL = file://
+    sFile := Copy(AUrl,8, Length(AURL));
+  end
+  else
+  begin
+    sFile := AUrl;
+    iPos := Pos('://', sFile);
+    if iPos > 0 then
+      sFile := Copy(sFile, iPos+3, Length(sFile));
+  end;
+
   iPos := Pos('://', sFile);
   if iPos > 0 then
   begin
-    sURL := Copy(sFile, iPos+3, Length(sFIle));
-    sFile := Copy(sFIle, 1, iPos-1);
+    sURL := Copy(sFile, iPos+3, Length(sFile));
+    sFile := Copy(sFile, 1, iPos-1);
   end;
 
   CurCHM := nil;
   // try to find already open CHM
-  if Assigned(FChms) then
+  if Assigned(FChmFileList) then
   begin
-    FileIndex := FChms.IndexOf(sFile);
+    FileIndex := FChmFileList.IndexOf(sFile);
     if FileIndex <> -1 then
-      CurCHM := FChms.ChmReaders[FileIndex];
+      CurCHM := FChmFileList.ChmReaders[FileIndex];
   end;
 
   if not Assigned(CurCHM) then
   begin
-    LoadTOC := (FChms = nil) or (FChms.IndexOf(sFile) < 0);
+    LoadTOC := (FChmFileList = nil) or (FChmFileList.IndexOf(sFile) < 0);
     DoOpenChm(sFile, False);
 
-    // in case of exception FChms can be still = nil
-    if Assigned(FChms) then
-      FileIndex := FChms.IndexOf(sFile)
+    // in case of exception FChmFileList can be still = nil
+    if Assigned(FChmFileList) then
+      FileIndex := FChmFileList.IndexOf(sFile)
     else
       Exit;
 
-    CurCHM := FChms.ChmReaders[FileIndex];
+    CurCHM := FChmFileList.ChmReaders[FileIndex];
 
     if LoadTOC and (FileIndex = 0) then
     begin
@@ -1145,14 +1162,14 @@ begin
     DoLoadUri(MakeURI(CurCHM.DefaultPage, CurCHM));
   Result := True;
 
-  FChms.OnOpenNewFile := @NewChmOpened;
+  FChmFileList.OnOpenNewFile := @NewChmOpened;
 end;
 
 procedure TChmContentProvider.GoHome;
 begin
-  if (FChms <> nil) and (FChms.ChmReaders[0].DefaultPage <> '') then
+  if (FChmFileList <> nil) and (FChmFileList.ChmReaders[0].DefaultPage <> '') then
   begin
-    DoLoadUri(MakeURI(FChms.ChmReaders[0].DefaultPage, FChms.ChmReaders[0]));
+    DoLoadUri(MakeURI(FChmFileList.ChmReaders[0].DefaultPage, FChmFileList.ChmReaders[0]));
   end;
 end;
 
@@ -1175,7 +1192,7 @@ begin
     Inc(FHistoryIndex);
     FIsUsingHistory := True;
     HistoryChm := TChmReader(FHistory.Objects[FHistoryIndex]);
-    FChms.ObjectExists(FHistory.Strings[FHistoryIndex], HistoryChm); // this ensures that the correct chm will be found
+    FChmFileList.ObjectExists(FHistory.Strings[FHistoryIndex], HistoryChm); // this ensures that the correct chm will be found
     FHtml.OpenURL(FHistory.Strings[FHistoryIndex]);
   end;
 end;
@@ -1231,7 +1248,7 @@ begin
  // {$ENDIF}
 
   FHtml := FChmFrame.IpHtmlPanel;
-  FChmFrame.IpHtmlPanel.DataProvider := TIpChmDataProvider.Create(FChmFrame.IpHtmlPanel, FChms);
+  FChmFrame.IpHtmlPanel.DataProvider := TIpChmDataProvider.Create(FChmFrame.IpHtmlPanel, FChmFileList);
   TIpChmDataProvider(FChmFrame.IpHtmlPanel.DataProvider).OnGetHtmlPage:=@LoadingHTMLStream;
   FChmFrame.IpHtmlPanel.OnDocumentOpen := @IpHtmlPanelDocumentOpen;
   FChmFrame.IpHtmlPanel.OnHotChange := @IpHtmlPanelHotChange;

@@ -18,6 +18,11 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{
+Unofficial CHM Specification
+http://www.nongnu.org/chmspec/latest/
+Copyright © 2017  Free Software Foundation, Inc.
+}
 unit chmFiftiMain;
 {$mode objfpc}{$H+}
 interface
@@ -25,38 +30,39 @@ interface
 uses Classes, HTMLIndexer;
 
 type
+  { Full-text search index section main header }
   TFiftiMainHeader = record
-    Sig: array [0..3] of byte;  // $00,$00,$28,$00
-    HTMLFilesCount: DWord;
-    RootNodeOffset: DWord;
-    Unknown1: DWord; // = 0
-    LeafNodeCount: DWord;
-    CopyOfRootNodeOffset: DWord;
-    TreeDepth: Word;
-    Unknown2: DWord; // = 7
-    DocIndexScale: Byte;
-    DocIndexRootSize: Byte;
-    CodeCountScale: Byte;
-    CodeCountRootSize: Byte;
-    LocationCodeScale: Byte;
-    LocationCodeRootSize: Byte;
+    Sig: array [0..3] of byte;    // $00,$00,$28,$00
+    HTMLFilesCount: DWord;        // Number of HTML files indexed after any automatic splitting.
+    RootNodeOffset: DWord;        // Offset to the single leaf node (if there are no index nodes), or the root index node of the tree (if there are any index nodes). This will be 4096 less than the file length.
+    Unknown1: DWord;              // = 0
+    LeafNodeCount: DWord;         // The number of leaf nodes in the file.
+    CopyOfRootNodeOffset: DWord;  // Same as the value at offset 8.
+    TreeDepth: Word;              // How many nodes deep the tree is
+    Unknown2: DWord;              // = 7
+    DocIndexScale: Byte;          // Scale for encoding of the document index in the WLCs
+    DocIndexRootSize: Byte;       // Root size for encoding of the document index in the WLCs
+    CodeCountScale: Byte;         // Scale for encoding of the code count in the WLCs
+    CodeCountRootSize: Byte;      // Root size for encoding of the code count in the WLCs
+    LocationCodeScale: Byte;      // Scale for encoding of the location codes in the WLCs
+    LocationCodeRootSize: Byte;   // Root size for encoding of the location codes in the WLCs
     Unknown3: array[0..9] of byte; // = 0
-    NodeSize: DWord; // 4096;
-    Unknown4: DWord; // 0 or 1;
-    LastDupWordIndex: DWord;
-    LastDupCharIndex: DWord;
-    LongestWordLength: DWord; // maximum 99
-    TotalWordsIndexed: DWord; // includes duplicates
-    TotalWords: DWord; // word count not including duplicates
+    NodeSize: DWord;              // = 4096 Size in bytes of each of the leaf and index nodes
+    Unknown4: DWord;              // 0 or 1;
+    LastDupWordIndex: DWord;      // Word index of the last duplicate
+    LastDupCharIndex: DWord;      // Character index of the last duplicate. From the first character of the first word.
+    LongestWordLength: DWord;     // Length of the longest word in the list not including NT (maximum of 99).
+    TotalWordsIndexed: DWord;     // Number of words including duplicates
+    TotalWords: DWord;            // Number of words not including duplicates
     TotalWordsLengthPart1: DWord; // length of all the words with duplicates plus the next dword!
-    TotalWordsLengthPart2: DWord;
-    TotalWordsLength: DWord; // length of all words not including duplicates
-    WordBlockUnusedBytes: DWord; // who knows, this makes no sense when there are more than one blocks
-    Unknown5: DWord; // 0
-    HTMLFilesCountMinusOne: DWord; // maybe
+    TotalWordsLengthPart2: DWord; //
+    TotalWordsLength: DWord;      // length of all words not including duplicates
+    WordBlockUnusedBytes: DWord;  // Length of unused/null bytes at the end of the word block (if only 1 block, more than total if > 1 block - possibly some free space in WLC blocks).
+    Unknown5: DWord;              // 0
+    HTMLFilesCountMinusOne: DWord; // One less than the number of HTML files indexed (not entirely sure).
     Unknown6: array[0..23] of Byte; // 0
-    WindowsCodePage: DWord; // usually 1252
-    LocalID: DWord;
+    WindowsCodePage: DWord;       // Windows code page identifier (usually 1252)
+    LocalID: DWord;               // LCID from the HHP file.
     //Unknown7: array [0..893] of Byte; // 0
   end;
 
@@ -112,6 +118,8 @@ type
 
   TChmSearchReaderFoundDataEvent = procedure(Sender: TChmSearchReader; AWord: String; ATopic: DWord; AWordIndex: DWord) of object;
 
+  { TChmSearchReader }
+  { Find CHM topics by keywords from full-text search index section }
   TChmSearchReader = class(TObject)
   private
     FStream: TStream;

@@ -28,7 +28,7 @@ unit chmreader;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, chmbase, paslzx, chmFIftiMain, chmsitemap;
+  Classes, SysUtils, chmbase, chmtypes, paslzx, chmFIftiMain, chmsitemap;
 
 type
 
@@ -120,13 +120,16 @@ type
     FSearchReader: TChmSearchReader;
     // last added sitemap item
     FLastSiteMapItem: TChmSiteMapItem;
-    procedure ReadFromWindows();
-    procedure ReadFromSystem();
-    procedure ReadContextIds();
+    // read and parse #WINDOWS
+    procedure ReadSectionWindows();
+    // read and parse #SYSTEM
+    procedure ReadSectionSystem();
+    // read and parse #IVB (help context)
+    procedure ReadSectionIvb();
     procedure ParseSiteMapListingBlock(SiteMap: TChmSiteMap; p: PByte);
   protected
     FContextList: TContextList;
-    FWindowsList: TObjectList;
+    FWindowsList: TCHMWindowList;
     FTOPICSStream: TMemoryStream;
     FURLSTRStream: TMemoryStream;
     FURLTBLStream: TMemoryStream;
@@ -142,17 +145,24 @@ type
     function ReadStringsEntry(APosition: DWord): String;
     function ReadStringsEntryFromStream(strm: TStream): String;
     function ReadURLSTR(APosition: DWord): String;
-    { Read WINDOWS section items }
+    { Read #WINDOWS section items }
     procedure ReadWindows(mem: TMemoryStream);
   public
     { Read data from CHM to internal cache }
     procedure ReadCommonData();
     { Return True if common data was readed }
     function CheckCommonStreams(): Boolean;
+    { Set AStream as CHM file, read common data (TOC, Index, Context)
+      Warning! AStream MUST NOT be freed before Destroy()!
+      Set FreeStreamOnDestroy = True to automatically Free() AStream on Destroy() }
     constructor Create(AStream: TStream; FreeStreamOnDestroy: Boolean); override;
     destructor Destroy; override;
+    { Returns URL by help context ID }
     function GetContextUrl(Context: THelpContext): String;
-    function LookupTopicByID(ATopicID: Integer; out ATitle: String): String; // returns a url
+    { Return TOC topics count }
+    function GetTopicsCount(): Integer;
+    { Seek TOC topic by Index, read ATitle, returns a URL }
+    function LookupTopicByID(ATopicID: Integer; out ATitle: String): String;
     { Result MUST be freed by caller }
     function GetTOCSitemap(ForceXML: Boolean = False): TChmSiteMap; deprecated;
     { Result MUST be freed by caller }
@@ -161,16 +171,27 @@ type
     function ReadTOCSitemap(SiteMap: TChmSiteMap; ForceXML: Boolean = False): Boolean;
     { Read Index items into SiteMap object }
     function ReadIndexSitemap(SiteMap: TChmSiteMap; ForceXML: Boolean = False): Boolean;
+    { Returns True if Context list not empty }
     function HasContextList(): Boolean;
+
+    { Default page URL }
     property DefaultPage: String read FDefaultPage;
+    { Index file name (.hhk) }
     property IndexFile: String read FIndexFile;
+    { TOC file name (.hhc) }
     property TOCFile: String read FTOCFile;
+    { CHM Title }
     property Title: String read FTitle write FTitle;
+    { Default font name }
     property PreferedFont: String read FPreferedFont;
-    property LocaleID: dword read FLocaleID;
+    { MS Windows locale ID code }
+    property LocaleID: DWord read FLocaleID;
     property SearchReader: TChmSearchReader read FSearchReader write FSearchReader;
+    { Help context list, contain THelpContext:URL pairs }
     property ContextList: TContextList read FContextList;
-    property Windows: TObjectList read FWindowsList;
+    { Help window appearance defenitions (TChmWindow) list }
+    property Windows: TCHMWindowList read FWindowsList;
+    { not used }
     property DefaultWindow: string read FDefaultWindow;
   end;
 
@@ -186,8 +207,11 @@ type
     FOnOpenNewFile: TChmFileOpenEvent;
     function GetChmReader(AIndex: Integer): TChmReader;
     function GetFileName(AIndex: Integer): String;
-    procedure OpenNewFile(AFileName: String);
-    function CheckOpenFile(AFileName: String): Boolean;
+    { Create TChmReader with AFileName and add to list }
+    procedure OpenNewFile(AFileName: String); deprecated;
+    function CheckOpenFile(AFileName: String): Boolean; deprecated;
+    { Extract file name from specified Name, and do OpenChmFile()
+      then works as ObjectExists() }
     function MetaObjectExists(var Name: String): QWord;
     function MetaGetObject(Name: String): TMemoryStream; deprecated;
     function MetaGetObjectData(Name: String; AData: TStream): Boolean;
@@ -196,13 +220,23 @@ type
     constructor Create(PrimaryFileName: String);
     destructor Destroy(); override;
     procedure Delete(Index: Integer); override;
+    { If AFileName not in list, create TChmReader with AFileName and add to list.
+      Set ChmReader with AFileName as default. }
+    function OpenChmFile(AFileName: String): Boolean;
+    { See ReadFileContent() }
     function GetObject(const AName: String): TMemoryStream; deprecated;
-    function GetObjectData(const AName: String; AData: TStream): Boolean;
+    { Seek internal file by his Name and read file content into AData stream, return True on success
+      From default ChmReader, selected by ObjectExists() }
+    function ReadFileContent(const AName: String; AData: TStream): Boolean;
+    { Return True if CHM file with AFileName exists in list }
     function IsAnOpenFile(AFileName: String): Boolean;
+    { Seek named file in default ChmReader. If AChmReader specified, then it become default }
     function ObjectExists(const AName: String; var AChmReader: TChmReader): QWord;
     //properties
     property ChmReaders[Index: Integer]: TChmReader read GetChmReader;
     property FileName[Index: Integer]: String read GetFileName;
+    { Triggered, when CHM file opened and new TChmReader created.
+      On assignment, triggers for all previously opened files }
     property OnOpenNewFile: TChmFileOpenEvent read FOnOpenNewFile write SetOnOpenNewFile;
   end;
 
@@ -217,8 +251,6 @@ const
   function ChmErrorToStr(Error: Integer): String;
 
 implementation
-
-uses ChmTypes;
 
 function ChmErrorToStr(Error: Integer): String;
 begin
@@ -275,7 +307,8 @@ var
   Sig: array[0..3] of char;
 begin
   Result := ctUnknown;
-  Stream.Position := FDirectoryEntriesStartPos + (FDirectoryHeader.ChunkSize * ChunkIndex);
+  if ChunkIndex < 0 then Exit;
+  Stream.Position := FDirectoryEntriesStartPos + (FDirectoryHeader.ChunkSize * Cardinal(ChunkIndex));
 
   Stream.Read(Sig, 4);
   if Sig = 'PMGL' then Result := ctPMGL
@@ -287,7 +320,7 @@ end;
 function TITSFReader.GetDirectoryChunk(Index: Integer; OutStream: TStream): Integer;
 begin
   Result := Index;
-  FStream.Position := FDirectoryEntriesStartPos + (FDirectoryHeader.ChunkSize * Index);
+  FStream.Position := FDirectoryEntriesStartPos + (FDirectoryHeader.ChunkSize * Cardinal(Index));
   OutStream.Position := 0;
   OutStream.Size := FDirectoryHeader.ChunkSize;
   OutStream.CopyFrom(FStream, FDirectoryHeader.ChunkSize);
@@ -970,7 +1003,8 @@ end;
 constructor TChmReader.Create(AStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
   FContextList := TContextList.Create;
-  FWindowsList := TObjectList.Create(True);
+  FWindowsList := TCHMWindowList.Create();
+  FWindowsList.OwnsObjects := True;
   FTOPICSStream := TMemoryStream.Create();
   FURLSTRStream := TMemoryStream.Create();
   FURLTBLStream := TMemoryStream.Create();
@@ -996,7 +1030,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TChmReader.ReadFromWindows();
+procedure TChmReader.ReadSectionWindows();
 var
   msWindows: TMemoryStream;
   EntryCount,
@@ -1044,7 +1078,7 @@ begin
   end;
 end;
 
-procedure TChmReader.ReadFromSystem();
+procedure TChmReader.ReadSectionSystem();
 var
   //Version: DWord;
   EntryType: Word;
@@ -1125,6 +1159,7 @@ begin
             ms.Read(Data[0], EntryLength);
             Data[EntryLength] := #0;
             FPreferedFont := Data;
+            // todo:  the first number is the point size & the last number is the character set
           end;
         else
           // Skip entries we are not interested in
@@ -1137,7 +1172,7 @@ begin
   end;
 end;
 
-procedure TChmReader.ReadContextIds();
+procedure TChmReader.ReadSectionIvb();
 var
   msIVB: TMemoryStream;
   Str: String;
@@ -1170,9 +1205,9 @@ begin
   ReadFileContent('/#TOPICS', FTOPICSStream);
   ReadFileContent('/#URLSTR', FURLSTRStream);
   ReadFileContent('/#URLTBL', FURLTBLStream);
-  ReadFromSystem();
-  ReadFromWindows();
-  ReadContextIds();
+  ReadSectionSystem();
+  ReadSectionWindows();
+  ReadSectionIvb();
   {$IFDEF CHM_DEBUG}
   WriteLn('TOC=',fTocfile);
   WriteLn('DefaultPage=',fDefaultPage);
@@ -1296,6 +1331,11 @@ function TChmReader.GetContextUrl(Context: THelpContext): String;
 begin
   // will get '' if context not found
  Result := FContextList.GetURL(Context);
+end;
+
+function TChmReader.GetTopicsCount: Integer;
+begin
+  Result := FTOPICSStream.Size div 16;
 end;
 
 function TChmReader.LookupTopicByID(ATopicID: Integer; out ATitle: String): String;
@@ -1719,7 +1759,7 @@ constructor TChmFileList.Create(PrimaryFileName: String);
 begin
   inherited Create;
   FUnNotifiedFiles := TList.Create();
-  OpenNewFile(PrimaryFileName);
+  OpenChmFile(PrimaryFileName);
 end;
 
 destructor TChmFileList.Destroy();
@@ -1751,42 +1791,53 @@ begin
 end;
 
 procedure TChmFileList.OpenNewFile(AFileName: String);
-var
-  AStream: TFileStream;
-  AChm: TChmReader;
-  AIndex: Integer;
 begin
-  if not FileExists(AFileName) then Exit;
-  AStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
-  AChm := TChmReader.Create(AStream, True);
-  AIndex := AddObject(AFileName, AChm);
-  FLastChm := AChm;
-  if Assigned(FOnOpenNewFile) then
-    FOnOpenNewFile(Self, AIndex)
-  else
-    FUnNotifiedFiles.Add(AChm);
+  OpenChmFile(AFileName);
 end;
 
 function TChmFileList.CheckOpenFile(AFileName: String): Boolean;
+begin
+  Result := OpenChmFile(AFileName);
+end;
+
+function TChmFileList.OpenChmFile(AFileName: String): Boolean;
 var
-  X: Integer;
+  i: Integer;
+  sFileNameOnly: string;
+  TmpStream: TFileStream;
+  ChmReader: TChmReader;
 begin
   Result := False;
-  for X := 0 to Count-1 do
+  sFileNameOnly := ExtractFileName(AFileName);
+  for i := 0 to Count-1 do
   begin
-    if ExtractFileName(FileName[X]) = AFileName then
+    if ExtractFileName(FileName[i]) = sFileNameOnly then
     begin
-      FLastChm := ChmReaders[X];
+      FLastChm := ChmReaders[i];
       Result := True;
       Exit;
     end;
   end;
   if not Result then
   begin
-    AFileName := ExtractFilePath(FileName[0]) + AFileName;
+    if not FileExists(AFileName) and (Count > 0) then
+    begin
+      // filename relative to first opened chm
+      AFileName := ExtractFilePath(FileName[0]) + sFileNameOnly;
+    end;
     if FileExists(AFileName) and (ExtractFileExt(AFileName) = '.chm') then
-      OpenNewFile(AFileName);
-    Result := True;
+    begin
+      //OpenNewFile(AFileName);
+      TmpStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+      ChmReader := TChmReader.Create(TmpStream, True);
+      i := AddObject(AFileName, ChmReader);
+      FLastChm := ChmReader;
+      if Assigned(FOnOpenNewFile) then
+        FOnOpenNewFile(Self, i)
+      else
+        FUnNotifiedFiles.Add(ChmReader);
+      Result := True;
+    end;
   end;
 end;
 
@@ -1824,7 +1875,7 @@ begin
   end;
   if not Found then Exit;
   //WriteLn('Looking for URL ', URL, ' in ', AFileName);
-  if CheckOpenFile(AFileName) then
+  if OpenChmFile(AFileName) then
     Result := FLastChm.ObjectExists(URL);
   if Result > 0 then
     Name := Url;
@@ -1882,11 +1933,11 @@ end;
 function TChmFileList.GetObject(const AName: String): TMemoryStream;
 begin
   Result := TMemoryStream.Create();
-  if not GetObjectData(AName, Result) then
+  if not ReadFileContent(AName, Result) then
     FreeAndNil(Result);
 end;
 
-function TChmFileList.GetObjectData(const AName: String; AData: TStream
+function TChmFileList.ReadFileContent(const AName: String; AData: TStream
   ): Boolean;
 begin
   Result := False;
