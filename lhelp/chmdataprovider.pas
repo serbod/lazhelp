@@ -27,7 +27,9 @@ uses
   FPWritebmp,
   FPWritePNG,
   IntFGraphics,
-  lhelpstrconsts;
+  lhelpstrconsts,
+  LConvEncoding,
+  lcid_conv;
 
 
 type
@@ -92,7 +94,8 @@ end;
 function TIpChmDataProvider.DoGetHtmlStream(const URL: string;
   PostData: TIpFormDataEntity): TStream;
 var
- Tmp: string;
+ Tmp, sHead: string;
+ wcp: Word;
 begin
   Result := TMemoryStream.Create();
   // If for some reason we were not able to get the page return something so that
@@ -101,7 +104,37 @@ begin
   begin
     Result.Size := 0;
     Tmp := '<HTML>' + slhelp_PageCannotBeFound + '</HTML>';
-    Result.Write(Tmp, Length(tmp));
+    Result.Write(PChar(Tmp)^, Length(tmp));
+  end
+  else
+  begin
+    // convert encoding
+    if Assigned(FChmFileList.LastChm) and (FChmFileList.LastChm.LocaleID <> 0) then
+    begin
+      wcp := LCIDToWinCP(FChmFileList.LastChm.LocaleID);
+      //if (wcp <> LCIDToWinCP(SysLocale.DefaultLCID)) then
+      begin
+        // read stream to string
+        Result.Position := 0;
+        SetLength(Tmp, Result.Size);
+        Result.Read(PChar(Tmp)^, Length(Tmp));
+        sHead := LowerCase(Copy(Tmp, 1, 512));
+        if Pos('text/html; charset=utf-8', sHead) = 0 then
+        begin
+          // convert to codepage
+          case wcp of
+            1250: Tmp := CP1250ToUTF8(Tmp);
+            1251: Tmp := CP1251ToUTF8(Tmp);
+            1252: Tmp := CP1252ToUTF8(Tmp);
+          end;
+          // write string to stream
+          Result.Size := 0;
+          Result.Write(PChar(Tmp)^, Length(Tmp));
+          Result.Position := 0;
+        end;
+        Result.Position := 0;
+      end;
+    end;
   end;
   if Assigned(FOnGetHtmlPage) then
     FOnGetHtmlPage(Result);

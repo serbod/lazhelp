@@ -186,6 +186,7 @@ type
     property PreferedFont: String read FPreferedFont;
     { MS Windows locale ID code }
     property LocaleID: DWord read FLocaleID;
+    { Full-text search reader }
     property SearchReader: TChmSearchReader read FSearchReader write FSearchReader;
     { Help context list, contain THelpContext:URL pairs }
     property ContextList: TContextList read FContextList;
@@ -235,6 +236,8 @@ type
     //properties
     property ChmReaders[Index: Integer]: TChmReader read GetChmReader;
     property FileName[Index: Integer]: String read GetFileName;
+    { default ChmReader }
+    property LastChm: TChmReader read FLastChm;
     { Triggered, when CHM file opened and new TChmReader created.
       On assignment, triggers for all previously opened files }
     property OnOpenNewFile: TChmFileOpenEvent read FOnOpenNewFile write SetOnOpenNewFile;

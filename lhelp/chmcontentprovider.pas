@@ -31,7 +31,7 @@ uses
   LazFileUtils, LazUTF8, Laz2_XMLCfg,
   // ChmHelp
   IpHtml, BaseContentProvider, FileContentProvider, ChmDataProvider, lhelpstrconsts,
-  chmframe;
+  chmframe, lcid_conv;
 
 type
 
@@ -534,6 +534,7 @@ var
   SM: TChmSiteMap;
   HasSearchIndex: Boolean = False;
   ContentsFiller: TContentsFiller;
+  s: string;
   {$IFNDEF CHM_BINARY_INDEX_TOC}
   Stream: TMemoryStream;
   {$ENDIF}
@@ -552,7 +553,8 @@ begin
   {$ENDIF}
   if CHMReader <> nil then
   begin
-    ParentNode := FChmFrame.tvContents.Items.AddChildObject(nil, CHMReader.Title, CHMReader);
+    s := ConvToUTF8(CHMReader.LocaleID, CHMReader.Title);
+    ParentNode := FChmFrame.tvContents.Items.AddChildObject(nil, s, CHMReader);
     ParentNode.ImageIndex := 0;
     ParentNode.SelectedIndex := 0;
     // GetTOCSitemap first tries binary TOC but falls back to text if needed
@@ -702,7 +704,7 @@ begin
   if FChmFrame.tvContents.Selected.Parent = nil then
   begin
     ChmReader := TChmReader(FChmFrame.tvContents.Selected.Data);
-    FActiveChmTitle:= ChmReader.Title;
+    FActiveChmTitle:= ConvToUTF8(CHMReader.LocaleID, CHMReader.Title);
     UpdateTitle;
     if ChmReader.DefaultPage <> '' then
     begin
@@ -833,7 +835,7 @@ begin
   begin
     if FileName = ExtractFileName(FChmFileList.FileName[i]) then
     begin
-      FActiveChmTitle := FChmFileList.ChmReaders[i].Title;
+      FActiveChmTitle := ConvToUTF8(FChmFileList.ChmReaders[i].LocaleID, FChmFileList.ChmReaders[i].Title);
       UpdateTitle();
 
       RootNode := FChmFrame.tvContents.Items.FindNodeWithData(FChmFileList.ChmReaders[i]);
