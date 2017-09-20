@@ -1776,7 +1776,7 @@ end;
 
 function TChmFileList.GetChmReader(AIndex: Integer): TChmReader;
 begin
-  if AIndex = -1 then
+  if (AIndex < 0) or (AIndex >= Count) then
     Result := FLastChm
   else
     Result := TChmReader(Objects[AIndex]);
@@ -1784,7 +1784,7 @@ end;
 
 function TChmFileList.GetFileName(AIndex: Integer): String;
 begin
-  if AIndex = -1 then
+  if (AIndex < 0) or (AIndex >= Count) then
     AIndex := IndexOfObject(FLastChm);
 
   Result := Strings[AIndex];
@@ -1825,7 +1825,7 @@ begin
       // filename relative to first opened chm
       AFileName := ExtractFilePath(FileName[0]) + sFileNameOnly;
     end;
-    if FileExists(AFileName) and (ExtractFileExt(AFileName) = '.chm') then
+    if FileExists(AFileName) and (LowerCase(ExtractFileExt(AFileName)) = '.chm') then
     begin
       //OpenNewFile(AFileName);
       TmpStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);

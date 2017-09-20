@@ -324,7 +324,7 @@ begin
   begin
     try
       FChmFileList := TChmFileList.Create(Utf8ToSys(AFile));
-      if Not(FChmFileList.ChmReaders[0].IsValidFile) then
+      if (FChmFileList.Count = 0) or (not FChmFileList.ChmReaders[0].IsValidFile) then
       begin
         DebugLn('File not valid: ' + AFile);
         FreeAndNil(FChmFileList);
