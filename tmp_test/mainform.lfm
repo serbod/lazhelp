@@ -68,4 +68,20 @@ object FormMain: TFormMain
     OnClick = ButtonTestIndexClick
     TabOrder = 4
   end
+  object ListBoxTestFiles: TListBox
+    Left = 403
+    Height = 80
+    Top = 514
+    Width = 420
+    ItemHeight = 0
+    TabOrder = 5
+  end
+  object Label1: TLabel
+    Left = 408
+    Height = 17
+    Top = 488
+    Width = 45
+    Caption = 'Test file'
+    ParentColor = False
+  end
 end

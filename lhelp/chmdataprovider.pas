@@ -47,6 +47,7 @@ type
     FOnGetHtmlPage: THtmlPageLoadStreamEvent;
     FOnHelpPopup: THelpPopupEvent;
     function StripInPageLink(AURL: String): String;
+    function DetectHtmlCodepage(AStr: string): Word;
   protected
     function DoGetHtmlStream(const URL: string;
       {%H-}PostData: TIpFormDataEntity) : TStream; override;
@@ -91,10 +92,59 @@ begin
     Result := Copy(Result, 1, i-1);
 end;
 
+function TIpChmDataProvider.DetectHtmlCodepage(AStr: string): Word;
+var
+  s, sRes: string;
+  n, i: Integer;
+  IsRec: Boolean;
+begin
+  Result := 0;
+  AStr := LowerCase(AStr);
+
+  while Length(AStr) > 0 do
+  begin
+    s := AStr;
+    n := Pos('<meta', AStr);
+    if n > 0 then
+    begin
+      AStr := Copy(AStr, n + 5, MaxInt);
+      n := Pos('>', AStr);
+      if n > 0 then
+      begin
+        s := Copy(AStr, 1, n);
+        AStr := Copy(AStr, n+1, MaxInt);
+
+        n := Pos('charset', s);
+        if n > 0 then
+        begin
+          s := Copy(s, n+7, MaxInt);
+          IsRec := False;
+          sRes := '';
+          for i := 1 to Length(s) do
+          begin
+            case s[i] of
+              '=': IsRec := True;
+              '"', '>', ';': IsRec := False;
+              '0'..'9': if IsRec then sRes := sRes + s[i];
+            end;
+          end;
+          Result := StrTointDef(sRes, 0);
+          Exit;
+        end;
+      end
+      else
+        AStr := '';
+    end
+    else
+      AStr := '';
+  end;
+end;
+
 function TIpChmDataProvider.DoGetHtmlStream(const URL: string;
   PostData: TIpFormDataEntity): TStream;
 var
  Tmp, sHead: string;
+ LCID: Word;
  wcp: Word;
 begin
   Result := TMemoryStream.Create();
@@ -109,31 +159,36 @@ begin
   else
   begin
     // convert encoding
-    if Assigned(FChmFileList.LastChm) and (FChmFileList.LastChm.LocaleID <> 0) then
+    LCID := 0;
+    if Assigned(FChmFileList.LastChm) then
+      LCID := FChmFileList.LastChm.LocaleID;
+
+    if (LCID <> 0) and (LCID <> 1033) then
     begin
-      wcp := LCIDToWinCP(FChmFileList.LastChm.LocaleID);
-      //if (wcp <> LCIDToWinCP(SysLocale.DefaultLCID)) then
+      // read stream to string
+      Result.Position := 0;
+      SetLength(Tmp, Result.Size);
+      Result.Read(PChar(Tmp)^, Length(Tmp));
+
+      // detect codepage from HTML header
+      sHead := Copy(Tmp, 1, 512);
+      wcp := DetectHtmlCodepage(sHead);
+      if wcp <> 0 then
       begin
-        // read stream to string
-        Result.Position := 0;
-        SetLength(Tmp, Result.Size);
-        Result.Read(PChar(Tmp)^, Length(Tmp));
-        sHead := LowerCase(Copy(Tmp, 1, 512));
-        if Pos('text/html; charset=utf-8', sHead) = 0 then
-        begin
-          // convert to codepage
-          case wcp of
-            1250: Tmp := CP1250ToUTF8(Tmp);
-            1251: Tmp := CP1251ToUTF8(Tmp);
-            1252: Tmp := CP1252ToUTF8(Tmp);
-          end;
-          // write string to stream
-          Result.Size := 0;
-          Result.Write(PChar(Tmp)^, Length(Tmp));
-          Result.Position := 0;
-        end;
-        Result.Position := 0;
+        // convert from HTML codepage
+        // 8 = utf-8 or very old encoding
+        if wcp <> 8 then
+          Tmp := ConvToUTF8FromCP(wcp, Tmp);
+      end
+      else
+      begin
+        // convert from locale codepage
+        Tmp := ConvToUTF8FromLCID(LCID, Tmp);
       end;
+      // write string to stream
+      Result.Size := 0;
+      Result.Write(PChar(Tmp)^, Length(Tmp));
+      Result.Position := 0;
     end;
   end;
   if Assigned(FOnGetHtmlPage) then

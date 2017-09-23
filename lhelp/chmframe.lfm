@@ -38,7 +38,6 @@ object FrameChm: TFrameChm
           Width = 207
           Align = alClient
           BorderSpacing.Around = 6
-          DefaultItemHeight = 18
           ReadOnly = True
           TabOrder = 0
           OnCollapsed = tvContentsCollapsed
@@ -90,7 +89,6 @@ object FrameChm: TFrameChm
         Width = 207
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Around = 6
-        DefaultItemHeight = 18
         ReadOnly = True
         ShowButtons = False
         ShowLines = False
@@ -169,7 +167,6 @@ object FrameChm: TFrameChm
         Width = 207
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Around = 6
-        DefaultItemHeight = 18
         ReadOnly = True
         ShowButtons = False
         ShowLines = False
@@ -215,11 +212,15 @@ object FrameChm: TFrameChm
     Panels = <>
   end
   object pmHtml: TPopupMenu
-    left = 341
-    top = 96
+    Left = 341
+    Top = 96
     object miCopy: TMenuItem
       Caption = 'Copy'
       OnClick = miCopyClick
+    end
+    object miCopySource: TMenuItem
+      Caption = 'Copy raw source'
+      OnClick = miCopySourceClick
     end
   end
 end

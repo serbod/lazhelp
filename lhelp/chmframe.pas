@@ -19,6 +19,7 @@ type
     IpHtmlPanel: TIpHtmlPanel;
     lbResults: TLabel;
     lbKeyword: TLabel;
+    miCopySource: TMenuItem;
     miCopy: TMenuItem;
     panContents: TPanel;
     pgcNavigation: TPageControl;
@@ -36,6 +37,7 @@ type
       Shift: TShiftState);
     procedure edIndexSearchChange(Sender: TObject);
     procedure miCopyClick(Sender: TObject);
+    procedure miCopySourceClick(Sender: TObject);
     procedure tvContentsCollapsed(Sender: TObject; Node: TTreeNode);
     procedure tvContentsCreateNodeClass(Sender: TCustomTreeView;
       var NodeClass: TTreeNodeClass);
@@ -122,6 +124,11 @@ end;
 procedure TFrameChm.miCopyClick(Sender: TObject);
 begin
   IpHtmlPanel.CopyToClipboard();
+end;
+
+procedure TFrameChm.miCopySourceClick(Sender: TObject);
+begin
+  //
 end;
 
 procedure TFrameChm.cboxKeywordKeyDown(Sender: TObject; var Key: Word;

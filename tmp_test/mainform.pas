@@ -16,6 +16,8 @@ type
     ButtonTestIndex: TButton;
     ButtonTestTOC: TButton;
     ButtonTestListing: TButton;
+    Label1: TLabel;
+    ListBoxTestFiles: TListBox;
     lvEntries: TListView;
     Memo1: TMemo;
     procedure ButtonTestIndexClick(Sender: TObject);
@@ -26,6 +28,7 @@ type
       Selected: Boolean);
   private
     procedure FileEntryCallback(AName: String; AOffset, AUncompressedSize, ASection: Integer);
+    procedure FillTestFiles();
   public
     Mode: Integer;
     ChmStream: TStream;
@@ -34,9 +37,9 @@ type
     ChmEntryList: TChmEntryList;
     ChmToc: TChmSitemap;
     ChmIndex: TChmSitemap;
-    procedure TestDirListing();
-    procedure TestTOC();
-    procedure TestIndex();
+    procedure TestDirListing(AFileName: string);
+    procedure TestTOC(AFileName: string);
+    procedure TestIndex(AFileName: string);
   end;
 
 var
@@ -51,12 +54,13 @@ implementation
 procedure TFormMain.FormCreate(Sender: TObject);
 begin
   ChmEntryList := TChmEntryList.Create();
+  FillTestFiles();
 end;
 
 procedure TFormMain.ButtonTestListingClick(Sender: TObject);
 begin
   Mode := 1;
-  TestDirListing();
+  TestDirListing(ListBoxTestFiles.GetSelectedText());
   ButtonTestListing.Enabled := False;
   ButtonTestTOC.Enabled := False;
   ButtonTestIndex.Enabled := False;
@@ -65,7 +69,7 @@ end;
 procedure TFormMain.ButtonTestIndexClick(Sender: TObject);
 begin
   Mode := 3;
-  TestIndex();
+  TestIndex(ListBoxTestFiles.GetSelectedText());
   ButtonTestListing.Enabled := False;
   ButtonTestTOC.Enabled := False;
   ButtonTestIndex.Enabled := False;
@@ -74,7 +78,7 @@ end;
 procedure TFormMain.ButtonTestTOCClick(Sender: TObject);
 begin
   Mode := 2;
-  TestTOC();
+  TestTOC(ListBoxTestFiles.GetSelectedText());
   ButtonTestListing.Enabled := False;
   ButtonTestTOC.Enabled := False;
   ButtonTestIndex.Enabled := False;
@@ -163,10 +167,17 @@ begin
   li.SubItems.Append(IntToStr(AUncompressedSize));
 end;
 
-procedure TFormMain.TestDirListing;
+procedure TFormMain.FillTestFiles();
+begin
+  // dumb way to fill
+  ListBoxTestFiles.Items.Add('rtl.chm');
+  ListBoxTestFiles.Items.Add('msmq.CHM');
+end;
+
+procedure TFormMain.TestDirListing(AFileName: string);
 begin
   Memo1.Lines.Clear();
-  ChmStream := TFileStream.Create('rtl.chm', fmOpenRead);
+  ChmStream := TFileStream.Create(AFileName, fmOpenRead);
   ChmReader := TChmReader.Create(ChmStream, True);
 
   lvEntries.BeginUpdate();
@@ -189,13 +200,13 @@ begin
   end;
 end;
 
-procedure TFormMain.TestTOC;
+procedure TFormMain.TestTOC(AFileName: string);
 var
   //s: string;
   i: Integer;
 begin
   Memo1.Lines.Clear();
-  ChmStream := TFileStream.Create('rtl.chm', fmOpenRead);
+  ChmStream := TFileStream.Create(AFileName, fmOpenRead);
   ChmReader := TChmReader.Create(ChmStream, True);
 
   ChmToc := TChmSitemap.Create(stTOC);
@@ -209,13 +220,13 @@ begin
   lvEntries.EndUpdate();
 end;
 
-procedure TFormMain.TestIndex;
+procedure TFormMain.TestIndex(AFileName: string);
 var
   //s: string;
   i: Integer;
 begin
   Memo1.Lines.Clear();
-  ChmStream := TFileStream.Create('rtl.chm', fmOpenRead);
+  ChmStream := TFileStream.Create(AFileName, fmOpenRead);
   ChmReader := TChmReader.Create(ChmStream, True);
 
   ChmIndex := TChmSitemap.Create(stIndex);

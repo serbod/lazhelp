@@ -32,7 +32,7 @@ type
   TChmSiteMap = class;
 
   { TChmSiteMapItem }
-
+  { Used for TOC and Index }
   TChmSiteMapItem = class(TPersistent)
   private
     FChildren: TChmSiteMapItems;
@@ -53,10 +53,17 @@ type
     constructor Create(AOwner: TChmSiteMapItems);
     destructor Destroy; override;
   published
+    { Sub-items list }
     property Children: TChmSiteMapItems read FChildren write SetChildren;
-    property Text: string read FText write FText; // Name for TOC; KeyWord for index
-    property KeyWord: string read FKeyWord write FKeyWord;
+    { Name for TOC; KeyWord for index }
+    property Text: string read FText write FText;
+    { File name inside CHM }
     property Local: string read FLocal write FLocal;
+    { For Index: keyword }
+    property KeyWord: string read FKeyWord write FKeyWord;
+
+    { == Next properties filled from content  }
+
     property URL: string read FURL write FURL;
     property SeeAlso: string read FSeeAlso write FSeeAlso;
     property ImageNumber: Integer read FImageNumber write FImageNumber default -1;

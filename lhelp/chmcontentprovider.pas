@@ -44,6 +44,7 @@ type
     FChmFrame: TFrameChm;
     FContext: THelpContext;
     FHtml: TIpHtmlPanel;
+    function GetActiveUrl: string;
     function GetNavigationVisible: Boolean;
     function GetShowStatusbar: Boolean;
     procedure SetNavigationVisible(AValue: Boolean);
@@ -87,6 +88,8 @@ type
     procedure TOCExpand(Sender: TObject; Node: TTreeNode);
     procedure TOCCollapse(Sender: TObject; Node: TTreeNode);
     function SelectTreeItemFromURL(const AUrl: String): Boolean;
+    { Copy raw soyrce content to clipboard }
+    procedure CopySourceClick(Sender: TObject);
     {$IFDEF CHM_SEARCH}
     procedure SearchButtonClick(Sender: TObject);
     procedure SearchResultsDblClick(Sender: TObject);
@@ -112,6 +115,7 @@ type
     property ShowStatusbar: Boolean read GetShowStatusbar write SetShowStatusbar;
     property StatusText: string read FStatusText write SetStatusText;
     property NavigationVisible: Boolean read GetNavigationVisible write SetNavigationVisible;
+    property ActiveUrl: string read GetActiveUrl;
     class function GetProperContentProviderClass(const {%H-}AURL: String): TBaseContentProviderClass; override;
 
     constructor Create(AParent: TWinControl; AImageList: TImageList); override;
@@ -120,7 +124,8 @@ type
 
 implementation
 
-uses ChmSpecialParser{$IFDEF CHM_SEARCH}, chmFIftiMain{$ENDIF}, chmsitemap, LCLType, SAX_HTML, Dom, DOM_HTML, HTMWrite;
+uses ChmSpecialParser{$IFDEF CHM_SEARCH}, chmFIftiMain{$ENDIF}, chmsitemap,
+  LCLType, SAX_HTML, Dom, DOM_HTML, HTMWrite, Clipbrd;
 
 type
 
@@ -248,6 +253,14 @@ end;
 function TChmContentProvider.GetNavigationVisible: Boolean;
 begin
   Result := FChmFrame.pgcNavigation.Visible;
+end;
+
+function TChmContentProvider.GetActiveUrl(): string;
+begin
+  if FHistoryIndex >= 0 then
+    Result := FHistory[FHistoryIndex]
+  else
+    Result := '';
 end;
 
 procedure TChmContentProvider.SetNavigationVisible(AValue: Boolean);
@@ -553,7 +566,7 @@ begin
   {$ENDIF}
   if CHMReader <> nil then
   begin
-    s := ConvToUTF8(CHMReader.LocaleID, CHMReader.Title);
+    s := ConvToUTF8FromLCID(CHMReader.LocaleID, CHMReader.Title);
     ParentNode := FChmFrame.tvContents.Items.AddChildObject(nil, s, CHMReader);
     ParentNode.ImageIndex := 0;
     ParentNode.SelectedIndex := 0;
@@ -704,7 +717,7 @@ begin
   if FChmFrame.tvContents.Selected.Parent = nil then
   begin
     ChmReader := TChmReader(FChmFrame.tvContents.Selected.Data);
-    FActiveChmTitle:= ConvToUTF8(CHMReader.LocaleID, CHMReader.Title);
+    FActiveChmTitle:= ConvToUTF8FromLCID(CHMReader.LocaleID, CHMReader.Title);
     UpdateTitle;
     if ChmReader.DefaultPage <> '' then
     begin
@@ -835,7 +848,7 @@ begin
   begin
     if FileName = ExtractFileName(FChmFileList.FileName[i]) then
     begin
-      FActiveChmTitle := ConvToUTF8(FChmFileList.ChmReaders[i].LocaleID, FChmFileList.ChmReaders[i].Title);
+      FActiveChmTitle := ConvToUTF8FromLCID(FChmFileList.ChmReaders[i].LocaleID, FChmFileList.ChmReaders[i].Title);
       UpdateTitle();
 
       RootNode := FChmFrame.tvContents.Items.FindNodeWithData(FChmFileList.ChmReaders[i]);
@@ -876,6 +889,28 @@ begin
 
   FChmFrame.tvContents.OnSelectionChanged := TmpHolder;
   Result := True;
+end;
+
+procedure TChmContentProvider.CopySourceClick(Sender: TObject);
+var
+  ss: TStringStream;
+  sUrl: string;
+  i: Integer;
+begin
+  ss := TStringStream.Create('');
+  try
+    sUrl := ActiveUrl;
+    i := Pos('#', sUrl);
+    if i > 0 then
+      sUrl := Copy(sUrl, 1, i-1);
+
+    if FChmFileList.ReadFileContent(sUrl, ss) then
+    begin
+      Clipboard.AsText := ss.DataString;
+    end;
+  finally
+    ss.Free();
+  end;
 end;
 
 {$IFDEF CHM_SEARCH}
@@ -1257,6 +1292,7 @@ begin
   FChmFrame.IpHtmlPanel.OnHotClick := @IpHtmlPanelHotClick;
 
   FChmFrame.miCopy.Caption := slhelp_Copy;
+  FChmFrame.miCopySource.OnClick := @CopySourceClick;
 end;
 
 destructor TChmContentProvider.Destroy;
