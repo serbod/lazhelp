@@ -172,6 +172,7 @@ begin
   // dumb way to fill
   ListBoxTestFiles.Items.Add('rtl.chm');
   ListBoxTestFiles.Items.Add('msmq.CHM');
+  ListBoxTestFiles.Items.Add('Operator.chm');
 end;
 
 procedure TFormMain.TestDirListing(AFileName: string);

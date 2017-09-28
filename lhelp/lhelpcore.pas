@@ -127,12 +127,14 @@ type
     // IPC communication method should be used
     FOutputIPC: TSimpleIPCClient;
     FInputIPCTimer: TTimer;
-    FContext: LongInt; // used once when we are started on the command line with --context
+    // used once when we are started on the command line with --context
+    FContext: LongInt;
     FConfig: TXMLConfig;
     FShowSepTabs: Boolean;
     FShowStatus: Boolean;
     FHasShowed: Boolean;
-    FHide: boolean; //If yes, start with content hidden. Otherwise start normally
+    // If yes, start with content hidden. Otherwise start normally
+    FHide: boolean;
     FUpdateCount: Integer;
     // Keep track of whether size/position preferences were loaded and applied to form
     FLayoutApplied: boolean;

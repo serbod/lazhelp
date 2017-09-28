@@ -557,8 +557,6 @@ begin
     Application.QueueAsyncCall(@FillToc, Data);
     exit;
   end;
-  FFillingToc := True;
-  FChmFrame.tvContents.BeginUpdate();
 
   CHMReader := TChmReader(Data);
   {$IFDEF CHM_DEBUG_TIME}
@@ -566,6 +564,9 @@ begin
   {$ENDIF}
   if CHMReader <> nil then
   begin
+    FFillingToc := True;
+    FChmFrame.tvContents.BeginUpdate();
+
     s := ConvToUTF8FromLCID(CHMReader.LocaleID, CHMReader.Title);
     ParentNode := FChmFrame.tvContents.Items.AddChildObject(nil, s, CHMReader);
     ParentNode.ImageIndex := 0;
@@ -609,12 +610,12 @@ begin
     FChmFrame.panContents.Caption := '';
     FChmFrame.tsContents.TabVisible := FChmFrame.tvContents.Items.Count > 1;
     //Application.ProcessMessages();
-    FFillingIndex := True;
 
     // we fill the index here too but only for the main file
+    FFillingIndex := True;
     if FChmFileList.IndexOfObject(CHMReader) < 1 then
     begin
-      SM := TChmSiteMap.Create(stTOC);
+      SM := TChmSiteMap.Create(stIndex);
       try
         {$IFDEF CHM_BINARY_INDEX_TOC}
         CHMReader.ReadIndexSitemap(SM);

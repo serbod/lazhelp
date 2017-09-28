@@ -13,9 +13,9 @@ object FrameChm: TFrameChm
     Height = 460
     Top = 0
     Width = 227
-    ActivePage = tsContents
+    ActivePage = tsIndex
     Align = alLeft
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
     object tsContents: TTabSheet
       Caption = 'Contents'
@@ -97,6 +97,7 @@ object FrameChm: TFrameChm
         OnCollapsing = tvIndexCollapsing
         OnCreateNodeClass = tvIndexCreateNodeClass
         OnDblClick = tvIndexDblClick
+        OnSelectionChanged = tvIndexSelectionChanged
         Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoToolTips, tvoThemedDraw]
       end
     end

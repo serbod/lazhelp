@@ -171,7 +171,7 @@ begin
       Result.Read(PChar(Tmp)^, Length(Tmp));
 
       // detect codepage from HTML header
-      sHead := Copy(Tmp, 1, 512);
+      sHead := Copy(Tmp, 1, 1024);
       wcp := DetectHtmlCodepage(sHead);
       if wcp <> 0 then
       begin

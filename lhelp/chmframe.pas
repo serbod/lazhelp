@@ -48,6 +48,7 @@ type
     procedure tvIndexCreateNodeClass(Sender: TCustomTreeView;
       var NodeClass: TTreeNodeClass);
     procedure tvIndexDblClick(Sender: TObject);
+    procedure tvIndexSelectionChanged(Sender: TObject);
     procedure tvSearchResultsDblClick(Sender: TObject);
   private
     { private declarations }
@@ -81,6 +82,16 @@ begin
   //
 end;
 
+procedure TFrameChm.tvIndexSelectionChanged(Sender: TObject);
+begin
+  if Assigned(tvIndex.Selected) and (edIndexSearch.Tag = 0) then
+  begin
+    edIndexSearch.Tag := 1; // lock change
+    edIndexSearch.Text := tvIndex.Selected.Text;
+    edIndexSearch.Tag := 0; // unlock change
+  end;
+end;
+
 procedure TFrameChm.tvSearchResultsDblClick(Sender: TObject);
 begin
   //
@@ -102,8 +113,9 @@ var
   SearchText: String;
   Node: TTreeNode;
 begin
-  if edIndexSearch <> Sender then
+  if (edIndexSearch <> Sender) or (edIndexSearch.Tag <> 0) then
     Exit;
+  edIndexSearch.Tag := 1;
   SearchText := LowerCase(edIndexSearch.Text);
   Node := tvIndex.Items.GetFirstNode;
   while Node <> nil do
@@ -113,12 +125,14 @@ begin
     begin
       tvIndex.Items.GetLastNode.MakeVisible;
       Node.MakeVisible;
-      Node.Selected:=True;
+      Node.Selected := True;
+      edIndexSearch.Tag := 0;
       Exit;
     end;
     Node := Node.GetNextSibling;
   end;
   tvIndex.Selected := nil;
+  edIndexSearch.Tag := 0;
 end;
 
 procedure TFrameChm.miCopyClick(Sender: TObject);

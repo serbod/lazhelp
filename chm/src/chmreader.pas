@@ -51,7 +51,8 @@ type
   TFileEntryForEach = procedure(Name: String; Offset, UncompressedSize, Section: Integer) of object;
 
   { TITSFReader }
-  { Provide access to CHM internal files directory listing and content. }
+  { Info-Tech Storage Format reader
+    Provide access to CHM internal files directory listing and content. }
   TITSFReader = class(TObject)
   private
     FSectionNames: TStringList;
@@ -144,6 +145,7 @@ type
     { Read item from STRINGS section from APosition offset }
     function ReadStringsEntry(APosition: DWord): String;
     function ReadStringsEntryFromStream(strm: TStream): String;
+    { Return LocalUrl string from #URLSTR }
     function ReadURLSTR(APosition: DWord): String;
     { Read #WINDOWS section items }
     procedure ReadWindows(mem: TMemoryStream);
@@ -161,7 +163,7 @@ type
     function GetContextUrl(Context: THelpContext): String;
     { Return TOC topics count }
     function GetTopicsCount(): Integer;
-    { Seek TOC topic by Index, read ATitle, returns a URL }
+    { Seek TOC topic by Index, read ATitle, returns a LocalURL }
     function LookupTopicByID(ATopicID: Integer; out ATitle: String): String;
     { Result MUST be freed by caller }
     function GetTOCSitemap(ForceXML: Boolean = False): TChmSiteMap; deprecated;
@@ -171,6 +173,8 @@ type
     function ReadTOCSitemap(SiteMap: TChmSiteMap; ForceXML: Boolean = False): Boolean;
     { Read Index items into SiteMap object }
     function ReadIndexSitemap(SiteMap: TChmSiteMap; ForceXML: Boolean = False): Boolean;
+    { Read Topic items into list }
+    function ReadTopicList(ATopicList: TChmTopicItemList): Boolean;
     { Returns True if Context list not empty }
     function HasContextList(): Boolean;
 
@@ -1252,9 +1256,11 @@ begin
   FURLTBLStream.ReadDWord; // unknown
   FURLTBLStream.ReadDWord; // TOPIC index #
   URLOffset := LEtoN(FURLTBLStream.ReadDWord);
+
   FURLSTRStream.Position := URLOffset;
-  FURLSTRStream.ReadDWord;
-  FURLSTRStream.ReadDWord;
+  FURLSTRStream.ReadDWord; // URL
+  FURLSTRStream.ReadDWord; // FrameName
+  // LocalUrl
   if FURLSTRStream.Position < FURLSTRStream.Size-1 then
     Result := PChar(FURLSTRStream.Memory + FURLSTRStream.Position);
 end;
@@ -1609,6 +1615,21 @@ begin
   finally
     msIndex.Free();
   end;
+end;
+
+function TChmReader.ReadTopicList(ATopicList: TChmTopicItemList): Boolean;
+var
+  i: Integer;
+  sTitle, sLocalUrl: string;
+begin
+  if not Assigned(ATopicList) then
+    Exit;
+  for i := 0 to GetTopicsCount()-1 do
+  begin
+    sLocalUrl := LookupTopicByID(i, sTitle);
+    ATopicList.AddItem(sTitle, sLocalUrl);
+  end;
+  Result := (ATopicList.Count > 0);
 end;
 
 function TChmReader.ReadTOCSitemap(SiteMap: TChmSiteMap; ForceXML: Boolean
