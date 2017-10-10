@@ -4,23 +4,23 @@
     <PathDelim Value="\"/>
     <Version Value="10"/>
     <BuildModes Active="debug"/>
-    <Units Count="38">
+    <Units Count="76">
       <Unit0>
         <Filename Value="lhelp.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="11"/>
-        <TopLine Value="39"/>
-        <CursorPos X="35" Y="59"/>
-        <UsageCount Value="84"/>
+        <EditorIndex Value="13"/>
+        <TopLine Value="43"/>
+        <CursorPos X="9" Y="34"/>
+        <UsageCount Value="128"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="chmdataprovider.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ChmDataProvider"/>
-        <TopLine Value="257"/>
-        <CursorPos X="43" Y="274"/>
-        <UsageCount Value="84"/>
+        <TopLine Value="187"/>
+        <CursorPos X="49" Y="187"/>
+        <UsageCount Value="128"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -28,9 +28,9 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ChmSpecialParser"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="68"/>
-        <CursorPos X="13" Y="92"/>
-        <UsageCount Value="84"/>
+        <TopLine Value="16"/>
+        <CursorPos X="39" Y="89"/>
+        <UsageCount Value="128"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
@@ -38,7 +38,7 @@
         <IsPartOfProject Value="True"/>
         <ComponentName Value="HelpPopupForm"/>
         <ResourceBaseClass Value="Form"/>
-        <UsageCount Value="84"/>
+        <UsageCount Value="128"/>
       </Unit3>
       <Unit4>
         <Filename Value="lhelpcore.pas"/>
@@ -46,9 +46,10 @@
         <ComponentName Value="HelpForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="13"/>
-        <CursorPos X="43"/>
-        <UsageCount Value="84"/>
+        <EditorIndex Value="14"/>
+        <TopLine Value="38"/>
+        <CursorPos X="87" Y="644"/>
+        <UsageCount Value="128"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit4>
@@ -57,7 +58,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LNetHTTPDataProvider"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="84"/>
+        <UsageCount Value="128"/>
       </Unit5>
       <Unit6>
         <Filename Value="basecontentprovider.pas"/>
@@ -65,30 +66,29 @@
         <UnitName Value="BaseContentProvider"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="42" Y="42"/>
-        <UsageCount Value="84"/>
+        <UsageCount Value="128"/>
       </Unit6>
       <Unit7>
         <Filename Value="chmcontentprovider.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="975"/>
-        <CursorPos X="74" Y="991"/>
-        <UsageCount Value="84"/>
+        <TopLine Value="933"/>
+        <CursorPos X="3" Y="938"/>
+        <UsageCount Value="128"/>
         <Loaded Value="True"/>
       </Unit7>
       <Unit8>
         <Filename Value="httpcontentprovider.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="HTTPContentProvider"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="13" Y="22"/>
-        <UsageCount Value="84"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="128"/>
       </Unit8>
       <Unit9>
         <Filename Value="lhelpstrconsts.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="84"/>
+        <UsageCount Value="128"/>
       </Unit9>
       <Unit10>
         <Filename Value="chmframe.pas"/>
@@ -97,340 +97,617 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
         <EditorIndex Value="5"/>
-        <TopLine Value="41"/>
-        <CursorPos X="77" Y="41"/>
-        <UsageCount Value="60"/>
+        <TopLine Value="52"/>
+        <CursorPos X="3" Y="77"/>
+        <UsageCount Value="104"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit10>
       <Unit11>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="10"/>
-        <TopLine Value="190"/>
-        <CursorPos X="3" Y="722"/>
-        <UsageCount Value="42"/>
+        <Filename Value="lcid_conv.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="11"/>
+        <CursorPos X="35" Y="25"/>
+        <UsageCount Value="41"/>
         <Loaded Value="True"/>
       </Unit11>
       <Unit12>
+        <Filename Value="..\chm\src\chmreader.pas"/>
+        <EditorIndex Value="6"/>
+        <CursorPos X="29" Y="160"/>
+        <UsageCount Value="61"/>
+        <Loaded Value="True"/>
+      </Unit12>
+      <Unit13>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\classes\classesh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="850"/>
         <CursorPos X="20" Y="860"/>
-        <UsageCount Value="12"/>
-      </Unit12>
-      <Unit13>
+        <UsageCount Value="10"/>
+      </Unit13>
+      <Unit14>
         <Filename Value="..\chm\src\paslzx.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="451"/>
         <CursorPos X="5" Y="453"/>
-        <UsageCount Value="3"/>
-      </Unit13>
-      <Unit14>
+        <UsageCount Value="1"/>
+      </Unit14>
+      <Unit15>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\inc\systemh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1049"/>
         <CursorPos X="13" Y="1068"/>
-        <UsageCount Value="13"/>
-      </Unit14>
-      <Unit15>
+        <UsageCount Value="11"/>
+      </Unit15>
+      <Unit16>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\inc\generic.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1066"/>
         <CursorPos X="26" Y="1083"/>
-        <UsageCount Value="3"/>
-      </Unit15>
-      <Unit16>
-        <Filename Value="..\chm\src\chmtypes.pas"/>
-        <EditorIndex Value="4"/>
-        <CursorPos X="66" Y="40"/>
-        <UsageCount Value="24"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="1"/>
       </Unit16>
       <Unit17>
-        <Filename Value="..\chm\src\chmsitemap.pas"/>
-        <EditorIndex Value="3"/>
-        <CursorPos X="3" Y="327"/>
-        <UsageCount Value="30"/>
+        <Filename Value="..\chm\src\chmtypes.pas"/>
+        <EditorIndex Value="4"/>
+        <CursorPos X="37" Y="15"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit17>
       <Unit18>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <UnitName Value="chmFiftiMain"/>
-        <EditorIndex Value="9"/>
-        <TopLine Value="131"/>
-        <CursorPos X="3" Y="65"/>
-        <UsageCount Value="34"/>
+        <Filename Value="..\chm\src\chmsitemap.pas"/>
+        <EditorIndex Value="8"/>
+        <CursorPos X="23" Y="177"/>
+        <UsageCount Value="48"/>
         <Loaded Value="True"/>
       </Unit18>
       <Unit19>
-        <Filename Value="..\chm\src\chmbase.pas"/>
-        <EditorIndex Value="12"/>
-        <TopLine Value="97"/>
-        <CursorPos X="3" Y="113"/>
-        <UsageCount Value="28"/>
+        <Filename Value="..\chm\src\chmfiftimain.pas"/>
+        <UnitName Value="chmFiftiMain"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="62"/>
+        <CursorPos X="10" Y="71"/>
+        <UsageCount Value="44"/>
         <Loaded Value="True"/>
       </Unit19>
       <Unit20>
+        <Filename Value="..\chm\src\chmbase.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="211"/>
+        <CursorPos X="11" Y="217"/>
+        <UsageCount Value="45"/>
+      </Unit20>
+      <Unit21>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\classes\streams.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="185"/>
         <CursorPos X="5" Y="191"/>
-        <UsageCount Value="12"/>
-      </Unit20>
-      <Unit21>
+        <UsageCount Value="10"/>
+      </Unit21>
+      <Unit22>
         <Filename Value="C:\lazarus\components\turbopower_ipro\iphtml.pas"/>
         <UnitName Value="IpHtml"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="14395"/>
         <CursorPos X="45" Y="14425"/>
-        <UsageCount Value="10"/>
-      </Unit21>
-      <Unit22>
-        <Filename Value="filecontentprovider.pas"/>
-        <EditorIndex Value="8"/>
-        <TopLine Value="17"/>
-        <CursorPos X="51" Y="26"/>
-        <UsageCount Value="30"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="8"/>
       </Unit22>
       <Unit23>
+        <Filename Value="filecontentprovider.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="85" Y="10"/>
+        <UsageCount Value="36"/>
+      </Unit23>
+      <Unit24>
         <Filename Value="C:\lazarus\lcl\lclintf.pas"/>
         <UnitName Value="LCLIntf"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="57"/>
         <CursorPos X="10" Y="81"/>
-        <UsageCount Value="5"/>
-      </Unit23>
-      <Unit24>
+        <UsageCount Value="3"/>
+      </Unit24>
+      <Unit25>
         <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\pagecontrol.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="6"/>
         <CursorPos Y="33"/>
-        <UsageCount Value="13"/>
-      </Unit24>
-      <Unit25>
+        <UsageCount Value="11"/>
+      </Unit25>
+      <Unit26>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\turbopower_ipro\iphtml.pas"/>
         <UnitName Value="IpHtml"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="2429"/>
-        <CursorPos X="20" Y="2443"/>
-        <UsageCount Value="10"/>
-      </Unit25>
-      <Unit26>
+        <TopLine Value="3141"/>
+        <CursorPos X="65" Y="3157"/>
+        <UsageCount Value="20"/>
+      </Unit26>
+      <Unit27>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-process\src\simpleipc.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="187"/>
         <CursorPos X="22" Y="203"/>
-        <UsageCount Value="10"/>
-      </Unit26>
-      <Unit27>
+        <UsageCount Value="8"/>
+      </Unit27>
+      <Unit28>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-process\src\winall\simpleipc.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="307"/>
         <CursorPos X="22" Y="398"/>
-        <UsageCount Value="10"/>
-      </Unit27>
-      <Unit28>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\classes\classesh.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="949"/>
-        <CursorPos X="18" Y="950"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="8"/>
       </Unit28>
       <Unit29>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="945"/>
+        <CursorPos X="20" Y="966"/>
+        <UsageCount Value="11"/>
+      </Unit29>
+      <Unit30>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\chmhelp\packages\help\lhelpcontrol.pas"/>
         <UnitName Value="LHelpControl"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="149"/>
         <CursorPos X="3" Y="151"/>
-        <UsageCount Value="11"/>
-      </Unit29>
-      <Unit30>
-        <Filename Value="C:\fpcupdeluxe\lazarus\components\chmhelp\packages\idehelp\lazchmhelp.pas"/>
-        <UnitName Value="LazChmHelp"/>
-        <EditorIndex Value="14"/>
-        <CursorPos X="22" Y="656"/>
-        <UsageCount Value="17"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="9"/>
       </Unit30>
       <Unit31>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\chmhelp\packages\idehelp\lazchmhelp.pas"/>
+        <UnitName Value="LazChmHelp"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="22" Y="656"/>
+        <UsageCount Value="23"/>
+      </Unit31>
+      <Unit32>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\lazlogger.pas"/>
         <UnitName Value="LazLogger"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="22" Y="322"/>
-        <UsageCount Value="9"/>
-      </Unit31>
-      <Unit32>
-        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\LazLoggerImpl.inc"/>
-        <EditorIndex Value="-1"/>
+        <TopLine Value="126"/>
+        <CursorPos X="40" Y="144"/>
         <UsageCount Value="9"/>
       </Unit32>
       <Unit33>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\LazLoggerImpl.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="24" Y="13"/>
+        <UsageCount Value="9"/>
+      </Unit33>
+      <Unit34>
         <Filename Value="logger.pas"/>
         <UnitName Value="Logger"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="202"/>
         <CursorPos X="19" Y="217"/>
-        <UsageCount Value="10"/>
-      </Unit33>
-      <Unit34>
+        <UsageCount Value="8"/>
+      </Unit34>
+      <Unit35>
         <Filename Value="C:\fpcupdeluxe\lazarus\lcl\lclproc.pas"/>
         <UnitName Value="LCLProc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1479"/>
         <CursorPos X="3" Y="1481"/>
-        <UsageCount Value="9"/>
-      </Unit34>
-      <Unit35>
+        <UsageCount Value="7"/>
+      </Unit35>
+      <Unit36>
         <Filename Value="C:\lazarus\components\lazutils\lazfileutils.pas"/>
         <UnitName Value="LazFileUtils"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="102"/>
         <CursorPos X="10" Y="126"/>
-        <UsageCount Value="9"/>
-      </Unit35>
-      <Unit36>
-        <Filename Value="..\chm\src\htmlutil.pas"/>
-        <UnitName Value="HTMLUtil"/>
-        <EditorIndex Value="6"/>
-        <TopLine Value="13"/>
-        <CursorPos X="11" Y="37"/>
-        <UsageCount Value="15"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="7"/>
       </Unit36>
       <Unit37>
+        <Filename Value="..\chm\src\htmlutil.pas"/>
+        <UnitName Value="HTMLUtil"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="58"/>
+        <CursorPos Y="59"/>
+        <UsageCount Value="13"/>
+      </Unit37>
+      <Unit38>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\sysutils\sysstrh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="194"/>
         <CursorPos X="16" Y="218"/>
+        <UsageCount Value="7"/>
+      </Unit38>
+      <Unit39>
+        <Filename Value="..\chm\src\fasthtmlparser.pas"/>
+        <UnitName Value="FastHTMLParser"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="87" Y="99"/>
         <UsageCount Value="9"/>
-      </Unit37>
+      </Unit39>
+      <Unit40>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\systemh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1191"/>
+        <CursorPos X="11" Y="1205"/>
+        <UsageCount Value="8"/>
+      </Unit40>
+      <Unit41>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\forms.pp"/>
+        <UnitName Value="Forms"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="25"/>
+        <CursorPos X="38" Y="36"/>
+        <UsageCount Value="8"/>
+      </Unit41>
+      <Unit42>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\clipbrd.pp"/>
+        <UnitName Value="Clipbrd"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="15"/>
+        <CursorPos X="65" Y="30"/>
+        <UsageCount Value="8"/>
+      </Unit42>
+      <Unit43>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\contnrs.pp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="68"/>
+        <CursorPos X="25" Y="92"/>
+        <UsageCount Value="17"/>
+      </Unit43>
+      <Unit44>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\lazloggerbase.pas"/>
+        <UnitName Value="LazLoggerBase"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="109"/>
+        <CursorPos X="25" Y="123"/>
+        <UsageCount Value="9"/>
+      </Unit44>
+      <Unit45>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\LazLoggerIntf.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="12" Y="2"/>
+        <UsageCount Value="9"/>
+      </Unit45>
+      <Unit46>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\turbopower_ipro\ipcss.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="775"/>
+        <CursorPos X="99" Y="787"/>
+        <UsageCount Value="11"/>
+      </Unit46>
+      <Unit47>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-xml\src\sax_html.pp"/>
+        <UnitName Value="SAX_HTML"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="103"/>
+        <CursorPos X="11" Y="117"/>
+        <UsageCount Value="9"/>
+      </Unit47>
+      <Unit48>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\lazutf8.pas"/>
+        <UnitName Value="LazUTF8"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="13"/>
+      </Unit48>
+      <Unit49>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\gettext.pp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="13"/>
+        <UsageCount Value="11"/>
+      </Unit49>
+      <Unit50>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\charmaps\cp1251.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="11"/>
+      </Unit50>
+      <Unit51>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\charset.pp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="400"/>
+        <UsageCount Value="11"/>
+      </Unit51>
+      <Unit52>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\winlazutf8.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="347"/>
+        <CursorPos X="27" Y="366"/>
+        <UsageCount Value="11"/>
+      </Unit52>
+      <Unit53>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\sysutils\sysinth.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="10" Y="174"/>
+        <UsageCount Value="10"/>
+      </Unit53>
+      <Unit54>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-objpas\src\inc\convutils.pp"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="10"/>
+      </Unit54>
+      <Unit55>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-objpas\src\inc\convutil.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="270"/>
+        <CursorPos Y="275"/>
+        <UsageCount Value="10"/>
+      </Unit55>
+      <Unit56>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\charmaps\cpall.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="10"/>
+      </Unit56>
+      <Unit57>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\lconvencoding.pas"/>
+        <UnitName Value="LConvEncoding"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="46" Y="82"/>
+        <UsageCount Value="11"/>
+      </Unit57>
+      <Unit58>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\classes\streams.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="547"/>
+        <CursorPos X="3" Y="550"/>
+        <UsageCount Value="11"/>
+      </Unit58>
+      <Unit59>
+        <Filename Value="..\chm\src\htmlindexer.pas"/>
+        <UnitName Value="HTMLIndexer"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="11"/>
+      </Unit59>
+      <Unit60>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\customedit.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="601"/>
+        <CursorPos Y="615"/>
+        <UsageCount Value="10"/>
+      </Unit60>
+      <Unit61>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-unicode\src\collations\collation_ru.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="19"/>
+        <CursorPos X="9" Y="45"/>
+        <UsageCount Value="10"/>
+      </Unit61>
+      <Unit62>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\unicodedata.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="2432"/>
+        <UsageCount Value="10"/>
+      </Unit62>
+      <Unit63>
+        <Filename Value="C:\fpcupdeluxe\config_lazarus\onlinepackagemanager\packages\richmemo\richmemortf.pas"/>
+        <UnitName Value="RichMemoRTF"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="15" Y="185"/>
+        <UsageCount Value="10"/>
+      </Unit63>
+      <Unit64>
+        <Filename Value="C:\fpcupdeluxe\fpc300bootstrap\compiler\msgidx.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="954"/>
+        <CursorPos X="31" Y="968"/>
+        <UsageCount Value="10"/>
+      </Unit64>
+      <Unit65>
+        <Filename Value="C:\fpcupdeluxe\fpc300bootstrap\rtl\charmaps\cp1251.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="421"/>
+        <CursorPos X="19" Y="435"/>
+        <UsageCount Value="10"/>
+      </Unit65>
+      <Unit66>
+        <Filename Value="C:\fpcupdeluxe\fpc300bootstrap\rtl\objpas\unicodedata.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="919"/>
+        <CursorPos X="26" Y="258"/>
+        <UsageCount Value="10"/>
+      </Unit66>
+      <Unit67>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\odata\src\sharepoint.pp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="23512"/>
+        <CursorPos X="22" Y="23524"/>
+        <UsageCount Value="10"/>
+      </Unit67>
+      <Unit68>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\winunits-jedi\src\jwalmwksta.pas"/>
+        <UnitName Value="JwaLmWkSta"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="83"/>
+        <CursorPos X="53" Y="523"/>
+        <UsageCount Value="10"/>
+      </Unit68>
+      <Unit69>
+        <Filename Value="..\chm\chmcontentprovider.xml"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="XML"/>
+      </Unit69>
+      <Unit70>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\chm\src\fasthtmlparser.pas"/>
+        <UnitName Value="FastHTMLParser"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="164"/>
+        <CursorPos X="10" Y="177"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit70>
+      <Unit71>
+        <Filename Value="C:\fpcupdeluxe\lazarus\docs\xml\fasthtmlparser.xml"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="85" Y="4"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="XML"/>
+      </Unit71>
+      <Unit72>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\win32\classes.pp"/>
+        <UnitName Value="Classes"/>
+        <EditorIndex Value="12"/>
+        <TopLine Value="30"/>
+        <CursorPos X="20" Y="93"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit72>
+      <Unit73>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\classes\classes.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="993"/>
+        <CursorPos X="13" Y="997"/>
+        <UsageCount Value="10"/>
+      </Unit73>
+      <Unit74>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-xml\src\htmldefs.pp"/>
+        <UnitName Value="HTMLDefs"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="773"/>
+        <CursorPos X="3" Y="794"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit74>
+      <Unit75>
+        <Filename Value="..\chm\src\chmwriter.pas"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="134"/>
+        <CursorPos X="16" Y="136"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit75>
     </Units>
     <OtherDefines Count="1">
       <Define0 Value="DEBUG"/>
     </OtherDefines>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="244" Column="6" TopLine="239"/>
+        <Filename Value="chmcontentprovider.pas"/>
+        <Caret Line="561" Column="18" TopLine="536"/>
       </Position1>
       <Position2>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="99" Column="19" TopLine="80"/>
+        <Filename Value="..\chm\src\chmsitemap.pas"/>
+        <Caret Line="86" Column="95"/>
       </Position2>
       <Position3>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="591" Column="36" TopLine="589"/>
+        <Filename Value="lcid_conv.pas"/>
+        <Caret Line="25" Column="35"/>
       </Position3>
       <Position4>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="140" Column="20" TopLine="132"/>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\win32\classes.pp"/>
+        <Caret Line="93" Column="20" TopLine="30"/>
       </Position4>
       <Position5>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="940" Column="3" TopLine="937"/>
+        <Filename Value="lhelpcore.pas"/>
+        <Caret Line="644" Column="87" TopLine="38"/>
       </Position5>
       <Position6>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="137" Column="20" TopLine="122"/>
+        <Filename Value="chmcontentprovider.pas"/>
+        <Caret Line="746" Column="46" TopLine="732"/>
       </Position6>
       <Position7>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="1139" Column="47" TopLine="663"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="48" Column="61" TopLine="25"/>
       </Position7>
       <Position8>
         <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="99" Column="23" TopLine="80"/>
+        <Caret Line="220" Column="26" TopLine="200"/>
       </Position8>
       <Position9>
         <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="596" Column="60" TopLine="589"/>
+        <Caret Line="1870" Column="33" TopLine="1865"/>
       </Position9>
       <Position10>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="94" Column="19" TopLine="79"/>
+        <Filename Value="chmcontentprovider.pas"/>
+        <Caret Line="234" Column="16" TopLine="222"/>
       </Position10>
       <Position11>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="507" Column="15" TopLine="425"/>
+        <Filename Value="chmcontentprovider.pas"/>
+        <Caret Line="292" Column="19" TopLine="269"/>
       </Position11>
       <Position12>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="91" Column="21" TopLine="79"/>
+        <Filename Value="chmcontentprovider.pas"/>
+        <Caret Line="234" Column="16" TopLine="220"/>
       </Position12>
       <Position13>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="408" Column="24" TopLine="358"/>
+        <Filename Value="chmcontentprovider.pas"/>
+        <Caret Line="292" Column="19" TopLine="269"/>
       </Position13>
       <Position14>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="52" Column="3" TopLine="33"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="27" Column="13" TopLine="21"/>
       </Position14>
       <Position15>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="91" Column="26" TopLine="70"/>
+        <Filename Value="chmframe.pas"/>
+        <Caret Line="9" Column="28"/>
       </Position15>
       <Position16>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="380" Column="18" TopLine="368"/>
+        <Filename Value="chmcontentprovider.pas"/>
+        <Caret Line="97" Column="22" TopLine="76"/>
       </Position16>
       <Position17>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="57" Column="20" TopLine="40"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="131" TopLine="117"/>
       </Position17>
       <Position18>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="272" Column="32" TopLine="263"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="132" TopLine="117"/>
       </Position18>
       <Position19>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="57" Column="31" TopLine="41"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="133" TopLine="127"/>
       </Position19>
       <Position20>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="272" Column="39" TopLine="245"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="136" TopLine="127"/>
       </Position20>
       <Position21>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="398" Column="13" TopLine="378"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="137" TopLine="127"/>
       </Position21>
       <Position22>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="363" Column="3" TopLine="346"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="138" TopLine="127"/>
       </Position22>
       <Position23>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="391" Column="53" TopLine="377"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="139" TopLine="124"/>
       </Position23>
       <Position24>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="106" Column="24" TopLine="89"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="140" TopLine="124"/>
       </Position24>
       <Position25>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="604" Column="20" TopLine="598"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="142" TopLine="124"/>
       </Position25>
       <Position26>
-        <Filename Value="chmdataprovider.pas"/>
-        <Caret Line="274" Column="43" TopLine="257"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="57" Column="16" TopLine="43"/>
       </Position26>
       <Position27>
-        <Filename Value="chmcontentprovider.pas"/>
-        <Caret Line="179" Column="79" TopLine="164"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="94" Column="41" TopLine="72"/>
       </Position27>
       <Position28>
-        <Filename Value="chmcontentprovider.pas"/>
-        <Caret Line="991" Column="74" TopLine="975"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="132" Column="16" TopLine="120"/>
       </Position28>
       <Position29>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="1350" Column="12" TopLine="1335"/>
+        <Filename Value="chmspecialparser.pas"/>
+        <Caret Line="92" Column="27" TopLine="73"/>
       </Position29>
       <Position30>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="90" Column="19" TopLine="81"/>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-xml\src\htmldefs.pp"/>
+        <Caret Line="397" Column="21" TopLine="384"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>
+  <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="chmspecialparser.pas"/>
+        <Line Value="131"/>
+      </Item1>
+    </BreakPoints>
+    <Watches Count="1">
+      <Item1>
+        <Expression Value="FChmFileList.LastChm.LocaleID"/>
+      </Item1>
+    </Watches>
+  </Debugging>
 </CONFIG>

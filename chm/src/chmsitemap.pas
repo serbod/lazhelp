@@ -210,13 +210,11 @@ begin
 end;
 
 function TChmTopicItemList.AddItem(const ATitle, ALocalUrl: string): TChmTopicItem;
-var
-  TmpItem: TChmTopicItem;
 begin
-  TmpItem := TChmTopicItem.Create;
-  TmpItem.Title := ATitle;
-  TmpItem.LocalUrl := ALocalUrl;
-  Add(TmpItem);
+  Result := TChmTopicItem.Create;
+  Result.Title := ATitle;
+  Result.LocalUrl := ALocalUrl;
+  Add(Result);
 end;
 
 { TChmSiteMapTree }

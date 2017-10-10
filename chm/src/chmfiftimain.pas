@@ -19,6 +19,7 @@
   for details about the copyright.
 }
 {
+Full in-file text index
 Unofficial CHM Specification
 http://www.nongnu.org/chmspec/latest/
 Copyright © 2017  Free Software Foundation, Inc.

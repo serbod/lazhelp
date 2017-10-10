@@ -216,7 +216,9 @@ type
     procedure OpenNewFile(AFileName: String); deprecated;
     function CheckOpenFile(AFileName: String): Boolean; deprecated;
     { Extract file name from specified Name, and do OpenChmFile()
-      then works as ObjectExists() }
+      then works as ObjectExists(). Known META file link types:
+        ms-its:name.chm::/topic.htm
+        mk:@MSITStore:name.chm::/topic.htm }
     function MetaObjectExists(var Name: String): QWord;
     function MetaGetObject(Name: String): TMemoryStream; deprecated;
     function MetaGetObjectData(Name: String; AData: TStream): Boolean;

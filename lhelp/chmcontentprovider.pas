@@ -88,7 +88,7 @@ type
     procedure TOCExpand(Sender: TObject; Node: TTreeNode);
     procedure TOCCollapse(Sender: TObject; Node: TTreeNode);
     function SelectTreeItemFromURL(const AUrl: String): Boolean;
-    { Copy raw soyrce content to clipboard }
+    { Copy raw source content to clipboard }
     procedure CopySourceClick(Sender: TObject);
     {$IFDEF CHM_SEARCH}
     procedure SearchButtonClick(Sender: TObject);
@@ -687,23 +687,31 @@ begin
   lcURL := Lowercase(FHtml.HotURL);
   if (Pos('javascript:helppopup(''', lcURL) = 1) or
      (Pos('javascript:popuplink(''', lcURL) = 1)
-  then begin
+  then
+  begin
     HelpFile := Copy(FHtml.HotURL, 23, Length(FHtml.HotURL) - (23-1));
     HelpFile := Copy(HelpFile, 1, Pos('''', HelpFile)-1);
 
-    if (Pos('/',HelpFile)=0) and (Pos('.chm:',HelpFile)=0) then begin //looks like?: 'xyz.htm'
+    if (Pos('/', HelpFile) = 0) and (Pos('.chm:', HelpFile) = 0) then
+    begin
+      //looks like?: 'xyz.htm'
       aPos := LastDelimiter('/', FHtml.CurURL);
-      if aPos>0 then HelpFile := Copy(FHtml.CurURL,1,aPos) + HelpFile;
-   end
-   else if (Pos('.chm:',HelpFile)=0) then begin //looks like?: 'folder/xyz.htm' or '/folder/xyz.htm'
-     if HelpFile[1]<>'/' then HelpFile:='/'+HelpFile;
-     aPos := LastDelimiter(':', FHtml.CurURL);
-     if aPos>0 then HelpFile := Copy(FHtml.CurURL,1,aPos) + HelpFile;
-   end;
-   DoLoadUri(HelpFile); //open it in current iphtmlpanel.
- end
- else
-   OpenURL(FHtml.HotURL);
+      if aPos > 0 then
+        HelpFile := Copy(FHtml.CurURL, 1, aPos) + HelpFile;
+    end
+    else if (Pos('.chm:', HelpFile) = 0) then
+    begin
+      //looks like?: 'folder/xyz.htm' or '/folder/xyz.htm'
+      if HelpFile[1] <> '/' then
+        HelpFile := '/' + HelpFile;
+      aPos := LastDelimiter(':', FHtml.CurURL);
+      if aPos > 0 then
+        HelpFile := Copy(FHtml.CurURL,1,aPos) + HelpFile;
+    end;
+    DoLoadUri(HelpFile); //open it in current iphtmlpanel.
+  end
+  else
+    OpenURL(FHtml.HotURL);
 end;
 
 procedure TChmContentProvider.ContentsTreeSelectionChanged(Sender: TObject);
@@ -729,7 +737,7 @@ begin
     Exit;
   end;
 
-  ContentTreeNode := TContentTreeNode(FChmFrame.tvContents.Selected);
+  ContentTreeNode := (FChmFrame.tvContents.Selected as TContentTreeNode);
 
   //find the chm associated with this branch
   ARootNode := ContentTreeNode.Parent;

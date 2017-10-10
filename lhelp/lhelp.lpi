@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -11,6 +11,7 @@
       <MainUnit Value="0"/>
       <UseXPManifest Value="True"/>
     </General>
+    <LazDoc Paths="..\chm"/>
     <i18n>
       <EnableI18N Value="True" LFM="False"/>
       <OutDir Value="languages"/>
@@ -41,6 +42,9 @@
               <OverflowChecks Value="True"/>
               <StackChecks Value="True"/>
             </Checks>
+            <Optimizations>
+              <OptimizationLevel Value="0"/>
+            </Optimizations>
           </CodeGeneration>
           <Linking>
             <Debugging>
@@ -85,7 +89,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="11">
+    <Units Count="12">
       <Unit0>
         <Filename Value="lhelp.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -143,6 +147,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="lcid_conv.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

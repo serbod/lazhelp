@@ -26,106 +26,114 @@ interface
 
 uses
   Strings, Classes, SysUtils, chmwriter, inifiles, contnrs, chmsitemap, avl_tree,
-  {for html scanning } dom,SAX_HTML,dom_html;
+  {for html scanning } dom, SAX_HTML, dom_html;
 
 type
   TChmProject = class;
-  TChmProjectErrorKind = (chmerror,chmwarning,chmhint,chmnote,chmnone);
+  TChmProjectErrorKind = (chmerror, chmwarning, chmhint, chmnote, chmnone);
 
-  TChmProgressCB = procedure (Project: TChmProject; CurrentFile: String) of object;
-  TChmErrorCB    = procedure (Project: TChmProject;errorkind:TChmProjectErrorKind;msg:String;detaillevel:integer=0);
+  TChmProgressCB = procedure(Project: TChmProject; CurrentFile: string) of object;
+  TChmErrorCB = procedure(Project: TChmProject; errorkind: TChmProjectErrorKind;
+    msg: string; detaillevel: Integer = 0);
 
   { TChmProject }
 
   TChmProject = class
   private
     FAutoFollowLinks: Boolean;
-    FDefaultFont: String;
-    FDefaultPage: String;
+    FDefaultFont: string;
+    FDefaultPage: string;
     FFiles: TStrings;
-    FIndexFileName: String;
+    FIndexFileName: string;
     FMakeBinaryTOC: Boolean;
     FMakeBinaryIndex: Boolean;
     FMakeSearchable: Boolean;
-    FFileName: String;
+    FFileName: string;
     FOnProgress: TChmProgressCB;
-    FOnError   : TChmErrorCB;
-    FOutputFileName: String;
-    FTableOfContentsFileName: String;
-    FTitle: String;
-    FWindows : TObjectList;
-    FMergeFiles : TStringlist;
-    fDefaultWindow : string;
-    fScanHtmlContents  : Boolean;
-    fOtherFiles : TStrings; // Files found in a scan.
+    FOnError: TChmErrorCB;
+    FOutputFileName: string;
+    FTableOfContentsFileName: string;
+    FTitle: string;
+    FWindows: TObjectList;
+    FMergeFiles: TStringList;
+    fDefaultWindow: string;
+    fScanHtmlContents: Boolean;
+    fOtherFiles: TStrings; // Files found in a scan.
     fAllowedExtensions: TStringList;
-    fTotalFileList : TAvlTree;
-    fAnchorList    : TStringList;
-    FSpareString   : TStringIndex;
-    FBasePath      : String;     // location of the .hhp file. Needed to resolve relative paths
-    FReadmeMessage : String;     // readme message
-    FToc,
-    FIndex         : TCHMSiteMap;
-    FTocStream,
-    FIndexStream   : TMemoryStream;
-    FCores	   : integer;
+    fTotalFileList: TAvlTree;
+    fAnchorList: TStringList;
+    FSpareString: TStringIndex;
+    FBasePath: string;
+    // location of the .hhp file. Needed to resolve relative paths
+    FReadmeMessage: string;     // readme message
+    FToc, FIndex: TCHMSiteMap;
+    FTocStream, FIndexStream: TMemoryStream;
+    FCores: Integer;
+    FLocaleID: word;
   protected
-    function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
+    function GetData(const DataName: string; out PathInChm: string;
+      out FileName: string; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
-    procedure readIniOptions(keyvaluepairs:tstringlist);
+    procedure readIniOptions(keyvaluepairs: TStringList);
     procedure ScanHtml;
-    procedure ScanList(toscan,newfiles:TStrings;recursion:boolean);
-    procedure ScanSitemap(sitemap:TChmSiteMap;newfiles:TStrings;recursion:boolean);
-    function  FileInTotalList(const s:String):boolean;
-    function  SanitizeURL(const basepath, instring, localpath, localname:string; var outstring:String):Boolean;
+    procedure ScanList(toscan, newfiles: TStrings; recursion: Boolean);
+    procedure ScanSitemap(sitemap: TChmSiteMap; newfiles: TStrings; recursion: Boolean);
+    function FileInTotalList(const s: string): Boolean;
+    function SanitizeURL(const basepath, instring, localpath, localname: string;
+      var outstring: string): Boolean;
   public
     constructor Create; virtual;
     destructor Destroy; override;
-    procedure LoadFromFile(AFileName: String); virtual;
-    procedure LoadFromhhp (AFileName:String;LeaveInclude:Boolean); virtual;
-    procedure SaveToFile(AFileName: String); virtual;
+    procedure LoadFromFile(AFileName: string); virtual;
+    procedure LoadFromhhp(AFileName: string; LeaveInclude: Boolean); virtual;
+    procedure SaveToFile(AFileName: string); virtual;
     procedure WriteChm(AOutStream: TStream); virtual;
     procedure ShowUndefinedAnchors;
-    function ProjectDir: String;
+    function ProjectDir: string;
     procedure LoadSitemaps;
-    procedure AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
-    procedure Error(errorkind:TChmProjectErrorKind;msg:String;detaillevel:integer=0);
+    procedure AddFileWithContext(contextid: Integer; filename: ansistring;
+      contextname: ansistring = '');
+    procedure Error(errorkind: TChmProjectErrorKind; msg: string; detaillevel: Integer = 0);
     // though stored in the project file, it is only there for the program that uses the unit
     // since we actually write to a stream
-    property OutputFileName: String read FOutputFileName write FOutputFileName;
-    property FileName: String read FFileName write FFileName;
+    property OutputFileName: string read FOutputFileName write FOutputFileName;
+    property FileName: string read FFileName write FFileName;
     property Files: TStrings read FFiles write FFiles;  // html files
-    property OtherFiles: TStrings read FOtherFiles write FOtherFiles;  // other files (.css, img etc)
+    property OtherFiles: TStrings read FOtherFiles write FOtherFiles;
+    // other files (.css, img etc)
     property AutoFollowLinks: Boolean read FAutoFollowLinks write FAutoFollowLinks;
-    property TableOfContentsFileName: String read FTableOfContentsFileName write FTableOfContentsFileName;
+    property TableOfContentsFileName: string
+      read FTableOfContentsFileName write FTableOfContentsFileName;
     property MakeBinaryTOC: Boolean read FMakeBinaryTOC write FMakeBinaryTOC;
     property MakeBinaryIndex: Boolean read FMakeBinaryIndex write FMakeBinaryIndex;
-    property Title: String read FTitle write FTitle;
-    property IndexFileName: String read FIndexFileName write FIndexFileName;
+    property Title: string read FTitle write FTitle;
+    property IndexFileName: string read FIndexFileName write FIndexFileName;
     property MakeSearchable: Boolean read FMakeSearchable write FMakeSearchable;
-    property DefaultPage: String read FDefaultPage write FDefaultPage;
-    property DefaultFont: String read FDefaultFont write FDefaultFont;
-    property Windows :TObjectList read FWindows write FWindows;
-    property MergeFiles :TStringlist read FMergeFiles write FMergefiles;
+    property DefaultPage: string read FDefaultPage write FDefaultPage;
+    property DefaultFont: string read FDefaultFont write FDefaultFont;
+    property Windows: TObjectList read FWindows write FWindows;
+    property MergeFiles: TStringList read FMergeFiles write FMergefiles;
     property OnProgress: TChmProgressCB read FOnProgress write FOnProgress;
-    property OnError   : TChmErrorCB read FOnError write FOnError;
-    property DefaultWindow : String read FDefaultWindow write FDefaultWindow;
-    property ScanHtmlContents  : Boolean read fScanHtmlContents write fScanHtmlContents;
-    property ReadmeMessage : String read FReadmeMessage write FReadmeMessage;
-    property AllowedExtensions : TStringList read FAllowedExtensions;
-    property Cores : integer read fcores write fcores; 
+    property OnError: TChmErrorCB read FOnError write FOnError;
+    property DefaultWindow: string read FDefaultWindow write FDefaultWindow;
+    property ScanHtmlContents: Boolean read fScanHtmlContents write fScanHtmlContents;
+    property ReadmeMessage: string read FReadmeMessage write FReadmeMessage;
+    property AllowedExtensions: TStringList read FAllowedExtensions;
+    property Cores: Integer read fcores write fcores;
+    property LocaleID: word read FLocaleID write FLocaleID;
   end;
 
-  TChmContextNode = Class
-                     URLName       : AnsiString;
-                     ContextNumber : Integer;
-                     ContextName   : AnsiString;
-                    End;
+  TChmContextNode = class
+    URLName: ansistring;
+    ContextNumber: Integer;
+    ContextName: ansistring;
+  end;
 
 
 
-Const
-  ChmErrorKindText : array[TCHMProjectErrorKind] of string = ('Error','Warning','Hint','Note','');
+const
+  ChmErrorKindText: array[TCHMProjectErrorKind] of string =
+    ('Error', 'Warning', 'Hint', 'Note', '');
 
 implementation
 
@@ -137,8 +145,8 @@ type
 
   TFirstReference = class
   public
-   Location: string;
-   constructor Create(Const ALocation: string);
+    Location: string;
+    constructor Create(const ALocation: string);
   end;
 
 { TFirstReference }
@@ -150,18 +158,19 @@ end;
 
 { TChmProject }
 
-function TChmProject.GetData(const DataName: String; out PathInChm: String; out
-  FileName: String; var Stream: TStream): Boolean;
+function TChmProject.GetData(const DataName: string; out PathInChm: string;
+  out FileName: string; var Stream: TStream): Boolean;
 begin
   Result := False; // Return true to abort compressing files
 
-  TMemoryStream(Stream).LoadFromFile(ProjectDir+DataName);
+  TMemoryStream(Stream).LoadFromFile(ProjectDir + DataName);
   // clean up the filename
   FileName := StringReplace(ExtractFileName(DataName), '\', '/', [rfReplaceAll]);
   FileName := StringReplace(FileName, '//', '/', [rfReplaceAll]);
 
-  PathInChm := '/'+ExtractFilePath(DataName);
-  if Assigned(FOnProgress) then FOnProgress(Self, DataName);
+  PathInChm := '/' + ExtractFilePath(DataName);
+  if Assigned(FOnProgress) then
+    FOnProgress(Self, DataName);
 end;
 
 procedure TChmProject.LastFileAdded(Sender: TObject);
@@ -170,31 +179,31 @@ var
 begin
   // Assign the TOC and index files
   Writer := TChmWriter(Sender);
-  writer.cores:=fcores;
+  writer.cores := fcores;
   {$ifdef chmindex}
-    Writeln('binindex filename ',IndexFileName);
+  Writeln('binindex filename ', IndexFileName);
   {$endif}
   if assigned(FIndexStream) then
-    begin
-    FIndexStream.position:=0;
+  begin
+    FIndexStream.position := 0;
     Writer.AppendIndex(FIndexStream);
     if MakeBinaryIndex then
     begin
       {$ifdef chmindex}
-        Writeln('into binindex ');
+      Writeln('into binindex ');
       {$endif}
-      Writer.AppendBinaryIndexFromSiteMap(FIndex,False);
+      Writer.AppendBinaryIndexFromSiteMap(FIndex, False);
     end;
   end;
   if assigned(FTocStream) then
-    begin
+  begin
     Writer.AppendTOC(FTOCStream);
     if MakeBinaryTOC then
     begin
       Writer.AppendBinaryTOCFromSiteMap(FToc);
     end;
   end;
-  if not assigned(sender) then
+  if not assigned(Sender) then
     Writer.Free;
 end;
 
@@ -202,24 +211,26 @@ constructor TChmProject.Create;
 begin
   FFiles := TStringList.Create;
   FOtherFiles := TStringList.Create;
-  FAllowedExtensions:=TStringList.Create;
+  FAllowedExtensions := TStringList.Create;
   FAllowedExtensions.add('.HTM');
   FAllowedExtensions.add('.HTML');
-  FWindows:=TObjectList.Create(True);
-  FMergeFiles:=TStringlist.Create;
-  ScanHtmlContents:=False;
-  FTotalFileList:=TAvlTree.Create(@CompareStrings);
-  FSparestring  :=TStringIndex.Create;
+  FWindows := TObjectList.Create(True);
+  FMergeFiles := TStringList.Create;
+  ScanHtmlContents := False;
+  FTotalFileList := TAvlTree.Create(@CompareStrings);
+  FSparestring := TStringIndex.Create;
   fAnchorList := TStringList.Create;
   fAnchorList.Sorted := True;
   fAnchorList.OwnsObjects := True;
+  FLocaleID := 0;
 end;
 
 destructor TChmProject.Destroy;
-var i : integer;
+var
+  i: Integer;
 begin
-  for i:=0 to ffiles.count -1 do
-    ffiles.objects[i].free;
+  for i := 0 to ffiles.Count - 1 do
+    ffiles.objects[i].Free;
   FMergeFiles.Free;
   FFiles.Free;
   FOtherFiles.Free;
@@ -228,168 +239,189 @@ begin
   FTotalFileList.FreeAndClear;
   FTotalFileList.Free;
   fAllowedExtensions.Free;
-  FToc.free;
-  FIndex.free;
+  FToc.Free;
+  FIndex.Free;
   FTocStream.Free;
   FIndexStream.Free;
   fAnchorList.Free;
   inherited Destroy;
 end;
 
-Type
-   TSectionEnum = (secOptions,secWindows,secFiles,secMergeFiles,secAlias,secMap,secInfoTypes,secTextPopups,secUnknown);
-   TOptionEnum = (OPTAUTO_INDEX,OPTAUTO_TOC,OPTBINARY_INDEX,OPTBINARY_TOC,OPTCITATION,
-       OPTCOMPRESS,OPTCOPYRIGHT,OPTCOMPATIBILITY,OPTCOMPILED_FILE,OPTCONTENTS_FILE,
-       OPTCREATE_CHI_FILE,OPTDBCS,OPTDEFAULT_FONT,OPTDEFAULT_WINDOW,OPTDEFAULT_TOPIC,
-       OPTDISPLAY_COMPILE_NOTES,OPTDISPLAY_COMPILE_PROGRESS,OPTENHANCED_DECOMPILATION,OPTERROR_LOG_FILE,OPTFLAT,
-       OPTFULL_TEXT_SEARCH_STOP_LIST,OPTFULL_TEXT_SEARCH,OPTIGNORE,OPTINDEX_FILE,OPTLANGUAGE,OPTPREFIX,
-       OPTSAMPLE_STAGING_PATH,OPTSAMPLE_LIST_FILE,OPTTMPDIR,OPTTITLE,OPTCUSTOM_TAB,OPTUNKNOWN);
+type
+  TSectionEnum = (secOptions, secWindows, secFiles, secMergeFiles,
+    secAlias, secMap, secInfoTypes, secTextPopups, secUnknown);
+  TOptionEnum = (OPTAUTO_INDEX, OPTAUTO_TOC, OPTBINARY_INDEX, OPTBINARY_TOC, OPTCITATION,
+    OPTCOMPRESS, OPTCOPYRIGHT, OPTCOMPATIBILITY, OPTCOMPILED_FILE, OPTCONTENTS_FILE,
+    OPTCREATE_CHI_FILE, OPTDBCS, OPTDEFAULT_FONT, OPTDEFAULT_WINDOW, OPTDEFAULT_TOPIC,
+    OPTDISPLAY_COMPILE_NOTES, OPTDISPLAY_COMPILE_PROGRESS,
+    OPTENHANCED_DECOMPILATION, OPTERROR_LOG_FILE, OPTFLAT,
+    OPTFULL_TEXT_SEARCH_STOP_LIST, OPTFULL_TEXT_SEARCH, OPTIGNORE,
+    OPTINDEX_FILE, OPTLANGUAGE, OPTPREFIX,
+    OPTSAMPLE_STAGING_PATH, OPTSAMPLE_LIST_FILE, OPTTMPDIR, OPTTITLE,
+    OPTCUSTOM_TAB, OPTUNKNOWN);
 
-Const
-  SectionNames : Array[TSectionEnum] of String =
-      ('OPTIONS','WINDOWS','FILES','MERGE FILES','ALIAS','MAP','INFOTYPES','TEXT POPUPS','UNKNOWN');
+const
+  SectionNames: array[TSectionEnum] of string =
+    ('OPTIONS', 'WINDOWS', 'FILES', 'MERGE FILES', 'ALIAS', 'MAP', 'INFOTYPES',
+    'TEXT POPUPS', 'UNKNOWN');
 
-  OptionKeys : array [TOptionEnum] of String =
-      ('AUTO INDEX','AUTO TOC','BINARY INDEX','BINARY TOC','CITATION',
-       'COMPRESS','COPYRIGHT','COMPATIBILITY','COMPILED FILE','CONTENTS FILE',
-       'CREATE CHI FILE','DBCS','DEFAULT FONT','DEFAULT WINDOW','DEFAULT TOPIC',
-       'DISPLAY COMPILE NOTES','DISPLAY COMPILE PROGRESS','ENHANCED DECOMPILATION','ERROR LOG FILE','FLAT',
-       'FULL-TEXT SEARCH STOP LIST','FULL-TEXT SEARCH','IGNORE','INDEX FILE','LANGUAGE','PREFIX',
-       'SAMPLE STAGING PATH','SAMPLE LIST FILE','TMPDIR','TITLE','CUSTOM TAB','UNKNOWN');
+  OptionKeys: array [TOptionEnum] of string =
+    ('AUTO INDEX', 'AUTO TOC', 'BINARY INDEX', 'BINARY TOC', 'CITATION',
+    'COMPRESS', 'COPYRIGHT', 'COMPATIBILITY', 'COMPILED FILE', 'CONTENTS FILE',
+    'CREATE CHI FILE', 'DBCS', 'DEFAULT FONT', 'DEFAULT WINDOW', 'DEFAULT TOPIC',
+    'DISPLAY COMPILE NOTES', 'DISPLAY COMPILE PROGRESS', 'ENHANCED DECOMPILATION',
+    'ERROR LOG FILE', 'FLAT',
+    'FULL-TEXT SEARCH STOP LIST', 'FULL-TEXT SEARCH', 'IGNORE',
+    'INDEX FILE', 'LANGUAGE', 'PREFIX',
+    'SAMPLE STAGING PATH', 'SAMPLE LIST FILE', 'TMPDIR', 'TITLE', 'CUSTOM TAB', 'UNKNOWN');
 
-function FindSectionName (const name:string):TSectionEnum;
+function FindSectionName(const Name: string): TSectionEnum;
 
 begin
-  result:=low(TSectionEnum);
-  while (result<secUnknown) and (name<>SectionNames[Result]) do
-    inc(result);
+  Result := low(TSectionEnum);
+  while (Result < secUnknown) and (Name <> SectionNames[Result]) do
+    Inc(Result);
 end;
 
-function FindOptionName(Const name:string):TOptionEnum;
+function FindOptionName(const Name: string): TOptionEnum;
 
 begin
-  result:=low(TOptionEnum);
-  while (result<optUnknown) and (name<>OptionKeys[Result]) do
-    inc(result);
+  Result := low(TOptionEnum);
+  while (Result < optUnknown) and (Name <> OptionKeys[Result]) do
+    Inc(Result);
 end;
 
-procedure TChmProject.readIniOptions(keyvaluepairs:tstringlist);
-var i : integer;
-    Opt : TOptionEnum;
-    OptVal,
-    OptValUpper : string;
+// hex codes of LCID (Locale IDs) see at http://msdn.microsoft.com/en-us/goglobal/bb964664.aspx
+function GetLanguageID(const sValue: string): word;
+const
+  DefaultLCID = $0409; // default "English - United States", 0x0409
+var
+  ACode: word;
 begin
-  for i:=0 to keyvaluepairs.count-1 do
-    begin
-      Opt:=findoptionname(uppercase(keyvaluepairs.names[i]));
-      optval :=keyvaluepairs.valuefromindex[i];
-      optvalupper:=uppercase(OptVal);
-      case Opt Of
-      OPTAUTO_INDEX                : ;
-      OPTAUTO_TOC                  : ;
-      OPTBINARY_INDEX              : MakeBinaryIndex:=optvalupper='YES';
-      OPTBINARY_TOC                : MakeBinaryToc  :=optvalupper='YES';
-      OPTCITATION                  : ;
-      OPTCOMPRESS                  : ; // Doesn't seem to have effect in workshop
-      OPTCOPYRIGHT                 : ;
-      OPTCOMPATIBILITY             : ;
-      OPTCOMPILED_FILE             : OutputFilename:=optval;
-      OPTCONTENTS_FILE             : TableOfContentsFileName:=optval;
-      OPTCREATE_CHI_FILE           : ;
-      OPTDBCS                      : ; // What this field makes unicode is not known?
-      OPTDEFAULT_FONT              : defaultfont:=optval;
-      OPTDEFAULT_WINDOW            : defaultwindow:=optval;
-      OPTDEFAULT_TOPIC             : defaultpage:=optval;
-      OPTDISPLAY_COMPILE_NOTES     : ;
-      OPTDISPLAY_COMPILE_PROGRESS  : ;
-      OPTENHANCED_DECOMPILATION    : ;
-      OPTERROR_LOG_FILE            : ;
-      OPTFLAT                      : ;
+  Result := DefaultLCID;
+  if Length(sValue) >= 5 then
+  begin
+    Val(Trim(Copy(sValue, 1, 6)), Result, ACode);
+    //if Code <> 0 then
+    //Result := DefaultLCID;
+  end;
+end;
+
+procedure TChmProject.readIniOptions(keyvaluepairs: TStringList);
+var
+  i: Integer;
+  Opt: TOptionEnum;
+  OptVal, OptValUpper: string;
+begin
+  for i := 0 to keyvaluepairs.Count - 1 do
+  begin
+    Opt := findoptionname(uppercase(keyvaluepairs.names[i]));
+    optval := keyvaluepairs.valuefromindex[i];
+    optvalupper := uppercase(OptVal);
+    case Opt of
+      OPTAUTO_INDEX: ;
+      OPTAUTO_TOC: ;
+      OPTBINARY_INDEX: MakeBinaryIndex := optvalupper = 'YES';
+      OPTBINARY_TOC: MakeBinaryToc := optvalupper = 'YES';
+      OPTCITATION: ;
+      OPTCOMPRESS: ; // Doesn't seem to have effect in workshop
+      OPTCOPYRIGHT: ;
+      OPTCOMPATIBILITY: ;
+      OPTCOMPILED_FILE: OutputFilename := optval;
+      OPTCONTENTS_FILE: TableOfContentsFileName := optval;
+      OPTCREATE_CHI_FILE: ;
+      OPTDBCS: ; // What this field makes unicode is not known?
+      OPTDEFAULT_FONT: defaultfont := optval;
+      OPTDEFAULT_WINDOW: defaultwindow := optval;
+      OPTDEFAULT_TOPIC: defaultpage := optval;
+      OPTDISPLAY_COMPILE_NOTES: ;
+      OPTDISPLAY_COMPILE_PROGRESS: ;
+      OPTENHANCED_DECOMPILATION: ;
+      OPTERROR_LOG_FILE: ;
+      OPTFLAT: ;
       OPTFULL_TEXT_SEARCH_STOP_LIST: ;
-      OPTFULL_TEXT_SEARCH          : MakeSearchable:=optvalupper='YES';
-      OPTIGNORE                    : ;
-      OPTINDEX_FILE                : Indexfilename:=optval;
-      OPTLANGUAGE                  : ;
-      OPTPREFIX                    : ;  // doesn't seem to have effect
-      OPTSAMPLE_STAGING_PATH       : ;
-      OPTSAMPLE_LIST_FILE          : ;
-      OPTTMPDIR                    : ;
-      OPTTITLE                     : Title:=optval;
-      OPTCUSTOM_TAB                : ;
-      OPTUNKNOWN                   : ;  // can be used for errors on unknown keys
-      end;
+      OPTFULL_TEXT_SEARCH: MakeSearchable := optvalupper = 'YES';
+      OPTIGNORE: ;
+      OPTINDEX_FILE: Indexfilename := optval;
+      OPTLANGUAGE: LocaleID := GetLanguageID(optval);
+      OPTPREFIX: ;  // doesn't seem to have effect
+      OPTSAMPLE_STAGING_PATH: ;
+      OPTSAMPLE_LIST_FILE: ;
+      OPTTMPDIR: ;
+      OPTTITLE: Title := optval;
+      OPTCUSTOM_TAB: ;
+      OPTUNKNOWN: ;  // can be used for errors on unknown keys
     end;
+  end;
 end;
 
 
-procedure TChmProject.LoadFromFile(AFileName: String);
+procedure TChmProject.LoadFromFile(AFileName: string);
 var
   Cfg: TXMLConfig;
-  MergeFileCount,
-  WinCount,
-  FileCount: Integer;
-  I  : Integer;
-  nd : TChmContextNode;
+  MergeFileCount, WinCount, FileCount: Integer;
+  I: Integer;
+  nd: TChmContextNode;
   win: TCHMWindow;
-  s  : String;
+  s: string;
 
 begin
   Cfg := TXMLConfig.Create(nil);
   Cfg.Filename := AFileName;
   FileName := AFileName;
-  FBasePath:=extractfilepath(expandfilename(afilename));
+  FBasePath := extractfilepath(expandfilename(afilename));
 
   Files.Clear;
   FileCount := Cfg.GetValue('Files/Count/Value', 0);
-  for I := 0 to FileCount-1 do
-    begin
-      nd:=TChmContextNode.Create;
-      nd.urlname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/Value','');
-      nd.contextnumber:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextNumber',0);
-      nd.contextname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextName','');
-      Files.AddObject(nd.URLNAME,nd);
-    end;
+  for I := 0 to FileCount - 1 do
+  begin
+    nd := TChmContextNode.Create;
+    nd.urlname := Cfg.GetValue('Files/FileName' + IntToStr(I) + '/Value', '');
+    nd.contextnumber := Cfg.GetValue('Files/FileName' + IntToStr(I) + '/ContextNumber', 0);
+    nd.contextname := Cfg.GetValue('Files/FileName' + IntToStr(I) + '/ContextName', '');
+    Files.AddObject(nd.URLNAME, nd);
+  end;
 
   FileCount := Cfg.GetValue('OtherFiles/Count/Value', 0);
-  for I := 0 to FileCount-1 do
-    begin
-      s:=Cfg.GetValue('OtherFiles/FileName'+IntToStr(I)+'/Value','');
-      OtherFiles.Add(s);
-    end;
+  for I := 0 to FileCount - 1 do
+  begin
+    s := Cfg.GetValue('OtherFiles/FileName' + IntToStr(I) + '/Value', '');
+    OtherFiles.Add(s);
+  end;
 
-  WinCount:= Cfg.GetValue('Windows/Count/Value', 0);
-  for i:=0 To WinCount-1 do
-    begin
-      win:=TCHMWindow.Create;
-      win.loadfromxml(cfg,'Windows/item'+inttostr(i)+'/');
-      fwindows.add(win);
-    end;
+  WinCount := Cfg.GetValue('Windows/Count/Value', 0);
+  for i := 0 to WinCount - 1 do
+  begin
+    win := TCHMWindow.Create;
+    win.loadfromxml(cfg, 'Windows/item' + IntToStr(i) + '/');
+    fwindows.add(win);
+  end;
 
-  Mergefilecount:=Cfg.getValue('MergeFiles/Count/Value', 0);
-  for i:=0 To MergeFileCount-1 do
-    Mergefiles.add(Cfg.getValue('MergeFiles/FileName'+IntToStr(I)+'/value',''));
+  Mergefilecount := Cfg.getValue('MergeFiles/Count/Value', 0);
+  for i := 0 to MergeFileCount - 1 do
+    Mergefiles.add(Cfg.getValue('MergeFiles/FileName' + IntToStr(I) + '/value', ''));
 
   // load some values that changed key backwards compatible.
 
-  IndexFileName := Cfg.GetValue('Files/IndexFile/Value','');
-  if IndexFileName='' Then
-    IndexFileName := Cfg.GetValue('Settings/IndexFile/Value','');
+  IndexFileName := Cfg.GetValue('Files/IndexFile/Value', '');
+  if IndexFileName = '' then
+    IndexFileName := Cfg.GetValue('Settings/IndexFile/Value', '');
 
-  TableOfContentsFileName := Cfg.GetValue('Files/TOCFile/Value','');
-  If TableOfContentsFileName='' then
-    TableOfContentsFileName := Cfg.GetValue('Settings/TOCFile/Value','');
+  TableOfContentsFileName := Cfg.GetValue('Files/TOCFile/Value', '');
+  if TableOfContentsFileName = '' then
+    TableOfContentsFileName := Cfg.GetValue('Settings/TOCFile/Value', '');
 
   // For chm file merging, bintoc must be false and binindex true. Change defaults in time?
   // OTOH, merging will be mostly done for fpdoc files, and that doesn't care about defaults.
 
-  S:=Cfg.GetValue('Files/MakeBinaryTOC/Value', '');
-  if s='' Then
+  S := Cfg.GetValue('Files/MakeBinaryTOC/Value', '');
+  if s = '' then
     MakeBinaryTOC := Cfg.GetValue('Settings/MakeBinaryTOC/Value', True)
   else
     MakeBinaryTOC := Cfg.GetValue('Files/MakeBinaryTOC/Value', True);
 
-  S:=Cfg.GetValue('Files/MakeBinaryIndex/Value', '');
-  if s='' Then
+  S := Cfg.GetValue('Files/MakeBinaryIndex/Value', '');
+  if s = '' then
     MakeBinaryIndex := Cfg.GetValue('Settings/MakeBinaryIndex/Value', False)
   else
     MakeBinaryIndex := Cfg.GetValue('Files/MakeBinaryIndex/Value', False);
@@ -399,286 +431,296 @@ begin
   DefaultPage := Cfg.GetValue('Settings/DefaultPage/Value', '');
   Title := Cfg.GetValue('Settings/Title/Value', '');
   OutputFileName := Cfg.GetValue('Settings/OutputFileName/Value', '');
-  DefaultFont  := Cfg.GetValue('Settings/DefaultFont/Value', '');
-  DefaultWindow:= Cfg.GetValue('Settings/DefaultWindow/Value', '');
-  ScanHtmlContents:=  Cfg.GetValue('Settings/ScanHtmlContents/Value', False);
+  DefaultFont := Cfg.GetValue('Settings/DefaultFont/Value', '');
+  DefaultWindow := Cfg.GetValue('Settings/DefaultWindow/Value', '');
+  ScanHtmlContents := Cfg.GetValue('Settings/ScanHtmlContents/Value', False);
 
+  LocaleID := Cfg.GetValue('Settings/LocaleID/Value', $0409);
   Cfg.Free;
 end;
 
-function cleanupstring(const s:string):string;
+function cleanupstring(const s: string): string;
 var
-  i:integer;
+  i: Integer;
 begin
-  i:=pos(';',s);
-  if i>0 then
-    result:=trim(copy(s,1,i-1))
+  i := pos(';', s);
+  if i > 0 then
+    Result := trim(copy(s, 1, i - 1))
   else
-    result:=trim(s);
+    Result := trim(s);
 end;
 
-procedure TChmProject.LoadFromhhp (AFileName:String;LeaveInclude:Boolean);
+procedure TChmProject.LoadFromhhp(AFileName: string; LeaveInclude: Boolean);
 // leaveinclude=true leaves includefiles includefiles.
 
-procedure addalias(const key,value :string);
+  procedure addalias(const key, Value: string);
 
-var i,j : integer;
+  var
+    i, j: Integer;
     node: TCHMContextNode;
-    keyupper,valueupper : string;
-begin
- { Defaults other than global }
-   MakeBinaryIndex:=True;
+    keyupper, valueupper: string;
+  begin
+    { Defaults other than global }
+    MakeBinaryIndex := True;
 
  {$ifdef hhp_debug}
-   writeln('alias entry:',key,'=',value);
+    writeln('alias entry:', key, '=', Value);
  {$endif}
- keyupper:=uppercase(value);
- i:=0; j:=files.count;
- while (i<j) and (uppercase(TCHMContextnode(files.objects[i]).UrlName)<>keyupper) do
-  inc(i);
- if i=j then
-  begin
+    keyupper := uppercase(Value);
+    i := 0;
+    j := files.Count;
+    while (i < j) and (uppercase(TCHMContextnode(files.objects[i]).UrlName) <> keyupper) do
+      Inc(i);
+    if i = j then
+    begin
    {$ifdef hhp_debug}
-    writeln('alias new node:',key);
+      writeln('alias new node:', key);
    {$endif}
-    node:=TCHMContextNode.create;
-    valueupper:=stringReplace(value, '\', '/', [rfReplaceAll]);
-    valueupper:= StringReplace(valueupper, '//', '/', [rfReplaceAll]);
-    node.URLName:=valueupper;
-    node.contextname:=key;
-  end
- else
-  begin
-    node:=TCHMContextNode(Files.objects[i]);
-    node.ContextName:=key;
+      node := TCHMContextNode.Create;
+      valueupper := stringReplace(Value, '\', '/', [rfReplaceAll]);
+      valueupper := StringReplace(valueupper, '//', '/', [rfReplaceAll]);
+      node.URLName := valueupper;
+      node.contextname := key;
+    end
+    else
+    begin
+      node := TCHMContextNode(Files.objects[i]);
+      node.ContextName := key;
+    end;
   end;
-end;
 
-procedure processalias(strs:TStringlist);
-var i,j : integer;
-    s : string;
-    strls2:tstringlist;
+  procedure processalias(strs: TStringList);
+  var
+    i, j: Integer;
+    s: string;
+    strls2: TStringList;
 
-begin
- for i:=0 to strs.count-1 do
   begin
-    s:=cleanupstring(strs[i]);
-    if uppercase(copy(s,1,8))='#INCLUDE' then
+    for i := 0 to strs.Count - 1 do
+    begin
+      s := cleanupstring(strs[i]);
+      if uppercase(copy(s, 1, 8)) = '#INCLUDE' then
       begin
-        delete(s,1,8);
-        s:=trim(s);
+        Delete(s, 1, 8);
+        s := trim(s);
         if fileexists(s) then
-          begin
-            strls2:=TstringList.create;
-            strls2.loadfromfile(s);
-            processalias(strls2);
-            strls2.free;
-          end;
+        begin
+          strls2 := TStringList.Create;
+          strls2.loadfromfile(s);
+          processalias(strls2);
+          strls2.Free;
+        end;
 
       end
-    else
-     begin
-       s:=cleanupstring(s);
-       j:=pos('=',s);
-       if j>0 then
-         addalias(trim(copy(s,1,j-1)),copy(s,j+1,length(s)-j));
-     end;
+      else
+      begin
+        s := cleanupstring(s);
+        j := pos('=', s);
+        if j > 0 then
+          addalias(trim(copy(s, 1, j - 1)), copy(s, j + 1, length(s) - j));
+      end;
+    end;
   end;
-end;
 
-procedure addmap(const key,value :string);
+  procedure addmap(const key, Value: string);
 
-var i,j : integer;
+  var
+    i, j: Integer;
     node: TCHMContextNode;
-    keyupper : string;
-begin
+    keyupper: string;
+  begin
  {$ifdef hhp_debug}
- writeln('map entry:',key,'=',value);
+    writeln('map entry:', key, '=', Value);
  {$endif}
- keyupper:=uppercase(key);
- i:=0; j:=files.count;
- while (i<j) and (uppercase(TCHMContextnode(files.objects[i]).contextname)<>keyupper) do
-  inc(i);
- if i=j then
-    raise Exception.create('context "'+key+'" not found!')
- else
-  begin
-    node:=TCHMContextNode(Files.objects[i]);
-    node.Contextnumber:=strtointdef(value,0);
-  end;
-end;
-
-procedure processmap(strs:TStringlist);
-var i,j : integer;
-    s : string;
-    strls2:tstringlist;
-
-begin
- for i:=0 to strs.count-1 do
-  begin
-    s:=cleanupstring(strs[i]);
-    {$ifdef hhp_debug}
-      writeln('map item:',s);
-    {$endif}
-    if uppercase(copy(s,1,8))='#INCLUDE' then
-      begin
-        delete(s,1,8);
-        s:=trim(s);
-        if fileexists(s) then
-          begin
-            strls2:=TstringList.create;
-            strls2.loadfromfile(s);
-            processmap(strls2);
-            strls2.free;
-          end;
-      end
+    keyupper := uppercase(key);
+    i := 0;
+    j := files.Count;
+    while (i < j) and (uppercase(TCHMContextnode(files.objects[i]).contextname) <> keyupper) do
+      Inc(i);
+    if i = j then
+      raise Exception.Create('context "' + key + '" not found!')
     else
-     begin
-       s:=cleanupstring(s);
-       if uppercase(copy(s,1,7))='#DEFINE' Then
-         begin
-           delete(s,1,7);
-           s:=trim(s);
-           j:=pos(' ',s);
-           if j>0 then
-             addmap(trim(copy(s,1,j-1)),copy(s,j+1,length(s)-j));
-         end
-       else
-         begin
-            {$ifdef hhp_debug}
-              writeln('map leftover:',s);
-            {$endif}
-         end;
-     end;
+    begin
+      node := TCHMContextNode(Files.objects[i]);
+      node.Contextnumber := strtointdef(Value, 0);
+    end;
   end;
-end;
+
+  procedure processmap(strs: TStringList);
+  var
+    i, j: Integer;
+    s: string;
+    strls2: TStringList;
+
+  begin
+    for i := 0 to strs.Count - 1 do
+    begin
+      s := cleanupstring(strs[i]);
+    {$ifdef hhp_debug}
+      writeln('map item:', s);
+    {$endif}
+      if uppercase(copy(s, 1, 8)) = '#INCLUDE' then
+      begin
+        Delete(s, 1, 8);
+        s := trim(s);
+        if fileexists(s) then
+        begin
+          strls2 := TStringList.Create;
+          strls2.loadfromfile(s);
+          processmap(strls2);
+          strls2.Free;
+        end;
+      end
+      else
+      begin
+        s := cleanupstring(s);
+        if uppercase(copy(s, 1, 7)) = '#DEFINE' then
+        begin
+          Delete(s, 1, 7);
+          s := trim(s);
+          j := pos(' ', s);
+          if j > 0 then
+            addmap(trim(copy(s, 1, j - 1)), copy(s, j + 1, length(s) - j));
+        end
+        else
+        begin
+            {$ifdef hhp_debug}
+          writeln('map leftover:', s);
+            {$endif}
+        end;
+      end;
+    end;
+  end;
 
 var
-  Fini      : TMemIniFile;  // TMemInifile is more compatible with Delphi. Delphi's API based TIniFile fails on .hhp files.
-  secs,strs : TStringList;
-  i,j       : Integer;
-  section   : TSectionEnum;
-  nd        : TChmContextNode;
+  Fini: TMemIniFile;
+  // TMemInifile is more compatible with Delphi. Delphi's API based TIniFile fails on .hhp files.
+  secs, strs: TStringList;
+  i, j: Integer;
+  section: TSectionEnum;
+  nd: TChmContextNode;
 
 begin
- { Defaults other than global }
-   MakeBinaryIndex:=True;
-  FBasePath:=extractfilepath(expandfilename(afilename));
-  Fini:=TMeminiFile.Create(AFileName);
-  secs := TStringList.create;
-  strs := TStringList.create;
+  { Defaults other than global }
+  MakeBinaryIndex := True;
+  FBasePath := extractfilepath(expandfilename(afilename));
+  Fini := TMeminiFile.Create(AFileName);
+  secs := TStringList.Create;
+  strs := TStringList.Create;
   fini.readsections(secs);
 
   // Do the files section first so that we can emit errors if
   // other sections reference unknown files.
 
-  fini.readsectionvalues(SectionNames[secFiles] ,strs);
-  if strs.count>0 then
-    for j:=0 to strs.count-1 do
-      begin
-          nd:=TChmContextNode.Create;
-          nd.urlname:=StringReplace(strs[j],'\', '/', [rfReplaceAll]);
-          nd.contextnumber:=0;
-          nd.contextname:='';
-          Files.AddObject(nd.urlname,nd);
-        end;
+  fini.readsectionvalues(SectionNames[secFiles], strs);
+  if strs.Count > 0 then
+    for j := 0 to strs.Count - 1 do
+    begin
+      nd := TChmContextNode.Create;
+      nd.urlname := StringReplace(strs[j], '\', '/', [rfReplaceAll]);
+      nd.contextnumber := 0;
+      nd.contextname := '';
+      Files.AddObject(nd.urlname, nd);
+    end;
 
   // aliases also add file nodes.
 
-  fini.readsectionvalues(SectionNames[secAlias] ,strs); // resolve all aliases.
-  if strs.count>0 then
+  fini.readsectionvalues(SectionNames[secAlias], strs); // resolve all aliases.
+  if strs.Count > 0 then
     processalias(strs);
 
   // map files only add to existing file nodes.
-  fini.readsectionvalues(SectionNames[secmap] ,strs);
-  if strs.count>0 then
+  fini.readsectionvalues(SectionNames[secmap], strs);
+  if strs.Count > 0 then
     processmap(strs);
 
 
-  for i:=0 to secs.count-1 do
-    begin
-      section:=FindSectionName(Uppercase(Secs[i]));
-      if section<>secunknown then
-        fini.readsectionvalues(secs[i] ,strs);
-      case section of
-      secOptions   : readinioptions(strs);
-      secWindows   : for j:=0 to strs.count-1 do
-                       FWindows.add(TCHMWindow.Create(strs[j]));
-      secFiles     : ; // already done
+  for i := 0 to secs.Count - 1 do
+  begin
+    section := FindSectionName(Uppercase(Secs[i]));
+    if section <> secunknown then
+      fini.readsectionvalues(secs[i], strs);
+    case section of
+      secOptions: readinioptions(strs);
+      secWindows: for j := 0 to strs.Count - 1 do
+          FWindows.add(TCHMWindow.Create(strs[j]));
+      secFiles: ; // already done
       secMergeFiles: FMergeFiles.Assign(Strs); // just a filelist
-      secAlias     : ; // already done
-      secMap       : ; // already done
-      secInfoTypes : ; // unused for now.
+      secAlias: ; // already done
+      secMap: ; // already done
+      secInfoTypes: ; // unused for now.
       secTextPopups: ; // rarely used.
-      end;
     end;
-  secs.free;
-  strs.free;
-  fini.free;
-  ScanHtmlContents:=true;
+  end;
+  secs.Free;
+  strs.Free;
+  fini.Free;
+  ScanHtmlContents := True;
 end;
 
-procedure TChmProject.AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
-var x : integer;
-    nd : TChmContextNode;
+procedure TChmProject.AddFileWithContext(contextid: Integer; filename: ansistring;
+  contextname: ansistring = '');
+var
+  x: Integer;
+  nd: TChmContextNode;
 begin
-  x:=files.indexof(filename);
-  if x=-1 then
-    begin
-      nd:=TChmContextNode.Create;
-      nd.urlname:=filename;
-      nd.contextnumber:=contextid;
-      nd.contextname:=contextname;
-      Files.AddObject(nd.urlname,nd);
-    end
+  x := files.indexof(filename);
+  if x = -1 then
+  begin
+    nd := TChmContextNode.Create;
+    nd.urlname := filename;
+    nd.contextnumber := contextid;
+    nd.contextname := contextname;
+    Files.AddObject(nd.urlname, nd);
+  end
   else
-   begin
-     nd:=TChmContextNode(files.objects[x]);
-     if not assigned(nd) then
-       begin
-         nd:=TChmContextNode.Create;
-         nd.urlname:=filename;
-         files.objects[x]:=nd;
-       end;
-      nd.contextnumber:=contextid;
-      nd.contextname:=contextname;
-   end;
+  begin
+    nd := TChmContextNode(files.objects[x]);
+    if not assigned(nd) then
+    begin
+      nd := TChmContextNode.Create;
+      nd.urlname := filename;
+      files.objects[x] := nd;
+    end;
+    nd.contextnumber := contextid;
+    nd.contextname := contextname;
+  end;
 end;
 
-procedure TChmProject.SaveToFile(AFileName: String);
+procedure TChmProject.SaveToFile(AFileName: string);
 var
   Cfg: TXMLConfig;
-  I  : Integer;
-  nd : TChmContextNode;
+  I: Integer;
+  nd: TChmContextNode;
 begin
   Cfg := TXMLConfig.Create(nil);
   Cfg.StartEmpty := True;
   Cfg.Filename := AFileName;
   Cfg.Clear;
   Cfg.SetValue('Files/Count/Value', Files.Count);
-  for I := 0 to Files.Count-1 do
+  for I := 0 to Files.Count - 1 do
   begin
-    nd:=TChmContextNode(files.objects[i]);
-    Cfg.SetValue('Files/FileName'+IntToStr(I)+'/Value', Files.Strings[I]);
+    nd := TChmContextNode(files.objects[i]);
+    Cfg.SetValue('Files/FileName' + IntToStr(I) + '/Value', Files.Strings[I]);
     if assigned(nd) then
-      begin
-        Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextNumber', nd.contextnumber);
-        Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextName', nd.contextname);
-      end;
+    begin
+      Cfg.SetValue('Files/FileName' + IntToStr(I) + '/ContextNumber', nd.contextnumber);
+      Cfg.SetValue('Files/FileName' + IntToStr(I) + '/ContextName', nd.contextname);
+    end;
   end;
 
   Cfg.SetValue('OtherFiles/Count/Value', OtherFiles.Count);
-  for I := 0 to OtherFiles.Count-1 do
-    Cfg.SetValue('OtherFiles/FileName'+IntToStr(I)+'/Value', OtherFiles.Strings[I]);
+  for I := 0 to OtherFiles.Count - 1 do
+    Cfg.SetValue('OtherFiles/FileName' + IntToStr(I) + '/Value', OtherFiles.Strings[I]);
 
 
-  Cfg.SetValue('Windows/Count/Value', FWindows.count);
-  for i:=0 To FWindows.Count-1 do
-    TCHMWindow(FWindows[i]).savetoxml(cfg,'Windows/item'+inttostr(i)+'/');
+  Cfg.SetValue('Windows/Count/Value', FWindows.Count);
+  for i := 0 to FWindows.Count - 1 do
+    TCHMWindow(FWindows[i]).savetoxml(cfg, 'Windows/item' + IntToStr(i) + '/');
 
-  Cfg.SetValue('MergeFiles/Count/Value', FMergeFiles.count);
-  for i:=0 To FMergeFiles.Count-1 do
-    Cfg.SetValue('MergeFiles/FileName'+IntToStr(I)+'/value',FMergeFiles[i]);
+  Cfg.SetValue('MergeFiles/Count/Value', FMergeFiles.Count);
+  for i := 0 to FMergeFiles.Count - 1 do
+    Cfg.SetValue('MergeFiles/FileName' + IntToStr(I) + '/value', FMergeFiles[i]);
 
   // delete legacy keys.
   Cfg.DeleteValue('Files/IndexFile/Value');
@@ -687,8 +729,8 @@ begin
   Cfg.DeleteValue('Files/MakeBinaryIndex/Value');
   Cfg.SetValue('Settings/IndexFile/Value', IndexFileName);
   Cfg.SetValue('Settings/TOCFile/Value', TableOfContentsFileName);
-  Cfg.SetValue('Settings/MakeBinaryTOC/Value',MakeBinaryTOC);
-  Cfg.SetValue('Settings/MakeBinaryIndex/Value',MakeBinaryIndex);
+  Cfg.SetValue('Settings/MakeBinaryTOC/Value', MakeBinaryTOC);
+  Cfg.SetValue('Settings/MakeBinaryIndex/Value', MakeBinaryIndex);
 
   Cfg.SetValue('Settings/AutoFollowLinks/Value', AutoFollowLinks);
   Cfg.SetValue('Settings/MakeSearchable/Value', MakeSearchable);
@@ -700,391 +742,413 @@ begin
   Cfg.SetValue('Settings/DefaultWindow/Value', DefaultWindow);
   Cfg.SetValue('Settings/ScanHtmlContents/Value', ScanHtmlContents);
 
+  Cfg.SetValue('Settings/LocaleID/Value', LocaleID);
 
   Cfg.Flush;
   Cfg.Free;
 end;
 
-function TChmProject.ProjectDir: String;
+function TChmProject.ProjectDir: string;
 begin
   Result := ExtractFilePath(FileName);
 end;
 
-procedure TChmProject.Error(errorkind:TChmProjectErrorKind;msg:String;detaillevel:integer=0);
+procedure TChmProject.Error(errorkind: TChmProjectErrorKind; msg: string;
+  detaillevel: Integer = 0);
 begin
   if assigned(OnError) then
-    OnError(self,errorkind,msg,detaillevel);
+    OnError(self, errorkind, msg, detaillevel);
 end;
 
 const
-   protocols   : array[0..4] of string = ('HTTP:','HTTPS:','FTP:','MS-ITS:', 'MAILTO:');
-   protocollen : array[0..4] of integer= ( 5 ,6, 4 ,7, 7);
+  protocols: array[0..4] of string = ('HTTP:', 'HTTPS:', 'FTP:', 'MS-ITS:', 'MAILTO:');
+  protocollen: array[0..4] of Integer = (5, 6, 4, 7, 7);
 
-function TChmProject.SanitizeURL(const basepath,instring,localpath,localname:string;var outstring:String):Boolean;
-var i,j,len : integer;
-  Anchor: String;
+function TChmProject.SanitizeURL(const basepath, instring, localpath, localname: string;
+  var outstring: string): Boolean;
+var
+  i, j, len: Integer;
+  Anchor: string;
 begin
-  result:=true; outstring:='';
-  if instring='' then
-    exit(false);
+  Result := True;
+  outstring := '';
+  if instring = '' then
+    exit(False);
 
-  len:=length(instring);
-  if len=0 then
-    exit(false);
+  len := length(instring);
+  if len = 0 then
+    exit(False);
   { Check for protocols before adding local path }
-  i:=0;
-  while (i<=high(protocols)) do
+  i := 0;
+  while (i <= high(protocols)) do
+  begin
+    if strlicomp(@protocols[i][1], @instring[1], protocollen[i]) = 0 then
+      exit(False);
+    Inc(i);
+  end;
+  outstring := localpath + instring;
+
+  i := pos('#', outstring);
+  if i <> 0 then
+  begin
+    if i > 1 then
+      Anchor := outstring
+    else
+      Anchor := localname + outstring;
+    j := fAnchorList.IndexOf(Anchor);
+    if j < 0 then
     begin
-      if strlicomp(@protocols[i][1],@instring[1],protocollen[i])=0 then
-        exit(false);
-      inc(i);
+      fAnchorList.AddObject(Anchor, TFirstReference.Create(localname));
+      Anchor := '(new) ' + Anchor;
     end;
-   outstring:=localpath+instring;
+    Error(CHMNote, 'Anchor found ' + Anchor + ' while scanning ' + localname, 1);
+    Delete(outstring, i, length(outstring) - i + 1);
+  end;
 
-   i:=pos('#',outstring);
-   if i<>0 then begin
-     if i > 1 then
-       Anchor := outstring
-     else
-       Anchor := localname+outstring;
-     j := fAnchorList.IndexOf(Anchor);
-     if j < 0 then begin
-       fAnchorList.AddObject(Anchor,TFirstReference.Create(localname));
-       Anchor := '(new) '+Anchor;
-     end;
-     Error(CHMNote, 'Anchor found '+Anchor+' while scanning '+localname,1);
-     delete(outstring,i,length(outstring)-i+1);
-   end;
+  outstring := expandfilename(StringReplace(outstring, '%20', ' ', [rfReplaceAll]));
+  // expandfilename(instring));
 
-  outstring:=expandfilename(StringReplace(outstring,'%20',' ',[rfReplaceAll]));// expandfilename(instring));
-
-  outstring:=extractrelativepath(basepath,outstring);
-  outstring:=StringReplace(outstring,'\','/',[rfReplaceAll]);
+  outstring := extractrelativepath(basepath, outstring);
+  outstring := StringReplace(outstring, '\', '/', [rfReplaceAll]);
 end;
 
-function  TChmProject.FileInTotalList(const s:String):boolean;
+function TChmProject.FileInTotalList(const s: string): Boolean;
 
 begin
-  FSpareString.TheString:=S;
-  result:=assigned(fTotalFileList.FindKey(FSpareString,@CompareStrings));
+  FSpareString.TheString := S;
+  Result := assigned(fTotalFileList.FindKey(FSpareString, @CompareStrings));
 end;
 
-procedure TChmProject.ScanList(toscan,newfiles:TStrings;recursion:boolean);
- // toscan, list to search for htmlfiles to scan.
- // newfiles, the resulting list of files.
- // totalfilelist, the list that contains all found and specified files to check against.
- // localfilelist (local var), files found in this file.
+procedure TChmProject.ScanList(toscan, newfiles: TStrings; recursion: Boolean);
+// toscan, list to search for htmlfiles to scan.
+// newfiles, the resulting list of files.
+// totalfilelist, the list that contains all found and specified files to check against.
+// localfilelist (local var), files found in this file.
 var
-  localpath : string;
+  localpath: string;
 
-function findattribute(node:TDomNode;attributename:string):String;
-var
+  function findattribute(node: TDomNode; attributename: string): string;
+  var
     Attributes: TDOMNamedNodeMap;
-    atnode    : TDomNode;
-    n         : integer;
-begin
-  Result := '';
-  if assigned(node) then
+    atnode: TDomNode;
+    n: Integer;
+  begin
+    Result := '';
+    if assigned(node) then
     begin
-      Attributes:=node.Attributes;
+      Attributes := node.Attributes;
       if assigned(attributes) then
-        for n:=0 to attributes.length-1 do
-          begin
-            atnode :=attributes[n];
-            if assigned(atnode) and (uppercase(atnode.nodename)=attributename) then
-              exit(atnode.nodevalue);
-          end;
-    end;
-end;
-
-procedure checkattributes(node:TDomNode;attributename:string; const localname: string; filelist :TStringList);
-var
-    fn  : String;
-    val : String;
-begin
-  val := findattribute(node,attributename);
-  if sanitizeurl(fbasepath,val,localpath,localname,fn) then
-    if (Length(fn) > 0) { Skip links to self using named anchors }
-        and not FileInTotalList(uppercase(fn)) then
-      filelist.add(fn);
-end;
-
-
-function scantags(prnt:TDomNode; const localname: string; filelist:TStringlist):TDomNode;
-// Seach first matching tag in siblings
-var chld: TDomNode;
-    s,
-    att : ansistring;
-    i   : Integer;
-begin
-  result:=nil;
-  if assigned(prnt )  then
-    begin
-      chld:=prnt.firstchild;
-      while assigned(chld) do
+        for n := 0 to attributes.length - 1 do
         begin
-          scantags(chld, localname, filelist);  // depth first.
-          if (chld is TDomElement) then
-            begin
-              s:=uppercase(tdomelement(chld).tagname);
-              if s='LINK' then
-                begin
-                  //printattributes(chld,'');
-                  checkattributes(chld,'HREF',localname,filelist);
-                end;
-              if s='SCRIPT' then
-                begin
-                  //printattributes(chld,'');
-                  checkattributes(chld,'SRC',localname,filelist);
-                end;
-             if s='IMG'then
-               begin
-                  //printattributes(chld,'');
-                  checkattributes(chld,'SRC',localname,filelist);
-               end;
-             if s='A'then
-               begin
-                  //printattributes(chld,'');
-                  checkattributes(chld,'HREF',localname,filelist);
-                  att := 'NAME';
-                  s := findattribute(chld, att);
-                  if s = '' then begin
-                     att := 'ID';
-                     s := findattribute(chld, att);
-                  end;
-                  if s <> '' then
-                    begin
-                      i := fAnchorList.IndexOf(localname+'#'+s);
-                      if i < 0 then begin
-                        fAnchorList.Add(localname+'#'+s);
-                        Error(ChmNote,'New Anchor with '+att+' '+s+' found while scanning '+localname,1);
-                      end else if fAnchorList.Objects[i] = nil then
-                        Error(chmwarning,'Duplicate anchor definitions with '+att+' '+s+' found while scanning '+localname,1)
-                      else begin
-                        fAnchorList.Objects[i].Free;
-                        fAnchorList.Objects[i] := nil;
-                        Error(ChmNote,'Anchor with '+att+' '+s+' defined while scanning '+localname,1);
-                      end;
-                    end;
-                end;
-            end;
-          chld:=chld.nextsibling;
+          atnode := attributes[n];
+          if assigned(atnode) and (uppercase(atnode.nodename) = attributename) then
+            exit(atnode.nodevalue);
         end;
     end;
-end;
+  end;
+
+  procedure checkattributes(node: TDomNode; attributename: string;
+  const localname: string; filelist: TStringList);
+  var
+    fn: string;
+    val: string;
+  begin
+    val := findattribute(node, attributename);
+    if sanitizeurl(fbasepath, val, localpath, localname, fn) then
+      if (Length(fn) > 0) { Skip links to self using named anchors } and
+        not FileInTotalList(uppercase(fn)) then
+        filelist.add(fn);
+  end;
+
+
+  function scantags(prnt: TDomNode; const localname: string; filelist: TStringList): TDomNode;
+    // Seach first matching tag in siblings
+  var
+    chld: TDomNode;
+    s, att: ansistring;
+    i: Integer;
+  begin
+    Result := nil;
+    if assigned(prnt) then
+    begin
+      chld := prnt.firstchild;
+      while assigned(chld) do
+      begin
+        scantags(chld, localname, filelist);  // depth first.
+        if (chld is TDomElement) then
+        begin
+          s := uppercase(tdomelement(chld).tagname);
+          if s = 'LINK' then
+          begin
+            //printattributes(chld,'');
+            checkattributes(chld, 'HREF', localname, filelist);
+          end;
+          if s = 'SCRIPT' then
+          begin
+            //printattributes(chld,'');
+            checkattributes(chld, 'SRC', localname, filelist);
+          end;
+          if s = 'IMG' then
+          begin
+            //printattributes(chld,'');
+            checkattributes(chld, 'SRC', localname, filelist);
+          end;
+          if s = 'A' then
+          begin
+            //printattributes(chld,'');
+            checkattributes(chld, 'HREF', localname, filelist);
+            att := 'NAME';
+            s := findattribute(chld, att);
+            if s = '' then
+            begin
+              att := 'ID';
+              s := findattribute(chld, att);
+            end;
+            if s <> '' then
+            begin
+              i := fAnchorList.IndexOf(localname + '#' + s);
+              if i < 0 then
+              begin
+                fAnchorList.Add(localname + '#' + s);
+                Error(ChmNote, 'New Anchor with ' + att + ' ' + s +
+                  ' found while scanning ' + localname, 1);
+              end
+              else if fAnchorList.Objects[i] = nil then
+                Error(chmwarning, 'Duplicate anchor definitions with ' +
+                  att + ' ' + s + ' found while scanning ' + localname, 1)
+              else
+              begin
+                fAnchorList.Objects[i].Free;
+                fAnchorList.Objects[i] := nil;
+                Error(ChmNote, 'Anchor with ' + att + ' ' + s +
+                  ' defined while scanning ' + localname, 1);
+              end;
+            end;
+          end;
+        end;
+        chld := chld.nextsibling;
+      end;
+    end;
+  end;
 
 var
   localfilelist: TStringList;
-  domdoc : THTMLDocument;
-  i,j    : Integer;
-  fn,s   : string;
-  ext    : String;
-  tmplst : Tstringlist;
-  strrec : TStringIndex;
+  domdoc: THTMLDocument;
+  i, j: Integer;
+  fn, s: string;
+  ext: string;
+  tmplst: TStringList;
+  strrec: TStringIndex;
   //localpath : string;
 
-function trypath(const vn:string):boolean;
-var vn2: String;
-  strrec : TStringIndex;
-begin
-  vn2:=uppercase(vn);
-  if FileInTotalList(vn2) then
-   begin
-     Error(ChmNote,'Found duplicate file '+vn+' while scanning '+fn,1);
-     exit(true);
-   end;
-
-  result:=false;
-  if fileexists(vn) then  // correct for relative path .html file?
+  function trypath(const vn: string): Boolean;
+  var
+    vn2: string;
+    strrec: TStringIndex;
+  begin
+    vn2 := uppercase(vn);
+    if FileInTotalList(vn2) then
     begin
-      result:=true;
-      StrRec:=TStringIndex.Create;
-      StrRec.TheString:=vn2;
-      StrRec.Strid    :=0;
+      Error(ChmNote, 'Found duplicate file ' + vn + ' while scanning ' + fn, 1);
+      exit(True);
+    end;
+
+    Result := False;
+    if fileexists(vn) then  // correct for relative path .html file?
+    begin
+      Result := True;
+      StrRec := TStringIndex.Create;
+      StrRec.TheString := vn2;
+      StrRec.Strid := 0;
       fTotalFileList.Add(StrRec);
       newfiles.add(vn);
-      Error(ChmNote,'Found file '+vn+' while scanning '+fn,1);
+      Error(ChmNote, 'Found file ' + vn + ' while scanning ' + fn, 1);
     end;
-end;
+  end;
 
 begin
- localfilelist:=TStringList.Create;
- for j:=0 to toscan.count-1 do
-   begin
-     fn:=toscan[j];
-     localfilelist.clear;
-     if (FAllowedExtensions.Indexof(uppercase(extractfileext(fn)))<>-1) then
-       begin
-         if fileexists(fn) then
-           begin
-             domdoc:=THtmlDocument.Create;
-             try
-               Error(chmnote,'Scanning file '+fn+'.',5);
-               ReadHtmlFile(domdoc,fn);
-               localpath:=extractfilepath(fn);
-               if (length(localpath)>0) and not (localpath[length(localpath)] in ['/','\']) then
-                 localpath:=localpath+pathsep;
-               scantags(domdoc,extractfilename(fn),localfilelist);
-               for i:=0 to localFilelist.count-1 do
-                 begin
-                   s:=localfilelist[i];
-                   if not trypath(s) then
-//                     if not trypath(localpath+s) then
-                       Error(ChmWarning,'Found file '+s+' while scanning '+fn+', but couldn''t find it on disk',2);
-                 end;
-             except
-               on e:exception do
-                  Error(ChmError,'Html parsing '+fn+', failed. Please submit a bug.');
-               end;
-             domdoc.free;
-           end
-         else
-           begin
-             Error(chmnote,'Can''t find file '+fn+' to scan it.',5);
-           end;
-        end
-     else
-       Error(chmnote,'Not scanning file because of unknown extension '+fn,5);
-   end;
-  localfilelist.free;
-  if (newfiles.count>0) and recursion then
+  localfilelist := TStringList.Create;
+  for j := 0 to toscan.Count - 1 do
+  begin
+    fn := toscan[j];
+    localfilelist.Clear;
+    if (FAllowedExtensions.Indexof(uppercase(extractfileext(fn))) <> -1) then
     begin
-      tmplst:=TStringList.Create;
-      scanlist(newfiles,tmplst,true);
-      newfiles.addstrings(tmplst);
-      tmplst.free;
-    end;
-end;
-
-procedure TChmProject.ScanSitemap(sitemap:TChmSiteMap;newfiles:TStrings;recursion:boolean);
-
-procedure scanitems(it:TChmSiteMapItems);
-
-var i : integer;
-    x : TChmSiteMapItem;
-    s : string;
-    strrec : TStringIndex;
-
-begin
-  for i:=0 to it.count -1 do
-    begin
-      x:=it.item[i];
-      if sanitizeurl(fbasepath,x.local,'','Site Map for '+x.Text,S) then   // sanitize, remove stuff etc.
-        begin
-          if not FileInTotalList(uppercase(s)) then
-            begin
-              if fileexists(s) then
-                begin
-                  Error(chmnote,'Good url: '+s+'.',5);
-                  StrRec:=TStringIndex.Create;
-                  StrRec.TheString:=uppercase(s);
-                  StrRec.Strid    :=0;
-                  fTotalFileList.Add(StrRec);
-                  newfiles.add(s);
-                end
-              else
-                Error(chmnote,'duplicate url: '+s+'.',5);
-            end
-          else
-            Error(chmnote,'duplicate url: '+s+'.',5);
-        end
+      if fileexists(fn) then
+      begin
+        domdoc := THtmlDocument.Create;
+        try
+          Error(chmnote, 'Scanning file ' + fn + '.', 5);
+          ReadHtmlFile(domdoc, fn);
+          localpath := extractfilepath(fn);
+          if (length(localpath) > 0) and not
+            (localpath[length(localpath)] in ['/', '\']) then
+            localpath := localpath + pathsep;
+          scantags(domdoc, extractfilename(fn), localfilelist);
+          for i := 0 to localFilelist.Count - 1 do
+          begin
+            s := localfilelist[i];
+            if not trypath(s) then
+              //                     if not trypath(localpath+s) then
+              Error(ChmWarning, 'Found file ' + s + ' while scanning ' +
+                fn + ', but couldn''t find it on disk', 2);
+          end;
+        except
+          on e: Exception do
+            Error(ChmError, 'Html parsing ' + fn + ', failed. Please submit a bug.');
+        end;
+        domdoc.Free;
+      end
       else
-       Error(chmnote,'Bad url: '+s+'.',5);
+      begin
+        Error(chmnote, 'Can''t find file ' + fn + ' to scan it.', 5);
+      end;
+    end
+    else
+      Error(chmnote, 'Not scanning file because of unknown extension ' + fn, 5);
+  end;
+  localfilelist.Free;
+  if (newfiles.Count > 0) and recursion then
+  begin
+    tmplst := TStringList.Create;
+    scanlist(newfiles, tmplst, True);
+    newfiles.addstrings(tmplst);
+    tmplst.Free;
+  end;
+end;
 
-      if assigned(x.children) and (x.children.count>0) then
+procedure TChmProject.ScanSitemap(sitemap: TChmSiteMap; newfiles: TStrings;
+  recursion: Boolean);
+
+  procedure scanitems(it: TChmSiteMapItems);
+
+  var
+    i: Integer;
+    x: TChmSiteMapItem;
+    s: string;
+    strrec: TStringIndex;
+
+  begin
+    for i := 0 to it.Count - 1 do
+    begin
+      x := it.item[i];
+      if sanitizeurl(fbasepath, x.local, '', 'Site Map for ' + x.Text, S) then
+        // sanitize, remove stuff etc.
+      begin
+        if not FileInTotalList(uppercase(s)) then
+        begin
+          if fileexists(s) then
+          begin
+            Error(chmnote, 'Good url: ' + s + '.', 5);
+            StrRec := TStringIndex.Create;
+            StrRec.TheString := uppercase(s);
+            StrRec.Strid := 0;
+            fTotalFileList.Add(StrRec);
+            newfiles.add(s);
+          end
+          else
+            Error(chmnote, 'duplicate url: ' + s + '.', 5);
+        end
+        else
+          Error(chmnote, 'duplicate url: ' + s + '.', 5);
+      end
+      else
+        Error(chmnote, 'Bad url: ' + s + '.', 5);
+
+      if assigned(x.children) and (x.children.Count > 0) then
         scanitems(x.children);
     end;
-end;
+  end;
 
-var i : integer;
-    localfilelist: TStringList;
+var
+  i: Integer;
+  localfilelist: TStringList;
 
 begin
-  localfilelist:=TStringList.Create;
+  localfilelist := TStringList.Create;
   scanitems(sitemap.items);
-  scanlist(newfiles,localfilelist,true);
+  scanlist(newfiles, localfilelist, True);
   newfiles.addstrings(localfilelist);
-  localfilelist.free;
+  localfilelist.Free;
 end;
 
 procedure TChmProject.ScanHtml;
 var
-  helplist,
-  localfilelist: TStringList;
-  i      : integer;
-  strrec : TStringIndex;
+  helplist, localfilelist: TStringList;
+  i: Integer;
+  strrec: TStringIndex;
 begin
 
- for i:=0 to otherfiles.count-1 do
-   begin
-     StrRec:=TStringIndex.Create;
-     StrRec.TheString:=uppercase(otherfiles[i]);
-     StrRec.Strid    :=0;
-     fTotalFileList.Add(StrRec);
-   end;
+  for i := 0 to otherfiles.Count - 1 do
+  begin
+    StrRec := TStringIndex.Create;
+    StrRec.TheString := uppercase(otherfiles[i]);
+    StrRec.Strid := 0;
+    fTotalFileList.Add(StrRec);
+  end;
 
- for i:=0 to files.count-1 do
-   begin
-     StrRec:=TStringIndex.Create;
-     StrRec.TheString:=uppercase(files[i]);
-     StrRec.Strid    :=0;
-     fTotalFileList.Add(StrRec);
-   end;
+  for i := 0 to files.Count - 1 do
+  begin
+    StrRec := TStringIndex.Create;
+    StrRec.TheString := uppercase(files[i]);
+    StrRec.Strid := 0;
+    fTotalFileList.Add(StrRec);
+  end;
 
- localfilelist:= TStringList.create;
- scanlist(ffiles,localfilelist,true);
- otherfiles.addstrings(localfilelist);
- localfilelist.clear;
- if (FDefaultpage<>'') and (not FileInTotalList(uppercase(fdefaultpage))) then
-   begin
-     Error(chmnote,'Scanning default file : '+fdefaultpage+'.',3);
-     helplist:=TStringlist.Create;
-     helplist.add(fdefaultpage);
-     scanlist(helplist,localfilelist,true);
-     otherfiles.addstrings(localfilelist);
-     localfilelist.clear;
-   end;
- if assigned(FToc) then
-   begin
-       Error(chmnote,'Scanning TOC file : '+FTableOfContentsFileName+'.',3);
-        try
-          scansitemap(ftoc,localfilelist,true);
-          otherfiles.addstrings(localfilelist);
-        except
-          on e: Exception do
-            error(chmerror,'Error scanning TOC file ('+FTableOfContentsFileName+')');
-          end;
-   end;
-  LocalFileList.clear;
-  if assigned(FIndex) then
-    begin
-      Error(chmnote,'Scanning Index file : '+FIndexFileName+'.',3);
-      try
-        scansitemap(FIndex,localfilelist,true);
-        otherfiles.addstrings(localfilelist);
-      except
-        on e: Exception do
-          error(chmerror,'Error scanning index file ('+FIndexFileName+')');
-        end;
+  localfilelist := TStringList.Create;
+  scanlist(ffiles, localfilelist, True);
+  otherfiles.addstrings(localfilelist);
+  localfilelist.Clear;
+  if (FDefaultpage <> '') and (not FileInTotalList(uppercase(fdefaultpage))) then
+  begin
+    Error(chmnote, 'Scanning default file : ' + fdefaultpage + '.', 3);
+    helplist := TStringList.Create;
+    helplist.add(fdefaultpage);
+    scanlist(helplist, localfilelist, True);
+    otherfiles.addstrings(localfilelist);
+    localfilelist.Clear;
+  end;
+  if assigned(FToc) then
+  begin
+    Error(chmnote, 'Scanning TOC file : ' + FTableOfContentsFileName + '.', 3);
+    try
+      scansitemap(ftoc, localfilelist, True);
+      otherfiles.addstrings(localfilelist);
+    except
+      on e: Exception do
+        error(chmerror, 'Error scanning TOC file (' + FTableOfContentsFileName + ')');
     end;
- localfilelist.free;
+  end;
+  LocalFileList.Clear;
+  if assigned(FIndex) then
+  begin
+    Error(chmnote, 'Scanning Index file : ' + FIndexFileName + '.', 3);
+    try
+      scansitemap(FIndex, localfilelist, True);
+      otherfiles.addstrings(localfilelist);
+    except
+      on e: Exception do
+        error(chmerror, 'Error scanning index file (' + FIndexFileName + ')');
+    end;
+  end;
+  localfilelist.Free;
 end;
 
 
 procedure TChmProject.WriteChm(AOutStream: TStream);
 var
-  Writer     : TChmWriter;
-  TOCStream,
-  IndexStream: TFileStream;
-  nd         : TChmContextNode;
-  I          : Integer;
+  Writer: TChmWriter;
+  TOCStream, IndexStream: TFileStream;
+  nd: TChmContextNode;
+  I: Integer;
 begin
 
   LoadSiteMaps;
 
   // Scan html for "rest" files.
-  If ScanHtmlContents Then
-    ScanHtml;                 // Since this is slowing we opt to skip this step, and only do this on html load.
+  if ScanHtmlContents then
+    ScanHtml;
+  // Since this is slowing we opt to skip this step, and only do this on html load.
 
   IndexStream := nil;
   TOCStream := nil;
@@ -1093,7 +1157,7 @@ begin
 
   // our callback to get data
   Writer.OnGetFileData := @GetData;
-  Writer.OnLastFile    := @LastFileAdded;
+  Writer.OnLastFile := @LastFileAdded;
 
   // give it the list of html files
   Writer.FilesToCompress.AddStrings(Files);
@@ -1107,100 +1171,105 @@ begin
   Writer.Title := Title;
   Writer.DefaultFont := DefaultFont;
   Writer.FullTextSearch := MakeSearchable;
-  Writer.HasBinaryTOC := MakeBinaryTOC;
-  Writer.HasBinaryIndex := MakeBinaryIndex;
+  //Writer.HasBinaryTOC := MakeBinaryTOC;
+  //Writer.HasBinaryIndex := MakeBinaryIndex;
   Writer.IndexName := ExtractFileName(IndexFileName);
-  Writer.TocName   := ExtractFileName(TableOfContentsFileName);
+  Writer.TocName := ExtractFileName(TableOfContentsFileName);
   Writer.ReadmeMessage := ReadmeMessage;
   Writer.DefaultWindow := FDefaultWindow;
-  for i:=0 to files.count-1 do
-    begin
-      nd:=TChmContextNode(files.objects[i]);
-      if not fileexists(files[i]) then
-         Error(chmWarning,'File '+Files[i]+' does not exist');
-      if assigned(nd) and (nd.contextnumber<>0) then
-        Writer.AddContext(nd.ContextNumber,files[i]);
-    end;
-  if FWIndows.Count>0 then
-    Writer.Windows:=FWIndows;
-  if FMergeFiles.Count>0 then
-    Writer.Mergefiles:=FMergeFiles;
+  Writer.LocaleID := FLocaleID;
+  for i := 0 to files.Count - 1 do
+  begin
+    nd := TChmContextNode(files.objects[i]);
+    if not FileExists(Files[i]) then
+      Error(chmWarning, 'File ' + Files[i] + ' does not exist');
+    if assigned(nd) and (nd.contextnumber <> 0) then
+      Writer.AddContext(nd.ContextNumber, files[i]);
+  end;
+  if FWIndows.Count > 0 then
+    Writer.Windows := FWIndows;
+  if FMergeFiles.Count > 0 then
+    Writer.Mergefiles := FMergeFiles;
   if assigned(ftoc) then
-    Writer.TocSitemap:=ftoc;
+    Writer.TocSitemap := ftoc;
 
   // and write!
 
-  Error(chmnone,'Writing CHM '+OutputFileName,0);
+  Error(chmnone, 'Writing CHM ' + OutputFileName, 0);
 
-  Writer.Execute;
+  Writer.Execute();
 
-  if Assigned(TOCStream) then TOCStream.Free;
-  if Assigned(IndexStream) then IndexStream.Free;
+  if Assigned(TOCStream) then
+    TOCStream.Free;
+  if Assigned(IndexStream) then
+    IndexStream.Free;
   Writer.Free;
 end;
 
 procedure TChmProject.ShowUndefinedAnchors;
 var
-  i:Integer;
+  i: Integer;
 begin
-  for i := 0 to fAnchorList.Count-1 do
+  for i := 0 to fAnchorList.Count - 1 do
     if fAnchorList.Objects[i] <> nil then
-      Error(chmerror,'Anchor '+fAnchorList[i]+' undefined; first use '+TFirstReference(fAnchorList.Objects[i]).Location);
+      Error(chmerror, 'Anchor ' + fAnchorList[i] + ' undefined; first use ' +
+        TFirstReference(fAnchorList.Objects[i]).Location);
 end;
 
 procedure TChmProject.LoadSitemaps;
 // #IDXHDR (merged files) goes into the system file, and need to keep  TOC sitemap around
 begin
-   if FTableOfContentsFileName<>'' then
-   begin
-     if fileexists(FTableOfContentsFileName) then
-       begin
-         FreeAndNil(FTocStream);
-         FTocStream:=TMemoryStream.Create;
-         try
-           FTocStream.loadfromfile(FTableOfContentsFilename);
-           //writeln(ftableofcontentsfilename, ' ' ,ftocstream.size);
-           FTocStream.Position:=0;
-           FreeAndNil(FToc);
-           FToc:=TChmSiteMap.Create(sttoc);
-           FToc.loadfromstream(FTocStream);
-           ftoc.savetofile('bla.something');
-         except
-          on e:exception do
-            begin
-               error(chmerror,'Error loading TOC file '+FTableOfContentsFileName);
-               freeandnil(ftoc); freeandnil(FTocStream);
-             end;
-           end;
-       end
-     else
-       error(chmerror,'Can''t find TOC file'+FTableOfContentsFileName);
-   end;
-   if FIndexFileName<>'' then
-   begin
-     if fileexists(FIndexFileName) then
-       begin
-        FreeAndNil(FIndexStream);
-        FIndexStream:=TMemoryStream.Create;
-        try
-          FIndexStream.LoadFromFile(FIndexFileName);
-          FIndexStream.Position:=0;
-          FreeAndNil(FIndex);
-          FIndex:=TChmSiteMap.Create(stindex);
-          FIndex.loadfromfile(FIndexFileName);
-        except
-          on e: Exception do
-            begin
-              error(chmerror,'Error loading index file '+FIndexFileName);
-              freeandnil(findex); freeandnil(findexstream);
-            end;
-          end;
-       end
-     else
-       error(chmerror,'Can''t find index file '+FIndexFileName);
-   end;
+  if FTableOfContentsFileName <> '' then
+  begin
+    if fileexists(FTableOfContentsFileName) then
+    begin
+      FreeAndNil(FTocStream);
+      FTocStream := TMemoryStream.Create;
+      try
+        FTocStream.loadfromfile(FTableOfContentsFilename);
+        //writeln(ftableofcontentsfilename, ' ' ,ftocstream.size);
+        FTocStream.Position := 0;
+        FreeAndNil(FToc);
+        FToc := TChmSiteMap.Create(sttoc);
+        FToc.loadfromstream(FTocStream);
+        ftoc.savetofile('bla.something');
+      except
+        on e: Exception do
+        begin
+          error(chmerror, 'Error loading TOC file ' + FTableOfContentsFileName);
+          FreeAndNil(ftoc);
+          FreeAndNil(FTocStream);
+        end;
+      end;
+    end
+    else
+      error(chmerror, 'Can''t find TOC file' + FTableOfContentsFileName);
+  end;
+  if FIndexFileName <> '' then
+  begin
+    if fileexists(FIndexFileName) then
+    begin
+      FreeAndNil(FIndexStream);
+      FIndexStream := TMemoryStream.Create;
+      try
+        FIndexStream.LoadFromFile(FIndexFileName);
+        FIndexStream.Position := 0;
+        FreeAndNil(FIndex);
+        FIndex := TChmSiteMap.Create(stindex);
+        FIndex.loadfromfile(FIndexFileName);
+      except
+        on e: Exception do
+        begin
+          error(chmerror, 'Error loading index file ' + FIndexFileName);
+          FreeAndNil(findex);
+          FreeAndNil(findexstream);
+        end;
+      end;
+    end
+    else
+      error(chmerror, 'Can''t find index file ' + FIndexFileName);
+  end;
 end;
 
 
 end.
-

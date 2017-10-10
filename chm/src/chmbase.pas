@@ -201,14 +201,16 @@ begin
   buf := @Value;
   {$push}
   {$R-}
-  while True do begin
+  while True do
+  begin
     mask := $7f shl bit;
-    if (bit = 0) or ((ANumber and mask)<>0) then break;
+    if (bit = 0) or ((ANumber and mask) <> 0) then break;
     Dec(bit, 7);
   end;
-  while True do begin
-    buf^ := Byte(((ANumber shr bit)and $7f));
-    if(bit = 0) then break;
+  while True do
+  begin
+    buf^ := Byte(((ANumber shr bit) and $7f));
+    if (bit = 0) then break;
     buf^ := buf^ or $80;
     Inc(buf);
     Dec(bit, 7);
