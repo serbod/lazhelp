@@ -56,12 +56,12 @@ type
     FTitle: string;
     FWindows: TObjectList;
     FMergeFiles: TStringList;
-    fDefaultWindow: string;
-    fScanHtmlContents: Boolean;
-    fOtherFiles: TStrings; // Files found in a scan.
-    fAllowedExtensions: TStringList;
-    fTotalFileList: TAvlTree;
-    fAnchorList: TStringList;
+    FDefaultWindow: string;
+    FScanHtmlContents: Boolean;
+    FOtherFiles: TStrings; // Files found in a scan.
+    FAllowedExtensions: TStringList;
+    FTotalFileList: TAvlTree;
+    FAnchorList: TStringList;
     FSpareString: TStringIndex;
     FBasePath: string;
     // location of the .hhp file. Needed to resolve relative paths
@@ -71,10 +71,12 @@ type
     FCores: Integer;
     FLocaleID: word;
   protected
-    function GetData(const DataName: string; out PathInChm: string;
-      out FileName: string; var Stream: TStream): Boolean;
-    procedure LastFileAdded(Sender: TObject);
-    procedure readIniOptions(keyvaluepairs: TStringList);
+    { TChmWriter.OnGetFileData handler }
+    function WriterGetFileData(const DataName: string; out PathInChm: string;
+      out FileName: string; Stream: TStream): Boolean;
+    { TChmWriter.OnLastFile handler }
+    procedure WriterLastFileAdded(Sender: TObject);
+    procedure ReadIniOptions(keyvaluepairs: TStringList);
     procedure ScanHtml;
     procedure ScanList(toscan, newfiles: TStrings; recursion: Boolean);
     procedure ScanSitemap(sitemap: TChmSiteMap; newfiles: TStrings; recursion: Boolean);
@@ -116,10 +118,10 @@ type
     property OnProgress: TChmProgressCB read FOnProgress write FOnProgress;
     property OnError: TChmErrorCB read FOnError write FOnError;
     property DefaultWindow: string read FDefaultWindow write FDefaultWindow;
-    property ScanHtmlContents: Boolean read fScanHtmlContents write fScanHtmlContents;
+    property ScanHtmlContents: Boolean read FScanHtmlContents write FScanHtmlContents;
     property ReadmeMessage: string read FReadmeMessage write FReadmeMessage;
     property AllowedExtensions: TStringList read FAllowedExtensions;
-    property Cores: Integer read fcores write fcores;
+    property Cores: Integer read FCores write FCores;
     property LocaleID: word read FLocaleID write FLocaleID;
   end;
 
@@ -158,12 +160,12 @@ end;
 
 { TChmProject }
 
-function TChmProject.GetData(const DataName: string; out PathInChm: string;
-  out FileName: string; var Stream: TStream): Boolean;
+function TChmProject.WriterGetFileData(const DataName: string; out PathInChm: string;
+  out FileName: string; Stream: TStream): Boolean;
 begin
   Result := False; // Return true to abort compressing files
 
-  TMemoryStream(Stream).LoadFromFile(ProjectDir + DataName);
+  (Stream as TMemoryStream).LoadFromFile(ProjectDir + DataName);
   // clean up the filename
   FileName := StringReplace(ExtractFileName(DataName), '\', '/', [rfReplaceAll]);
   FileName := StringReplace(FileName, '//', '/', [rfReplaceAll]);
@@ -173,19 +175,19 @@ begin
     FOnProgress(Self, DataName);
 end;
 
-procedure TChmProject.LastFileAdded(Sender: TObject);
+procedure TChmProject.WriterLastFileAdded(Sender: TObject);
 var
   Writer: TChmWriter;
 begin
   // Assign the TOC and index files
   Writer := TChmWriter(Sender);
-  writer.cores := fcores;
+  Writer.Cores := FCores;
   {$ifdef chmindex}
   Writeln('binindex filename ', IndexFileName);
   {$endif}
-  if assigned(FIndexStream) then
+  if Assigned(FIndexStream) then
   begin
-    FIndexStream.position := 0;
+    FIndexStream.Position := 0;
     Writer.AppendIndex(FIndexStream);
     if MakeBinaryIndex then
     begin
@@ -195,16 +197,16 @@ begin
       Writer.AppendBinaryIndexFromSiteMap(FIndex, False);
     end;
   end;
-  if assigned(FTocStream) then
+  if Assigned(FTocStream) then
   begin
-    Writer.AppendTOC(FTOCStream);
+    Writer.AppendTOC(FTocStream);
     if MakeBinaryTOC then
     begin
       Writer.AppendBinaryTOCFromSiteMap(FToc);
     end;
   end;
-  if not assigned(Sender) then
-    Writer.Free;
+  if not Assigned(Sender) then
+    Writer.Free();
 end;
 
 constructor TChmProject.Create;
@@ -1156,8 +1158,8 @@ begin
   Writer := TChmWriter.Create(AOutStream, False);
 
   // our callback to get data
-  Writer.OnGetFileData := @GetData;
-  Writer.OnLastFile := @LastFileAdded;
+  Writer.OnGetFileData := @WriterGetFileData;
+  Writer.OnLastFile := @WriterLastFileAdded;
 
   // give it the list of html files
   Writer.FilesToCompress.AddStrings(Files);

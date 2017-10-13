@@ -56,23 +56,27 @@ begin
     end;
   {$ENDIF}
 
-  if snUnCompressed in SectionNames then begin
+  if snUnCompressed in SectionNames then
+  begin
     Inc(Size, 14);
     Inc(NEntries);
   end;
 
-  if snMSCompressed in SectionNames then begin
+  if snMSCompressed in SectionNames then
+  begin
     Inc(Size, 14);
     Inc(NEntries);
   end;
   
   AStream.WriteWord(NToLE(Size));
   AStream.WriteWord(NToLE(NEntries));
-  if snUnCompressed in SectionNames then begin
+  if snUnCompressed in SectionNames then
+  begin
     AStream.WriteWord(NToLE(Word(12)));
     AStream.Write(UnCompressedName[1], 13*2);
   end;
-  if snMSCompressed in SectionNames then begin
+  if snMSCompressed in SectionNames then
+  begin
     AStream.WriteWord(NToLE(Word(12)));
     AStream.Write(MSCompressedName[1], 13*2);
   end;
@@ -105,9 +109,9 @@ end;
 
 function WriteTransformListToStream(const AStream: TStream): Integer;
 const
-//AGuid = '{7FC28940-9D31-11D0-9B27-00A0C91E9C7C}';
-// use the broken guid
-AGuid = '{'#0'7'#0'F'#0'C'#0'2'#0'8'#0'9'#0'4'#0'0'#0'-'#0'9'#0'D'#0'3'#0'1'#0'-'#0'1'#0'1'#0'D'#0'0'#0; //-9B27-00A0C91E9C7C}';
+  //AGuid = '{7FC28940-9D31-11D0-9B27-00A0C91E9C7C}';
+  // use the broken guid
+  AGuid = '{'#0'7'#0'F'#0'C'#0'2'#0'8'#0'9'#0'4'#0'0'#0'-'#0'9'#0'D'#0'3'#0'1'#0'-'#0'1'#0'1'#0'D'#0'0'#0; //-9B27-00A0C91E9C7C}';
 begin
   //  ::DataSpace/Storage/MSCompressed/Transform/List
   Result := AStream.Write(AGuid, SizeOf(AGuid));
