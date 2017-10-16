@@ -53,6 +53,18 @@ type
     UrlStrId: Integer;
   end;
 
+  { TStringIndexList }
+
+  TStringIndexList = class(TAVLTree)
+  private
+    FSpareStringIndex: TStringIndex;
+  public
+    constructor Create(); reintroduce;
+    procedure BeforeDestruction(); override;
+    function AddStringIndex(AString: string; AStrId: Integer): TStringIndex;
+    function GetStringIndex(AString: string): TStringIndex;
+  end;
+
   { TITSFWriter }
 
   TITSFWriter = class(TObject)
@@ -195,10 +207,11 @@ type
     FHasTOC: Boolean;
     FHasIndex: Boolean;
     FIndexedFiles: TIndexedWordList;
-    FAvlStrings: TAVLTree;    // dedupe strings
-    FAVLTopicdedupe: TAVlTree;  // Topic deduping, if we load it both from hhp and TOC
+    FAvlStrings: TStringIndexList;    // dedupe strings
+    // ?not used? Topic deduping, if we load it both from hhp and TOC
+    //FAVLTopicDedupe: TStringIndexList;
     FAvlURLStr: TAVLTree;    // dedupe urltbl + binindex must resolve URL to topicid
-    SpareString: TStringIndex;
+    //SpareString: TStringIndex;
     SpareUrlStr: TUrlStrIndex;
     FWindows: TObjectList;
     FDefaultWindow: string;
@@ -242,12 +255,12 @@ type
 
     function AddString(AString: string): LongWord;
     function AddURL(AURL: string; TopicsIndex: DWord): LongWord;
-    procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
+    procedure CheckFileMakeSearchable(AStream: TStream; const AFileEntry: TFileEntryRec);
     function AddTopic(ATitle, AnUrl: AnsiString; code: Integer = -1): Integer;
-    procedure ScanSitemap(asitemap: TCHMSiteMap);
+    procedure ScanSitemap(ASiteMap: TCHMSiteMap);
     function NextTopicIndex: Integer;
     procedure SetWindows(AWindowList: TObjectList);
-    procedure SetMergefiles(src: TStringList);
+    procedure SetMergeFiles(Src: TStringList);
   public
     constructor Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean); override;
     destructor Destroy; override;
@@ -274,9 +287,12 @@ type
     { Binary TOC present flag, used for CHM header.
       Set automatically when AppendBinaryTOCFromSiteMap() }
     property HasBinaryTOC: Boolean read FHasBinaryTOC;
+    { Binary Index present flag, used for CHM header.
+      Set automatically when AppendBinaryIndexFromSiteMap() }
     property HasBinaryIndex: Boolean read FHasBinaryIndex;
     property DefaultFont: string read FDefaultFont write FDefaultFont;
     property DefaultPage: string read FDefaultPage write FDefaultPage;
+    { TCHMWindow items }
     property Windows: TObjectList read FWindows write SetWindows;
     property TOCName: string read FTocName write FTocName;
     property IndexName: string read FIndexName write FIndexName;
@@ -331,6 +347,42 @@ begin
     Result := -1
   else if Result > 0 then
     Result := 1;
+end;
+
+{ TStringIndexList }
+
+constructor TStringIndexList.Create();
+begin
+  inherited Create(@CompareStrings);
+  FSpareStringIndex := TStringIndex.Create();
+end;
+
+procedure TStringIndexList.BeforeDestruction();
+begin
+  FreeAndClear();
+  inherited BeforeDestruction;
+end;
+
+function TStringIndexList.AddStringIndex(AString: string; AStrId: Integer
+  ): TStringIndex;
+begin
+  Result := TStringIndex.Create();
+  Result.TheString := AString;
+  Result.StrId := AStrId;
+  Add(Result);
+end;
+
+function TStringIndexList.GetStringIndex(AString: string): TStringIndex;
+var
+  Node: TAVLTreeNode;
+  s: string;
+begin
+  FSpareStringIndex.TheString := AString;
+  Node := FindKey(FSpareStringIndex, @CompareStrings);
+  if Assigned(Node) then
+    Result := TStringIndex(Node.Data)
+  else
+    Result := nil;
 end;
 
 { TChmWriter }
@@ -1297,98 +1349,49 @@ const
 procedure TChmWriter.CreateIDXHDRStream();
 var
   i: Integer;
+  IdxHdr: TIdxHdr;
 begin
   if FMergeFiles.Count = 0 then
     // I assume text/site properties could also trigger idxhdr
     Exit;
 
+  FillChar(IdxHdr, SizeOf(IdxHdr), #0);
+  IdxHdr.IdxHdrSig := IdxHdrMagic;
+  IdxHdr.Unknown_04 := NtoLE(1);
+  IdxHdr.Unknown_08 := NtoLE(1);
+  IdxHdr.TopicsCount := NtoLE(FNrTopics);
+
+  if Assigned(FTocSM) then
+  begin
+    if (FTocSM.ImageList <> '') then
+      IdxHdr.ImageListStr := NtoLE(AddString(FTocSM.ImageList));
+    if (FTocSM.UseFolderImages) then
+      IdxHdr.ImageType := NtoLE(1);
+    IdxHdr.Background := NtoLE(FTocSM.BackgroundColor);
+    IdxHdr.Foreground := NtoLE(FTocSM.ForegroundColor);
+    if (FTocSM.Font <> '') then
+      IdxHdr.FontStr := NtoLE(AddString(FTocSM.Font));
+    IdxHdr.WindowStyles := NtoLE(FTocsm.WindowStyles);
+    IdxHdr.ExWindowStyles := NtoLE(FTocSm.ExWindowStyles);
+    if (FTocSM.FrameName <> '') then
+      IdxHdr.FrameNameStr := NtoLE(AddString(FTocSM.FrameName));
+    if (FTocSM.WindowName <> '') then
+      IdxHdr.WindowNameStr := NtoLE(AddString(FTocSM.WindowName));
+  end;
+
+  IdxHdr.MergeFilesCount := NtoLE(FMergeFiles.Count);
+  if FMergeFiles.Count > 0 then
+    IdxHdr.Unknown_4C := NtoLE(1);
+
+  for i := 0 to FMergeFiles.Count - 1 do
+    IdxHdr.MergeFilesList[i] := NtoLE(AddString(FMergeFiles[i]));
+
   FIDXHdrStream.SetSize(4096);
   FIDXHdrStream.Position := 0;
-  FIDXHdrStream.Write(IdxHdrMagic[1], 4);     //  0 Magic
-  FIDXHdrStream.WriteDWord(NtoLE(1));        //  4 Unknown timestamp/checksum
-  FIDXHdrStream.WriteDWord(NtoLE(1));        //  8 1 (unknown)
-  FIDXHdrStream.WriteDWord(NtoLE(FNrTopics));
-  //  C Number of topic nodes including the contents & index files
-  FIDXHdrStream.WriteDWord(NtoLE(0));        // 10 0 (unknown)
-
-  // 14 Offset in the #STRINGS file of the ImageList param of the "text/site properties" object of the sitemap contents (0/-1 = none)
-  if Assigned(FTocSM) and (FTocSM.ImageList <> '') then
-    FIDXHdrStream.WriteDWordLE(AddString(FTocSM.ImageList))
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-
-  // 18 0 (unknown)
-  FIDXHdrStream.WriteDWordLE(0);
-
-  // 1C 1 if the value of the ImageType param of the "text/site properties" object of the sitemap contents is Folder. 0 otherwise.
-  if Assigned(FTocSM) and (FTocSM.UseFolderImages) then
-    FIDXHdrStream.WriteDWordLE(1)
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-
-  // 20 The value of the Background param of the "text/site properties" object of the sitemap contents
-  if Assigned(FTocSM) then
-    FIDXHdrStream.WriteDWordLE(FTocSM.BackgroundColor)
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-
-  // 24 The value of the Foreground param of the "text/site properties" object of the sitemap contents
-  if Assigned(FTocSM) then
-    FIDXHdrStream.WriteDWordLE(FTocSM.ForegroundColor)
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-
-  // 28 Offset in the #STRINGS file of the Font param of the "text/site properties" object of the sitemap contents (0/-1 = none)
-  if Assigned(FTocSM) and (FTocSM.Font <> '') then
-    FIDXHdrStream.WriteDWordLE(AddString(FTocSM.Font))
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-
-  // 2C The value of the Window Styles param of the "text/site properties" object of the sitemap contents
-  if Assigned(FTocSM) then
-    FIDXHdrStream.WriteDWordLE(FTocsm.WindowStyles)
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-
-  // 30 The value of the EXWindow Styles param of the "text/site properties" object of the sitemap contents
-  if Assigned(FTocSM) then
-    FIDXHdrStream.WriteDWordLE(FTocSm.ExWindowStyles)
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-
-  // 34 Unknown. Often -1. Sometimes 0.
-  FIDXHdrStream.WriteDWordLE(0);
-
-  // 38 Offset in the #STRINGS file of the FrameName param of the "text/site properties" object of the sitemap contents (0/-1 = none)
-  if Assigned(FTocSM) and (FTocSM.FrameName <> '') then
-    FIDXHdrStream.WriteDWordLE(AddString(FTocSM.FrameName))
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-
-  // 3C Offset in the #STRINGS file of the WindowName param of the "text/site properties" object of the sitemap contents (0/-1 = none)
-  if Assigned(FTocSM) and (FTocSM.WindowName <> '') then
-    FIDXHdrStream.WriteDWordLE(AddString(FTocSM.WindowName))
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-  FIDXHdrStream.WriteDWord(NtoLE(0));        // 40 Number of information types.
-  FIDXHdrStream.WriteDWord(NtoLE(0));        // 44 Unknown. Often 1. Also 0, 3.
-  FIDXHdrStream.WriteDWord(NtoLE(FMergeFiles.Count));
-  // 48 Number of files in the [MERGE FILES] list.
-
-  // 4C Unknown. Often 0. Non-zero mostly in files with some files in the merge files list.
-  if FMergeFiles.Count > 0 then
-    FIDXHdrStream.WriteDWordLE(1)
-  else
-    FIDXHdrStream.WriteDWordLE(0);
-
-  for i := 0 to FMergefiles.Count - 1 do
-    FIDXHdrStream.WriteDWord(AddString(FMergeFiles[i]));
-
-  for i := 0 to 1004 - FMergeFiles.Count - 1 do
-    FIDXHdrStream.WriteDWord(0);
+  FIDXHdrStream.Write(IdxHdr, SizeOf(IdxHdr));
 end;
 
-procedure TChmWriter.WriteURL_STR_TBL;
+procedure TChmWriter.WriteURL_STR_TBL();
 begin
   if FURLSTRStream.Size <> 0 then
   begin
@@ -1402,140 +1405,144 @@ begin
   end;
 end;
 
-procedure TChmWriter.WriteOBJINST;
+procedure TChmWriter.WriteOBJINST();
 var
   i: Integer;
   ObjStream: TMemoryStream;
   //Flags: Word;
 begin
-  ObjStream := TMemorystream.Create;
-  // this file is needed to enable searches for the ms reader
-  ObjStream.WriteDWord(NtoLE($04000000));
-  ObjStream.WriteDWord(NtoLE(Dword(2))); // two entries
+  ObjStream := TMemoryStream.Create();
+  try
+    // this file is needed to enable searches for the ms reader
+    ObjStream.WriteDWord(NtoLE($04000000));
+    ObjStream.WriteDWord(NtoLE(DWord(2))); // two entries
 
-  ObjStream.WriteDWord(NtoLE(DWord(24))); // offset into file of entry
-  ObjStream.WriteDWord(NtoLE(DWord(2691))); // size
+    ObjStream.WriteDWord(NtoLE(DWord(24))); // offset into file of entry
+    ObjStream.WriteDWord(NtoLE(DWord(2691))); // size
 
-  ObjStream.WriteDWord(NtoLE(DWord(2715))); // offset into file of entry
-  ObjStream.WriteDWord(NtoLE(DWord(36))); // size
+    ObjStream.WriteDWord(NtoLE(DWord(2715))); // offset into file of entry
+    ObjStream.WriteDWord(NtoLE(DWord(36))); // size
 
-  // first entry
-  // write guid 4662DAAF-D393-11D0-9A56-00C04FB68BF7
-  ObjStream.WriteDWord(NtoLE($4662DAAF));
-  ObjStream.WriteWord(NtoLE($D393));
-  ObjStream.WriteWord(NtoLE(word($11D0)));
-  ObjStream.WriteWord(NtoLE(word($569A)));
-  ObjStream.WriteByte($00);
-  ObjStream.WriteByte($C0);
-  ObjStream.WriteByte($4F);
-  ObjStream.WriteByte($B6);
-  ObjStream.WriteByte($8B);
-  ObjStream.WriteByte($F7);
+    // first entry
+    // write guid 4662DAAF-D393-11D0-9A56-00C04FB68BF7
+    ObjStream.WriteDWord(NtoLE($4662DAAF));
+    ObjStream.WriteWord(NtoLE($D393));
+    ObjStream.WriteWord(NtoLE(Word($11D0)));
+    ObjStream.WriteWord(NtoLE(Word($569A)));
+    ObjStream.WriteByte($00);
+    ObjStream.WriteByte($C0);
+    ObjStream.WriteByte($4F);
+    ObjStream.WriteByte($B6);
+    ObjStream.WriteByte($8B);
+    ObjStream.WriteByte($F7);
 
-  ObjStream.WriteDWord(NtoLE($04000000));
-  ObjStream.WriteDWord(NtoLE(11));  // bit flags
-  ObjStream.WriteDWord(NtoLE(DWord(1252)));
-  ObjStream.WriteDWord(NtoLE(DWord(1033)));
-  ObjStream.WriteDWord(NtoLE($00000000));
-  ObjStream.WriteDWord(NtoLE($00000000));
-  ObjStream.WriteDWord(NtoLE($00145555));
-  ObjStream.WriteDWord(NtoLE($00000A0F));
-  ObjStream.WriteWord(NtoLE($0100));
-  ObjStream.WriteDWord(NtoLE($00030005));
-  for i := 0 to 5 do
-    ObjStream.WriteDWord($00000000);
-  ObjStream.WriteWord($0000);
-  // okay now the fun stuff
-  for i := 0 to $FF do
-    ObjStream.Write(ObjInstEntries[i], SizeOF(TObjInstEntry));
-  {begin
-    if i = 1 then
-      Flags := 7
-    else
-      Flags := 0;
-    if (i >= $41) and (i <= $5A) then
-      Flags := Flags or 2;
-    if (i >= $61) and (i <= $7A) then
-      Flags := Flags or 1;
-    if i = $27 then
-      Flags := Flags or 6;
-    ObjStream.WriteWord(NtoLE(Flags));
-    ObjStream.WriteWord(NtoLE(Word(i)));
-    if (i >= $41) and (i <= $5A) then
-      ObjStream.WriteByte(NtoLE(i+$20))
-    else
+    ObjStream.WriteDWord(NtoLE($04000000));
+    ObjStream.WriteDWord(NtoLE(11));  // bit flags
+    ObjStream.WriteDWord(NtoLE(DWord(1252)));
+    ObjStream.WriteDWord(NtoLE(DWord(1033)));
+    ObjStream.WriteDWord(NtoLE($00000000));
+    ObjStream.WriteDWord(NtoLE($00000000));
+    ObjStream.WriteDWord(NtoLE($00145555));
+    ObjStream.WriteDWord(NtoLE($00000A0F));
+    ObjStream.WriteWord(NtoLE($0100));
+    ObjStream.WriteDWord(NtoLE($00030005));
+    for i := 0 to 5 do
+      ObjStream.WriteDWord($00000000);
+    ObjStream.WriteWord($0000);
+    // okay now the fun stuff
+    for i := 0 to $FF do
+      ObjStream.Write(ObjInstEntries[i], SizeOF(TObjInstEntry));
+    {begin
+      if i = 1 then
+        Flags := 7
+      else
+        Flags := 0;
+      if (i >= $41) and (i <= $5A) then
+        Flags := Flags or 2;
+      if (i >= $61) and (i <= $7A) then
+        Flags := Flags or 1;
+      if i = $27 then
+        Flags := Flags or 6;
+      ObjStream.WriteWord(NtoLE(Flags));
+      ObjStream.WriteWord(NtoLE(Word(i)));
+      if (i >= $41) and (i <= $5A) then
+        ObjStream.WriteByte(NtoLE(i+$20))
+      else
+        ObjStream.WriteByte(NtoLE(i));
       ObjStream.WriteByte(NtoLE(i));
-    ObjStream.WriteByte(NtoLE(i));
-    ObjStream.WriteByte(NtoLE(i));
-    ObjStream.WriteByte(NtoLE(i));
-    ObjStream.WriteWord(NtoLE($0000));
-  end;}
-  ObjStream.WriteDWord(NtoLE($E66561C6));
-  ObjStream.WriteDWord(NtoLE($73DF6561));
-  ObjStream.WriteDWord(NtoLE($656F8C73));
-  ObjStream.WriteWord(NtoLE(word($6F9C)));
-  ObjStream.WriteByte($65);
-  // third bit of second entry
-  // write guid 8FA0D5A8-DEDF-11D0-9A61-00C04FB68BF7
-  ObjStream.WriteDWord(NtoLE($8FA0D5A8));
-  ObjStream.WriteWord(NtoLE($DEDF));
-  ObjStream.WriteWord(NtoLE(word($11D0)));
-  ObjStream.WriteWord(NtoLE(word($619A)));
-  ObjStream.WriteByte($00);
-  ObjStream.WriteByte($C0);
-  ObjStream.WriteByte($4F);
-  ObjStream.WriteByte($B6);
-  ObjStream.WriteByte($8B);
-  ObjStream.WriteByte($F7);
+      ObjStream.WriteByte(NtoLE(i));
+      ObjStream.WriteByte(NtoLE(i));
+      ObjStream.WriteWord(NtoLE($0000));
+    end;}
+    ObjStream.WriteDWord(NtoLE($E66561C6));
+    ObjStream.WriteDWord(NtoLE($73DF6561));
+    ObjStream.WriteDWord(NtoLE($656F8C73));
+    ObjStream.WriteWord(NtoLE(Word($6F9C)));
+    ObjStream.WriteByte($65);
+    // third bit of second entry
+    // write guid 8FA0D5A8-DEDF-11D0-9A61-00C04FB68BF7
+    ObjStream.WriteDWord(NtoLE($8FA0D5A8));
+    ObjStream.WriteWord(NtoLE($DEDF));
+    ObjStream.WriteWord(NtoLE(Word($11D0)));
+    ObjStream.WriteWord(NtoLE(Word($619A)));
+    ObjStream.WriteByte($00);
+    ObjStream.WriteByte($C0);
+    ObjStream.WriteByte($4F);
+    ObjStream.WriteByte($B6);
+    ObjStream.WriteByte($8B);
+    ObjStream.WriteByte($F7);
 
-  ObjStream.WriteDWord(NtoLE($04000000));
-  ObjStream.WriteDWord(NtoLE(DWord(1)));
-  ObjStream.WriteDWord(NtoLE(DWord(1252)));
-  ObjStream.WriteDWord(NtoLE(DWord(1033)));
-  ObjStream.WriteDWord(NtoLE(DWord(0)));
+    ObjStream.WriteDWord(NtoLE($04000000));
+    ObjStream.WriteDWord(NtoLE(DWord(1)));
+    ObjStream.WriteDWord(NtoLE(DWord(1252)));
+    ObjStream.WriteDWord(NtoLE(DWord(1033)));
+    ObjStream.WriteDWord(NtoLE(DWord(0)));
 
-  // second entry
-  // write guid 4662DAB0-D393-11D0-9A56-00C04FB68B66
-  ObjStream.WriteDWord(NtoLE($4662DAB0));
-  ObjStream.WriteWord(NtoLE($D393));
-  ObjStream.WriteWord(NtoLE(word($11D0)));
-  ObjStream.WriteWord(NtoLE(word($569A)));
-  ObjStream.WriteByte($00);
-  ObjStream.WriteByte($C0);
-  ObjStream.WriteByte($4F);
-  ObjStream.WriteByte($B6);
-  ObjStream.WriteByte($8B);
-  ObjStream.WriteByte($66);
+    // second entry
+    // write guid 4662DAB0-D393-11D0-9A56-00C04FB68B66
+    ObjStream.WriteDWord(NtoLE($4662DAB0));
+    ObjStream.WriteWord(NtoLE($D393));
+    ObjStream.WriteWord(NtoLE(Word($11D0)));
+    ObjStream.WriteWord(NtoLE(Word($569A)));
+    ObjStream.WriteByte($00);
+    ObjStream.WriteByte($C0);
+    ObjStream.WriteByte($4F);
+    ObjStream.WriteByte($B6);
+    ObjStream.WriteByte($8B);
+    ObjStream.WriteByte($66);
 
-  ObjStream.WriteDWord(NtoLE(DWord(666))); // not kidding
-  ObjStream.WriteDWord(NtoLE(DWord(1252)));
-  ObjStream.WriteDWord(NtoLE(DWord(1033)));
-  ObjStream.WriteDWord(NtoLE(DWord(10031)));
-  ObjStream.WriteDWord(NtoLE(DWord(0)));
+    ObjStream.WriteDWord(NtoLE(DWord(666))); // not kidding
+    ObjStream.WriteDWord(NtoLE(DWord(1252)));
+    ObjStream.WriteDWord(NtoLE(DWord(1033)));
+    ObjStream.WriteDWord(NtoLE(DWord(10031)));
+    ObjStream.WriteDWord(NtoLE(DWord(0)));
 
-  ObjStream.Position := 0;
-  AddStreamToArchive('$OBJINST', '/', ObjStream, True);
-  ObjStream.Free;
+    ObjStream.Position := 0;
+    AddStreamToArchive('$OBJINST', '/', ObjStream, True);
+
+  finally
+    ObjStream.Free();
+  end;
 
 end;
 
-procedure TChmWriter.WriteFiftiMain;
+procedure TChmWriter.WriteFiftiMain();
 var
   SearchWriter: TChmSearchWriter;
 begin
   if FTopicsStream.Size = 0 then
     Exit;
   SearchWriter := TChmSearchWriter.Create(FFiftiMainStream, FIndexedFiles);
-  // do not add an empty $FIftiMain
-  if not SearchWriter.HasData then
-  begin
-    FFullTextSearchAvailable := False;
-    SearchWriter.Free;
-    Exit;
+  try
+    FFullTextSearchAvailable := SearchWriter.HasData;
+    // do not add an empty $FIftiMain
+    if FFullTextSearchAvailable then
+    begin
+      SearchWriter.WriteToStream();
+    end;
+  finally
+    SearchWriter.Free();
   end;
-  FFullTextSearchAvailable := True;
-  SearchWriter.WriteToStream;
-  SearchWriter.Free;
 
   if FFiftiMainStream.Size = 0 then
     Exit;
@@ -1544,130 +1551,96 @@ begin
   PostAddStreamToArchive('$FIftiMain', '/', FFiftiMainStream);
 end;
 
-procedure TChmWriter.WriteWindows;
+procedure TChmWriter.WriteWindows();
 var
   WindowStream: TMemoryStream;
-  i, j: Integer;
-  win: TChmWindow;
+  i: Integer;
+  Win: TChmWindow;
+  we: TChmWindowEntry;
 begin
-  if FWindows.Count > 0 then
-  begin
-    WindowStream := TMemoryStream.Create;
-    WindowStream.WriteDword(NToLE(dword(FWindows.Count)));
-    WindowStream.WriteDword(NToLE(dword(196))); // 1.1 or later. 188 is old style.
+  if FWindows.Count = 0 then
+    Exit;
+
+  WindowStream := TMemoryStream.Create();
+  try
+    // #WINDOWS header
+    WindowStream.WriteDword(NToLE(DWord(FWindows.Count)));
+    WindowStream.WriteDword(NToLE(DWord(196))); // 1.1 or later. 188 is old style.
+    // #WINDOWS entries
     for i := 0 to FWindows.Count - 1 do
     begin
       Win := TChmWindow(FWindows[i]);
-      WindowStream.WriteDwordLE(196);
-      //  0 size of entry.
-      WindowStream.WriteDwordLE(0);
-      //  4 unknown (bool Unicodestrings?)
-      WindowStream.WriteDword(NToLE(addstring(win.window_type)));
-      //  8 Arg 0, name of window
-      WindowStream.WriteDword(NToLE(dword(win.flags)));
-      //  C valid fields
-      WindowStream.WriteDword(NToLE(dword(win.nav_style)));
-      // 10 arg 10 navigation pane style
-      WindowStream.WriteDword(NToLE(addstring(win.title_bar_text)));
-      // 14 Arg 1,  title bar text
-      WindowStream.WriteDword(NToLE(dword(win.styleflags)));
-      // 18 Arg 14, style flags
-      WindowStream.WriteDword(NToLE(dword(win.xtdstyleflags)));
-      // 1C Arg 15, xtd style flags
-      WindowStream.WriteDword(NToLE(dword(win.left)));
-      // 20 Arg 13, rect.left
-      WindowStream.WriteDword(NToLE(dword(win.top)));
-      // 24 Arg 13, rect.top
-      WindowStream.WriteDword(NToLE(dword(win.right)));
-      // 28 Arg 13, rect.right
-      WindowStream.WriteDword(NToLE(dword(win.bottom)));
-      // 2C Arg 13, rect.bottom
-      WindowStream.WriteDword(NToLE(dword(win.window_show_state)));
-      // 30 Arg 16, window show state
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 34  -    , HWND hwndhelp                OUT: window handle"
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 38  -    , HWND hwndcaller              OUT: who called this window"
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 3C  -    , HH_INFO_TYPE paINFO_TYPES    IN: Pointer to an array of Information Types"
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 40  -    , HWND hwndtoolbar             OUT: toolbar window in tri-pane window"
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 44  -    , HWND hwndnavigation          OUT: navigation window in tri-pane window"
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 48  -    , HWND hwndhtml                OUT: window displaying HTML in tri-pane window"
-      WindowStream.WriteDword(NToLE(dword(win.navpanewidth)));
-      // 4C Arg 11, width of nav pane
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 50  -    , rect.left,   OUT:Specifies the coordinates of the Topic pane
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 54  -    , rect.top ,   OUT:Specifies the coordinates of the Topic pane
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 58  -    , rect.right,  OUT:Specifies the coordinates of the Topic pane
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 5C  -    , rect.bottom, OUT:Specifies the coordinates of the Topic pane
-      WindowStream.WriteDword(NToLE(addstring(win.toc_file)));
-      // 60 Arg 2,  toc file
-      WindowStream.WriteDword(NToLE(addstring(win.index_file)));
-      // 64 Arg 3,  index file
-      WindowStream.WriteDword(NToLE(addstring(win.default_file)));
-      // 68 Arg 4,  default file
-      WindowStream.WriteDword(NToLE(addstring(win.home_button_file)));
-      // 6c Arg 5,  home button file.
-      WindowStream.WriteDword(NToLE(dword(win.Buttons)));            // 70 arg 12,
-      WindowStream.WriteDword(NToLE(dword(win.navpane_initially_closed)));
-      // 74 arg 17
-      WindowStream.WriteDword(NToLE(dword(win.navpane_default)));    // 78 arg 18,
-      WindowStream.WriteDword(NToLE(dword(win.navpane_location)));   // 7C arg 19,
-      WindowStream.WriteDword(NToLE(dword(win.wm_notify_id)));       // 80 arg 20,
-      for j := 0 to 4 do
-        WindowStream.WriteDword(NToLE(dword(0)));
-      // 84  -      byte[20] unknown -  "BYTE tabOrder[HH_MAX_TABS + 1]; // IN/OUT: tab order: Contents, Index, Search, History, Favorites, Reserved 1-5, Custom tabs"
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // 94  -      int cHistory; // IN/OUT: number of history items to keep (default is 30)
-      WindowStream.WriteDword(NToLE(addstring(win.Jumpbutton_1_Text)));
-      // 9C Arg 7,  The text of the Jump 1 button.
-      WindowStream.WriteDword(NToLE(addstring(win.Jumpbutton_2_Text)));
-      // A0 Arg 9,  The text of the Jump 2 button.
-      WindowStream.WriteDword(NToLE(addstring(win.Jumpbutton_1_File)));
-      // A4 Arg 6,  The file shown for Jump 1 button.
-      WindowStream.WriteDword(NToLE(addstring(win.Jumpbutton_2_File)));
-      // A8 Arg 8,  The file shown for Jump 1 button.
-      for j := 0 to 3 do
-        WindowStream.WriteDword(NToLE(dword(0)));
-      // AA  -      byte[16] (TRECT) "RECT rcMinSize; // Minimum size for window (ignored in version 1)"
-      //   1.1+ fields
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // BC -       int cbInfoTypes; // size of paInfoTypes;
-      WindowStream.WriteDword(NToLE(dword(0)));
-      // C0  -      LPCTSTR pszCustomTabs; // multiple zero-terminated strings
+
+      FillChar(we, SizeOf(we), #0);
+      we.EntrySize := NtoLE(196);
+      //we.IsUnicode := ;
+      we.WindowTypeStr := NToLE(AddString(Win.window_type));
+      we.WindowFlags := NToLE(DWord(Win.flags));
+      we.NavStyleFlags := NToLE(DWord(Win.nav_style));
+      we.TitleBarStr := NToLE(AddString(Win.title_bar_text));
+      we.StyleFlags := NToLE(DWord(Win.styleflags));
+      we.ExStyleFlags := NToLE(DWord(Win.xtdstyleflags));
+      we.WindowPosition[0] := NToLE(DWord(Win.left));
+      we.WindowPosition[1] := NToLE(DWord(Win.top));
+      we.WindowPosition[2] := NToLE(DWord(Win.right));
+      we.WindowPosition[3] := NToLE(DWord(Win.bottom));
+      we.WinShowState := NToLE(DWord(Win.window_show_state));
+      //we.HelpHandle := 0;
+      //we.CallerHandle := 0;
+      //we.InfoTypesPtr := 0;
+      //we.ToolBarHandle := 0;
+      //we.NavHandle := 0;
+      //we.HtmlHandle := 0;
+      we.NavWidth := NToLE(DWord(Win.navpanewidth));
+      //we.TopicPaneRect[0] := 0;
+      we.TocFileStr := NToLE(AddString(Win.toc_file));
+      we.IndexFileStr := NToLE(AddString(Win.index_file));
+      we.DefaultFileStr := NToLE(AddString(Win.default_file));
+      we.HomeFileStr := NToLE(AddString(Win.home_button_file));
+      we.ButtonsFlags := NToLE(DWord(Win.Buttons));
+      we.IsNavPaneClosed := NToLE(DWord(Win.navpane_initially_closed));
+      we.NavPaneDefault := NToLE(DWord(Win.navpane_default));
+      we.NavPaneLocation := NToLE(DWord(Win.navpane_location));
+      we.WmNotifyId := NToLE(DWord(Win.wm_notify_id));
+      //we.TabOrder[0] := 0;
+      we.HistoryDepth := NToLE(DWord(30));
+      we.Jump1TextStr := NToLE(AddString(Win.Jumpbutton_1_Text));
+      we.Jump2TextStr := NToLE(AddString(Win.Jumpbutton_2_Text));
+      we.Jump1FileStr := NToLE(AddString(Win.Jumpbutton_1_File));
+      we.Jump2FileStr := NToLE(AddString(Win.Jumpbutton_2_File));
+      //we.MinWindowSize[0] := 0;
+      // CHM 1.1 and later
+      //we.InfoTypeSize := 0;
+      //we.CustomTabs := 0;
+      WindowStream.Write(we, SizeOf(we));
     end;
     WindowStream.Position := 0;
     AddStreamToArchive('#WINDOWS', '/', WindowStream, True);
-    WindowStream.Free;
+  finally
+    WindowStream.Free();
   end;
 end;
 
 procedure TChmWriter.WriteInternalFilesAfter();
 begin
   // This creates and writes the #ITBITS (empty) file to section0
-  WriteITBITS;
+  WriteITBITS();
   // This creates and writes the #SYSTEM file to section0
-  WriteSystem;
+  WriteSystem();
   if Assigned(FTocSM) then
-    Scansitemap(FTocSM);
+    ScanSitemap(FTocSM);
 end;
 
-procedure TChmWriter.WriteFinalCompressedFiles;
+procedure TChmWriter.WriteFinalCompressedFiles();
 begin
-  inherited WriteFinalCompressedFiles;
-  WriteTOPICS;
-  WriteURL_STR_TBL;
-  WriteWINDOWS;
-  CreateIDXHDRStream;
-  WriteIDXHDR;
-  WriteSTRINGS;
-  WriteFiftiMain;
+  inherited WriteFinalCompressedFiles();
+  WriteTOPICS();
+  WriteURL_STR_TBL();
+  WriteWINDOWS();
+  CreateIDXHDRStream();
+  WriteIDXHDR();
+  WriteSTRINGS();
+  WriteFiftiMain();
 end;
 
 procedure TChmWriter.FileAdded(AStream: TStream; const AEntry: TFileEntryRec);
@@ -1677,80 +1650,75 @@ begin
     CheckFileMakeSearchable(AStream, AEntry);
 end;
 
-procedure TChmWriter.WriteInternalFilesBefore;
+procedure TChmWriter.WriteInternalFilesBefore();
 begin
-  inherited WriteInternalFilesBefore;
-  WriteIVB;
-  WriteOBJINST;
+  inherited WriteInternalFilesBefore();
+  WriteIVB();
+  WriteOBJINST();
 end;
 
 constructor TChmWriter.Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
   inherited Create(AOutStream, FreeStreamOnDestroy);
-  FStringsStream := TmemoryStream.Create;
-  FTopicsStream := TMemoryStream.Create;
-  FURLSTRStream := TMemoryStream.Create;
-  FURLTBLStream := TMemoryStream.Create;
-  FFiftiMainStream := TMemoryStream.Create;
-  FIndexedFiles := TIndexedWordList.Create;
-  FAVLTopicdedupe := TAVLTree.Create(@CompareStrings);  // dedupe filenames in topics.
-  FAvlStrings := TAVLTree.Create(@CompareStrings);    // dedupe strings
+  FStringsStream := TmemoryStream.Create();
+  FTopicsStream := TMemoryStream.Create();
+  FURLSTRStream := TMemoryStream.Create();
+  FURLTBLStream := TMemoryStream.Create();
+  FFiftiMainStream := TMemoryStream.Create();
+  FIndexedFiles := TIndexedWordList.Create();
+  //FAVLTopicDedupe := TStringIndexList.Create();  // dedupe filenames in topics.
+  FAvlStrings := TStringIndexList.Create();    // dedupe strings
   FAvlURLStr := TAVLTree.Create(@CompareUrlStrs);
   // dedupe urltbl + binindex must resolve URL to topicid
-  SpareString := TStringIndex.Create;
   // We need an object to search in avltree
-  SpareUrlStr := TUrlStrIndex.Create;
+  SpareUrlStr := TUrlStrIndex.Create();
   //    to avoid create/free circles we keep one in spare
-  FIDXHdrStream := TMemoryStream.Create;
+  FIDXHdrStream := TMemoryStream.Create();
   // the #IDXHDR and chunk 13 in #SYSTEM
   //    for searching purposes
   FWindows := TObjectList.Create(True);
   FDefaultWindow := '';
-  FMergeFiles := TStringList.Create;
+  FMergeFiles := TStringList.Create();
   FNrTopics := 0;
 end;
 
-destructor TChmWriter.Destroy;
+destructor TChmWriter.Destroy();
 begin
   if Assigned(FContextStream) then
-    FContextStream.Free;
-  FMergeFiles.Free;
-  FIndexedFiles.Free;
-  FStringsStream.Free;
-  FTopicsStream.Free;
-  FURLSTRStream.Free;
-  FURLTBLStream.Free;
-  FFiftiMainStream.Free;
-  FIDXHdrStream.Free;
-  SpareString.Free;
-  SpareUrlStr.Free;
-  FAvlUrlStr.FreeAndClear;
-  FAvlUrlStr.Free;
-  FAvlStrings.FreeAndClear;
-  FAvlStrings.Free;
-  FAVLTopicdedupe.FreeAndClear;
-  FAVLTopicdedupe.Free;
-  FWindows.Free;
+    FreeAndNil(FContextStream);
+  FreeAndNil(FMergeFiles);
+  FreeAndNil(FIndexedFiles);
+  FreeAndNil(FStringsStream);
+  FreeAndNil(FTopicsStream);
+  FreeAndNil(FURLSTRStream);
+  FreeAndNil(FURLTBLStream);
+  FreeAndNil(FFiftiMainStream);
+  FreeAndNil(FIDXHdrStream);
+  FreeAndNil(SpareUrlStr);
+  FAvlUrlStr.FreeAndClear();
+  FreeAndNil(FAvlUrlStr);
+  FreeAndNil(FAvlStrings);
+  //FreeAndNil(FAVLTopicDedupe);
+  FreeAndNil(FWindows);
 
   inherited Destroy;
 end;
 
 
-function TChmWriter.AddString(AString: string): longword;
+function TChmWriter.AddString(AString: string): LongWord;
 var
   NextBlock: DWord;
   Pos: DWord;
-  n: TAVLTreeNode;
-  StrRec: TStringIndex;
+  Node: TAVLTreeNode;
+  StrItem: TStringIndex;
 begin
   // #STRINGS starts with a null char
   if FStringsStream.Size = 0 then
     FStringsStream.WriteByte(0);
 
-  SpareString.TheString := AString;
-  n := fAvlStrings.FindKey(SpareString, @CompareStrings);
-  if assigned(n) then
-    exit(TStringIndex(n.Data).strid);
+  StrItem := FAvlStrings.GetStringIndex(AString);
+  if Assigned(StrItem) then
+    Exit(StrItem.StrId);
 
   // each entry is a null terminated string
   Pos := DWord(FStringsStream.Position);
@@ -1764,35 +1732,34 @@ begin
   end;
 
   Result := FStringsStream.Position;
-  if length(AString) > 0 then
+  if Length(AString) > 0 then
     FStringsStream.WriteBuffer(AString[1], Length(AString));
   FStringsStream.WriteByte(0);
-  StrRec := TStringIndex.Create;
-  StrRec.TheString := AString;
-  StrRec.Strid := Result;
-  fAvlStrings.Add(StrRec);
+  FAvlStrings.AddStringIndex(AString, Result);
 end;
 
-function TChmWriter.AddURL(AURL: string; TopicsIndex: DWord): longword;
+function TChmWriter.AddURL(AURL: string; TopicsIndex: DWord): LongWord;
 
   procedure CheckURLStrBlockCanHold(const AString: string);
   var
-    Rem: longword;
-    Len: longword;
+    Rem: LongWord;
+    Len: LongWord;
   begin
     Rem := $4000 - (FURLSTRStream.Size mod $4000);
     Len := 9 + Length(AString);  // 2 dwords the string and NT
     if Rem < Len then
+    begin
       while Rem > 0 do
       begin
         FURLSTRStream.WriteByte(0);
         Dec(Rem);
       end;
+    end;
   end;
 
   function AddURLString(const AString: string): DWord;
   var
-    urlstrrec: TUrlStrIndex;
+    UrlStrRec: TUrlStrIndex;
   begin
     CheckURLStrBlockCanHold(AString);
     if FURLSTRStream.Size mod $4000 = 0 then
@@ -1812,12 +1779,12 @@ function TChmWriter.AddURL(AURL: string; TopicsIndex: DWord): longword;
 
   function LookupUrlString(const AUrl: string): DWord;
   var
-    n: TAvlTreeNode;
+    Node: TAvlTreeNode;
   begin
     SpareUrlStr.UrlStr := AUrl;
-    n := FAvlUrlStr.FindKey(SpareUrlStr, @CompareUrlStrs);
-    if assigned(n) then
-      Result := TUrlStrIndex(n.Data).UrlStrId
+    Node := FAvlUrlStr.FindKey(SpareUrlStr, @CompareUrlStrs);
+    if Assigned(Node) then
+      Result := TUrlStrIndex(Node.Data).UrlStrId
     else
       Result := AddUrlString(AUrl);
   end;
@@ -1840,9 +1807,8 @@ begin
 end;
 
 procedure TChmWriter.CheckFileMakeSearchable(AStream: TStream;
-  AFileEntry: TFileEntryRec);
+  const AFileEntry: TFileEntryRec);
 var
-  TopicEntry: TTopicEntry;
   ATitle: string;
 begin
   if Pos('.ht', AFileEntry.Name) > 0 then
@@ -1853,12 +1819,10 @@ begin
 end;
 
 function TChmWriter.AddTopic(ATitle, AnUrl: ansistring; code: Integer = -1): Integer;
-
 var
   TopicEntry: TTopicEntry;
-
 begin
-  anurl := StringReplace(anurl, '\', '/', [rfReplaceAll]);
+  AnUrl := StringReplace(AnUrl, '\', '/', [rfReplaceAll]);
   if ATitle <> '' then
     TopicEntry.StringsOffset := AddString(ATitle)
   else
@@ -1871,7 +1835,7 @@ begin
       TopicEntry.InContents := 6
     else
       TopicEntry.InContents := 2;
-    if pos('#', AnUrl) > 0 then
+    if Pos('#', AnUrl) > 0 then
       TopicEntry.InContents := 0;
   end
   else
@@ -1887,31 +1851,29 @@ begin
   FTopicsStream.WriteWord(LEtoN(TopicEntry.Unknown));
 end;
 
-procedure TChmWriter.ScanSitemap(asitemap: TCHMSiteMap);
+procedure TChmWriter.ScanSitemap(ASiteMap: TCHMSiteMap);
 
-  procedure scanitems(it: TChmSiteMapItems);
-
+  procedure ScanItems(it: TChmSiteMapItems);
   var
     i: Integer;
     x: TChmSiteMapItem;
-    s: string;
-    strrec: TStringIndex;
-
+    //s: string;
+    //StrRec: TStringIndex;
   begin
     for i := 0 to it.Count - 1 do
     begin
       x := it.item[i];
-      //      if sanitizeurl(fbasepath,x.local,S) then   // sanitize, remove stuff etc.
+      //      if sanitizeurl(fbasepath, x.local, S) then   // sanitize, remove stuff etc.
       //        begin
-      //          writeln(x.text,' : ',x.local,' ',x.url,' ' ,x.merge);
+      //          writeln(x.text,' : ', x.local, ' ', x.url, ' ' , x.merge);
 
-      if assigned(x.children) and (x.children.Count > 0) then
-        scanitems(x.children);
+      if Assigned(x.Children) and (x.Children.Count > 0) then
+        ScanItems(x.Children);
     end;
   end;
 
 begin
-  scanitems(asitemap.items);
+  ScanItems(ASiteMap.Items);
 end;
 
 function TChmWriter.NextTopicIndex: Integer;
@@ -2138,7 +2100,6 @@ begin
 end;
 
 procedure TChmWriter.AppendBinaryIndexFromSiteMap(ASiteMap: TChmSiteMap; chw: Boolean);
-
 var
   IndexStream: TMemoryStream;
   //n           : Integer;
@@ -2597,7 +2558,7 @@ end;
 procedure TChmWriter.AppendBinaryIndexStream(
   IndexStream, DataStream, MapStream, PropertyStream: TStream; chw: Boolean);
 
-  procedure stadd(fn: string; Stream: TStream);
+  procedure StAdd(fn: string; Stream: TStream);
   begin
     Stream.Position := 0;
     if CHW then
@@ -2610,10 +2571,10 @@ procedure TChmWriter.AppendBinaryIndexStream(
 
 begin
   AddDummyALink();
-  stadd('BTree', IndexStream);
-  stadd('Data', DataStream);
-  stadd('Map', MapStream);
-  stadd('Property', PropertyStream);
+  StAdd('BTree', IndexStream);
+  StAdd('Data', DataStream);
+  StAdd('Map', MapStream);
+  StAdd('Property', PropertyStream);
 end;
 
 procedure TChmWriter.AppendIndex(AStream: TStream);
@@ -2666,7 +2627,6 @@ begin
 end;
 
 procedure TChmWriter.SetWindows(AWindowList: TObjectList);
-
 var
   i: Integer;
   x: TCHMWindow;
@@ -2676,17 +2636,17 @@ begin
   begin
     x := TChmWindow.Create();
     x.Assign(TChmWindow(AWindowList[i]));
-    Fwindows.Add(x);
+    FWindows.Add(x);
   end;
 end;
 
-procedure TChmWriter.SetMergefiles(src: TStringList);
+procedure TChmWriter.SetMergeFiles(Src: TStringList);
 var
   i: Integer;
 begin
   FMergeFiles.Clear();
   for i := 0 to Src.Count - 1 do
-    FMergefiles.add(src[i]);
+    FMergefiles.Add(Src[i]);
 end;
 
 end.

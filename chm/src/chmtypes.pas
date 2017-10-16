@@ -91,6 +91,46 @@ type
 
   end;
 
+  TChmWindowEntry = packed record
+    EntrySize: LongWord;       // Size of the entry (188 in CHMs compiled with Compatibility set to 1.0, 196 in CHMs compiled with Compatibility set to 1.1 or later)
+    IsUnicode: LongWord;       // 0 (unknown) - but htmlhelp.h indicates that this is "BOOL fUniCodeStrings; // IN/OUT: TRUE if all strings are in UNICODE"
+    WindowTypeStr: LongWord;   // The window type. Offset in #STRINGS file.
+    WindowFlags: LongWord;     // Which window properties are valid & are to be used for this window.
+    NavStyleFlags: LongWord;   // A bit feild of navigation pane styles.
+    TitleBarStr: LongWord;     // The title bar text. Offset in #STRINGS file.
+    StyleFlags: LongWord;      // Style Flags. As set in the Win32 SetWindowLong & CreateWindow APIs.
+    ExStyleFlags: LongWord;    // Extended Style Flags. As set in the Win32 SetWindowLong & CreateWindowEx APIs
+    WindowPosition: array [0..3] of LongWord; // Initial position of the window on the screen: [left, top, right, bottom].
+    WinShowState: LongWord;    // Window show state. As set in the Win32 ShowWindow API.
+    HelpHandle: LongWord;      // Help window handle
+    CallerHandle: LongWord;    // who called this window
+    InfoTypesPtr: LongWord;    // Pointer to an array of Information Types
+    ToolBarHandle: LongWord;   // toolbar window in tri-pane window
+    NavHandle: LongWord;       // navigation window in tri-pane window
+    HtmlHandle: LongWord;      // window displaying HTML in tri-pane window
+    NavWidth: LongWord;        // Width of the navigation pane in pixels.
+    TopicPaneRect: array [0..3] of LongWord; // Specifies the coordinates of the Topic pane.
+    TocFileStr: LongWord;      // The TOC file. Offset in #STRINGS file.
+    IndexFileStr: LongWord;    // The Index file. Offset in #STRINGS file.
+    DefaultFileStr: LongWord;  // The Default file. Offset in #STRINGS file.
+    HomeFileStr: LongWord;     // The file shown when the Home button is pressed. Offset in #STRINGS file.
+    ButtonsFlags: LongWord;    // A bit field of the buttons to show.
+    IsNavPaneClosed: LongWord; // Whether or not the navigation pane is initially closed. 1 = closed, 0 = open
+    NavPaneDefault: LongWord;  // The default navigation pane. 0 = TOC, 1 = Index, 2 = Search, 3 = Favorites, 4 = History (not implemented by HH), 5 = Author, 11-19 = Custom panes.
+    NavPaneLocation: LongWord; // Where the navigation pane tabs should be. 0 = Top, 1 = Left, 2 = Bottom & anything else makes the tabs appear to be behind the pane on Win95.
+    WmNotifyId: LongWord;      // ID to send in WM_NOTIFY messages.
+    TabOrder: array [0..4] of LongWord; // tab order: Contents, Index, Search, History, Favorites, Reserved 1-5, Custom tabs
+    HistoryDepth: LongWord;    // number of history items to keep (default is 30)
+    Jump1TextStr: LongWord;    // The text of the Jump 1 button. Offset in #STRINGS file.
+    Jump2TextStr: LongWord;    // The text of the Jump 2 button. Offset in #STRINGS file.
+    Jump1FileStr: LongWord;    // The file shown when the Jump 1 button is pressed. Offset in #STRINGS file.
+    Jump2FileStr: LongWord;    // The file shown when the Jump 2 button is pressed. Offset in #STRINGS file.
+    MinWindowSize: array [0..3] of LongWord; // Minimum size for window (ignored in version 1)
+    // CHM 1.1 and later
+    InfoTypeSize: LongWord;    // size of paInfoTypes
+    CustomTabs: LongWord;      // multiple zero-terminated strings
+  end;
+
   TValidWindowFieldsEnum = (valid_Unknown1 {:=1},
                             valid_Navigation_pane_style {:= 2},
                             valid_Window_style_flags {:= 4},
@@ -107,6 +147,8 @@ type
                             valid_Default_Pane {:= $2000});
 
   TValidWindowFields     = Set Of TValidWindowFieldsEnum;
+
+  { TCHMWindow }
 
   TCHMWindow = class
   public
@@ -250,6 +292,35 @@ type
     CharIndex  : DWord;// Character index of the last keyword in the ", " separated list.
     Unknown0   : DWord;// 0 (unknown)
     NrPairs    : DWord;// Number of Name, Local pairs
+  end;
+
+const
+  IdxHdrMagic = 'T#SM';
+
+type
+  // #IDXHDR
+  TIdxHdr = packed record
+    IdxHdrSig: array [0..3] of AnsiChar; // 'T#SM'
+    Unknown_04: LongWord;    // Unknown timestamp/checksum
+    Unknown_08: LongWord;    // 1 (unknown)
+    TopicsCount: LongWord;   // Number of topic nodes including the contents & index files
+    Unknown_10: LongWord;    // 0 (unknown)
+    ImageListStr: LongWord;  // Offset in the #STRINGS file of the ImageList param of the "text/site properties" object of the sitemap contents (0/-1 = none)
+    Unknown_18: LongWord;    // 0 (unknown)
+    ImageType: LongWord;     // 1 if the value of the ImageType param of the "text/site properties" object of the sitemap contents is Folder. 0 otherwise.
+    Background: LongWord;    // The value of the Background param of the "text/site properties" object of the sitemap contents
+    Foreground: LongWord;    // The value of the Foreground param of the "text/site properties" object of the sitemap contents
+    FontStr: LongWord;       // Offset in the #STRINGS file of the Font param of the "text/site properties" object of the sitemap contents (0/-1 = none)
+    WindowStyles: LongWord;  // The value of the Window Styles param of the "text/site properties" object of the sitemap contents
+    ExWindowStyles: LongWord; // The value of the ExWindow Styles param of the "text/site properties" object of the sitemap contents
+    Unknown_34: LongWord;    // Unknown. Often -1. Sometimes 0.
+    FrameNameStr: LongWord;  // Offset in the #STRINGS file of the FrameName param of the "text/site properties" object of the sitemap contents (0/-1 = none)
+    WindowNameStr: LongWord; // Offset in the #STRINGS file of the WindowName param of the "text/site properties" object of the sitemap contents (0/-1 = none)
+    InfoTypesCount: LongWord; // Number of information types
+    Unknown_44: LongWord;    // Unknown. Often 1. Also 0, 3.
+    MergeFilesCount: LongWord; // Number of files in the [MERGE FILES] list.
+    Unknown_4C: LongWord;    // Unknown. Often 0. Non-zero mostly in files with some files in the merge files list.
+    MergeFilesList: array [0..1003] of LongWord; // List of offsets in the #STRINGS file that are the [MERGE FILES] list. Zero terminated, but don't count on it.
   end;
 
 function PageBookInfoRecordSize(ARecord: PTOCEntryPageBookInfo): Integer;
@@ -683,5 +754,6 @@ begin
   navpane_location := obj.navpane_location;
   wm_notify_id     := obj.wm_notify_id;
 end;
+
 
 end.
