@@ -1,0 +1,529 @@
+object CHMForm: TCHMForm
+  Left = 269
+  Height = 555
+  Top = 217
+  Width = 616
+  HorzScrollBar.Page = 608
+  VertScrollBar.Page = 453
+  AutoScroll = True
+  Caption = 'Compiled HTML Help Project - [Made with Freepascal]'
+  ClientHeight = 535
+  ClientWidth = 616
+  Menu = MainMenu1
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  ShowInTaskBar = stAlways
+  LCLVersion = '1.9.0.0'
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 512
+    Width = 616
+    Panels = <>
+  end
+  object pgcMain: TPageControl
+    Left = 0
+    Height = 512
+    Top = 0
+    Width = 616
+    ActivePage = tsMain
+    Align = alClient
+    TabIndex = 0
+    TabOrder = 1
+    object tsMain: TTabSheet
+      Caption = 'Main page'
+      ClientHeight = 484
+      ClientWidth = 608
+      object gbFiles: TGroupBox
+        Left = 4
+        Height = 476
+        Top = 4
+        Width = 268
+        Align = alLeft
+        BorderSpacing.Around = 4
+        Caption = 'Files'
+        ClientHeight = 456
+        ClientWidth = 264
+        TabOrder = 0
+        object FileListBox: TListBox
+          Left = 4
+          Height = 314
+          Top = 4
+          Width = 256
+          Align = alClient
+          BorderSpacing.Around = 4
+          ItemHeight = 0
+          OnDrawItem = FileListBoxDrawItem
+          ScrollWidth = 262
+          Sorted = True
+          Style = lbOwnerDrawFixed
+          TabOrder = 0
+        end
+        object Panel2: TPanel
+          Left = 0
+          Height = 134
+          Top = 322
+          Width = 264
+          Align = alBottom
+          BevelOuter = bvNone
+          ClientHeight = 134
+          ClientWidth = 264
+          TabOrder = 1
+          object FilesNoteLabel: TLabel
+            Left = 15
+            Height = 48
+            Top = 86
+            Width = 234
+            Align = alBottom
+            AutoSize = False
+            BorderSpacing.Left = 15
+            BorderSpacing.Right = 15
+            Caption = 'All files must be in the project file directory or a subdirectory.'
+            ParentColor = False
+            WordWrap = True
+          end
+          object AddFilesBtn: TButton
+            Left = 11
+            Height = 25
+            Top = 3
+            Width = 81
+            BorderSpacing.InnerBorder = 4
+            Caption = 'Add Files'
+            OnClick = AddFilesBtnClick
+            TabOrder = 0
+          end
+          object RemoveFilesBtn: TButton
+            Left = 94
+            Height = 25
+            Top = 3
+            Width = 156
+            BorderSpacing.InnerBorder = 4
+            Caption = 'Remove Selected'
+            OnClick = RemoveFilesBtnClick
+            TabOrder = 1
+          end
+          object AutoAddLinksBtn: TButton
+            Left = 11
+            Height = 25
+            Top = 59
+            Width = 239
+            BorderSpacing.InnerBorder = 4
+            Caption = 'Auto add HREF files'
+            Enabled = False
+            OnClick = AutoAddLinksBtnClick
+            TabOrder = 2
+          end
+          object AddAllBtn: TButton
+            Left = 11
+            Height = 25
+            Top = 32
+            Width = 239
+            BorderSpacing.InnerBorder = 4
+            Caption = 'Add all files in Project Directory'
+            OnClick = AddAllBtnClick
+            TabOrder = 3
+          end
+        end
+      end
+      object MainPanel: TPanel
+        Left = 276
+        Height = 484
+        Top = 0
+        Width = 332
+        Align = alClient
+        BevelOuter = bvNone
+        ClientHeight = 484
+        ClientWidth = 332
+        TabOrder = 1
+        object TableOfContentsLabel: TLabel
+          Left = 8
+          Height = 15
+          Top = 112
+          Width = 133
+          Caption = 'Table of Contents (*.hhc)'
+          ParentColor = False
+        end
+        object IndexLabel: TLabel
+          Left = 8
+          Height = 15
+          Top = 168
+          Width = 67
+          Caption = 'Index (*.hhk)'
+          ParentColor = False
+        end
+        object CompileTimeOptionsLabel: TLabel
+          Left = 11
+          Height = 15
+          Top = 256
+          Width = 118
+          Caption = 'Compile time options:'
+          ParentColor = False
+        end
+        object DefaultPageLabel: TLabel
+          AnchorSideLeft.Control = MainPanel
+          AnchorSideBottom.Control = DefaultPageCombo
+          Left = 8
+          Height = 15
+          Top = 57
+          Width = 98
+          Anchors = [akLeft, akBottom]
+          BorderSpacing.Around = 8
+          Caption = 'Default Help Page:'
+          ParentColor = False
+        end
+        object lbCHMFilename: TLabel
+          Left = 7
+          Height = 15
+          Top = 336
+          Width = 77
+          Caption = 'CHM filename'
+          ParentColor = False
+        end
+        object edTOCFilename: TFileNameEdit
+          AnchorSideLeft.Control = btnTOCEdit
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = btnTOCEdit
+          AnchorSideTop.Side = asrCenter
+          AnchorSideRight.Control = MainPanel
+          AnchorSideRight.Side = asrBottom
+          Left = 76
+          Height = 23
+          Top = 136
+          Width = 248
+          OnAcceptFileName = edTOCFilenameAcceptFileName
+          DialogOptions = [ofNoChangeDir]
+          Filter = 'Table of Contents Files(*.hhc)|*.hhc|All files|*'
+          FilterIndex = 0
+          HideDirectories = False
+          ButtonWidth = 23
+          NumGlyphs = 1
+          Anchors = [akTop, akLeft, akRight]
+          AutoSelect = False
+          BorderSpacing.Around = 8
+          AutoSize = False
+          MaxLength = 0
+          TabOrder = 0
+        end
+        object edIndexFilename: TFileNameEdit
+          AnchorSideLeft.Control = btnIndexEdit
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = btnIndexEdit
+          AnchorSideTop.Side = asrCenter
+          AnchorSideRight.Control = MainPanel
+          AnchorSideRight.Side = asrBottom
+          Left = 76
+          Height = 23
+          Top = 188
+          Width = 248
+          OnAcceptFileName = edIndexFilenameAcceptFileName
+          DialogOptions = [ofNoChangeDir]
+          Filter = 'Index Files(*.hhk)|*.hhk|All Files|*'
+          FilterIndex = 0
+          HideDirectories = False
+          ButtonWidth = 23
+          NumGlyphs = 1
+          Anchors = [akTop, akLeft, akRight]
+          AutoSelect = False
+          BorderSpacing.Around = 8
+          AutoSize = False
+          MaxLength = 0
+          TabOrder = 1
+        end
+        object btnTOCEdit: TButton
+          AnchorSideLeft.Control = MainPanel
+          AnchorSideTop.Control = edTOCFilename
+          AnchorSideRight.Side = asrBottom
+          Left = 8
+          Height = 25
+          Top = 135
+          Width = 60
+          Anchors = [akLeft]
+          AutoSize = True
+          BorderSpacing.Around = 8
+          Caption = 'Edit'
+          Constraints.MinWidth = 60
+          OnClick = btnTOCEditClick
+          TabOrder = 2
+        end
+        object btnIndexEdit: TButton
+          AnchorSideLeft.Control = MainPanel
+          AnchorSideRight.Side = asrBottom
+          Left = 8
+          Height = 25
+          Top = 187
+          Width = 60
+          Anchors = [akLeft]
+          AutoSize = True
+          BorderSpacing.Around = 8
+          Caption = 'Edit'
+          Constraints.MinWidth = 60
+          OnClick = btnIndexEditClick
+          TabOrder = 3
+        end
+        object chkScanHtmlContents: TCheckBox
+          Left = 11
+          Height = 19
+          Top = 280
+          Width = 307
+          Caption = 'Parse *.htm* files to include '#10'linked pages and images'
+          TabOrder = 4
+        end
+        object CreateSearchableCHMCheck: TCheckBox
+          Left = 11
+          Height = 19
+          Hint = 'Only indexes files added to the project'#10'not files automatically added.'
+          Top = 304
+          Width = 149
+          Caption = 'Create a searchable chm'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
+        end
+        object DefaultPageCombo: TComboBox
+          AnchorSideLeft.Control = MainPanel
+          AnchorSideRight.Control = MainPanel
+          AnchorSideRight.Side = asrBottom
+          Left = 8
+          Height = 23
+          Top = 80
+          Width = 316
+          Anchors = [akLeft, akRight]
+          AutoSelect = False
+          BorderSpacing.Around = 8
+          ItemHeight = 15
+          Style = csDropDownList
+          TabOrder = 6
+        end
+        object CompileBtn: TButton
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideRight.Control = CompileViewBtn
+          Left = 75
+          Height = 33
+          Top = 437
+          Width = 79
+          Anchors = [akRight, akBottom]
+          AutoSize = True
+          BorderSpacing.Right = 9
+          BorderSpacing.InnerBorder = 4
+          Caption = 'Compile'
+          OnClick = CompileBtnClick
+          TabOrder = 7
+        end
+        object CompileViewBtn: TButton
+          AnchorSideLeft.Control = CompileBtn
+          AnchorSideLeft.Side = asrBottom
+          Left = 163
+          Height = 33
+          Top = 437
+          Width = 130
+          Anchors = [akRight, akBottom]
+          AutoSize = True
+          BorderSpacing.Right = 13
+          BorderSpacing.InnerBorder = 4
+          Caption = 'Compile and View'
+          OnClick = CompileViewBtnClick
+          TabOrder = 8
+        end
+        object ChmFileNameEdit: TFileNameEdit
+          AnchorSideLeft.Control = lbCHMFilename
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideRight.Control = MainPanel
+          AnchorSideRight.Side = asrBottom
+          Left = 92
+          Height = 23
+          Top = 336
+          Width = 232
+          OnAcceptFileName = ChmFileNameEditAcceptFileName
+          DialogKind = dkSave
+          DialogTitle = 'Save CHM as...'
+          DialogOptions = []
+          Filter = 'Compressed HTML Help Files|*.chm'
+          FilterIndex = 0
+          HideDirectories = False
+          ButtonWidth = 23
+          NumGlyphs = 1
+          Anchors = [akTop, akLeft, akRight]
+          AutoSelect = False
+          BorderSpacing.Around = 8
+          AutoSize = False
+          MaxLength = 0
+          TabOrder = 9
+        end
+        object lbTitle: TLabel
+          Left = 8
+          Height = 15
+          Top = 8
+          Width = 91
+          Caption = 'Help project title:'
+          ParentColor = False
+        end
+        object edTitle: TEdit
+          AnchorSideLeft.Control = MainPanel
+          AnchorSideRight.Control = MainPanel
+          AnchorSideRight.Side = asrBottom
+          Left = 8
+          Height = 23
+          Top = 32
+          Width = 316
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 8
+          TabOrder = 10
+        end
+        object lbCodepage: TLabel
+          Left = 12
+          Height = 15
+          Top = 224
+          Width = 96
+          Caption = 'Default codepage:'
+          ParentColor = False
+        end
+        object cbCodepage: TComboBox
+          Left = 119
+          Height = 23
+          Top = 224
+          Width = 204
+          ItemHeight = 15
+          ItemIndex = 0
+          Items.Strings = (
+            'UTF-8 - Unicode'
+            'CP1250 - Central Europe'
+            'CP1251 - Cyrillic'
+            'CP1252 - Western'
+            'CP1253 - Greek'
+            'CP1254 - Turkish'
+            'CP1255 - Hebrew'
+            'CP1256 - Arabic'
+            'CP1257 - Baltic'
+            'CP1258 - Vietnamese'
+          )
+          TabOrder = 11
+          Text = 'UTF-8 - Unicode'
+        end
+        object lbProjectDir: TLabel
+          Left = 8
+          Height = 15
+          Top = 360
+          Width = 90
+          Caption = 'Project directory:'
+          ParentColor = False
+        end
+        object edProjectDir: TEdit
+          Left = 9
+          Height = 23
+          Top = 379
+          Width = 315
+          ReadOnly = True
+          TabOrder = 12
+        end
+        object chkBinaryTOC: TCheckBox
+          Left = 163
+          Height = 19
+          Top = 112
+          Width = 112
+          Caption = 'make binary TOC'
+          TabOrder = 13
+        end
+        object chkBinaryIndex: TCheckBox
+          Left = 163
+          Height = 19
+          Top = 168
+          Width = 116
+          Caption = 'make binary Index'
+          TabOrder = 14
+        end
+      end
+    end
+    object tsLog: TTabSheet
+      Caption = 'Error log'
+      ClientHeight = 484
+      ClientWidth = 596
+      object MemoLog: TMemo
+        Left = 0
+        Height = 484
+        Top = 0
+        Width = 596
+        Align = alClient
+        TabOrder = 0
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = 'Help File Project(*.hfp)|*.hfp'
+    FilterIndex = 0
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
+    Left = 10
+    Top = 20
+  end
+  object SaveDialog1: TSaveDialog
+    Filter = 'Help File Project(*.hfp)|*.hfp'
+    FilterIndex = 0
+    Left = 40
+    Top = 20
+  end
+  object MainMenu1: TMainMenu
+    Left = 75
+    Top = 20
+    object MenuItem1: TMenuItem
+      Caption = 'Project'
+      object ProjNewItem: TMenuItem
+        Caption = 'New'
+        OnClick = ProjNewItemClick
+      end
+      object ProjOpenItem: TMenuItem
+        Caption = 'Open'
+        OnClick = ProjOpenItemClick
+      end
+      object MenuItem9: TMenuItem
+        Caption = '-'
+      end
+      object ProjSaveItem: TMenuItem
+        Caption = 'Save'
+        OnClick = ProjSaveItemClick
+      end
+      object ProjSaveAsItem: TMenuItem
+        Caption = 'Save as'
+        OnClick = ProjSaveAsItemClick
+      end
+      object ProjCloseItem: TMenuItem
+        Caption = 'Close'
+        OnClick = ProjCloseItemClick
+      end
+      object MenuItem12: TMenuItem
+        Caption = '-'
+      end
+      object ProjQuitItem: TMenuItem
+        Caption = 'Quit Program'
+        OnClick = ProjQuitItemClick
+      end
+    end
+    object CompileItem: TMenuItem
+      Caption = 'Compile'
+      object CompileProjItem: TMenuItem
+        Caption = 'Compile Project'
+      end
+      object CompileOpenBttn: TMenuItem
+        Caption = 'Compile and Open chm'
+      end
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'Help'
+      object HelpHelpItem: TMenuItem
+        Caption = 'Help'
+      end
+      object MenuItem5: TMenuItem
+        Caption = '-'
+      end
+      object HelpAboutItem: TMenuItem
+        Caption = 'About'
+        OnClick = HelpAboutItemClick
+      end
+    end
+  end
+  object OpenDialog2: TOpenDialog
+    FilterIndex = 0
+    Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
+    Left = 12
+    Top = 304
+  end
+end
