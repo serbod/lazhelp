@@ -360,6 +360,7 @@ end;
 procedure TStringIndexList.BeforeDestruction();
 begin
   FreeAndClear();
+  FreeAndNil(FSpareStringIndex);
   inherited BeforeDestruction;
 end;
 
@@ -375,7 +376,6 @@ end;
 function TStringIndexList.GetStringIndex(AString: string): TStringIndex;
 var
   Node: TAVLTreeNode;
-  s: string;
 begin
   FSpareStringIndex.TheString := AString;
   Node := FindKey(FSpareStringIndex, @CompareStrings);
@@ -1127,8 +1127,7 @@ end;
 procedure TChmWriter.WriteSYSTEM();
 var
   Entry: TFileEntryRec;
-  TmpStr: string;
-  TmpTitle: string;
+  TmpStr, TmpTitle: string;
 const
   VersionStr = 'HHA Version 4.74.8702'; // does this matter?
 begin
@@ -1709,7 +1708,6 @@ function TChmWriter.AddString(AString: string): LongWord;
 var
   NextBlock: DWord;
   Pos: DWord;
-  Node: TAVLTreeNode;
   StrItem: TStringIndex;
 begin
   // #STRINGS starts with a null char
@@ -2067,13 +2065,13 @@ begin
 end;
 
 const
-  BinIndexIdent: array[0..1] of char = (CHR($3B), CHR($29));
+  //BinIndexIdent: array[0..1] of char = (CHR($3B), CHR($29));
   AlwaysX44: array[0..15] of char = ('X', '4', '4', #0, #0, #0, #0, #0,
     #0, #0, #0, #0, #0, #0, #0, #0);
   DataEntry: array[0..12] of byte =
     ($00, $00, $00, $00, $05, $00, $00, $00, $80, $00, $00, $00, $00);
 {
-  IndexStream:=TMemoryStream.Create;
+  IndexStream := TMemoryStream.Create;
   IndexStream.Write(BinIndexIdent,2);
   IndexStream.Write(NToLE(word(2)),2);
   IndexStream.Write(NToLE(word(2048)),2);
@@ -2111,7 +2109,6 @@ var
   Entries: Integer;        // Number of entries in this block so far
   TotalEntries: Integer;   // Total number of entries
   MapEntries: Integer;
-  MapIndex: Integer;
   IndexBlockNr: Integer;
   BlockInd: Integer;        // next byte to write in blockn[blocknr]
   BlockEntries: Integer;    // entries so far ins blockn[blocknr]

@@ -77,9 +77,6 @@ type
     { TChmWriter.OnLastFile handler }
     procedure WriterLastFileAdded(Sender: TObject);
     procedure ReadIniOptions(KeyValuePairs: TStringList);
-    { Scan *.html from Files list and add referenced files (images, css, etc..)
-      to OtherFiles list }
-    procedure ScanHtml();
     procedure ScanList(ToScan, NewFiles: TStrings; Recursion: Boolean);
     procedure ScanSitemap(SiteMap: TChmSiteMap; NewFiles: TStrings; Recursion: Boolean);
     function FileInTotalList(const s: string): Boolean;
@@ -106,6 +103,9 @@ type
       with that FileName }
     procedure AddFileWithContext(AContextId: Integer; AFileName: AnsiString;
       AContextName: AnsiString = '');
+    { Scan *.html from Files list and add referenced files (images, css, etc..)
+      to OtherFiles list }
+    procedure ScanHtml();
     { Call OnError, send error, info or debug message }
     procedure Error(ErrorKind: TChmProjectErrorKind; Msg: string; DetailLevel: Integer = 0);
     // though stored in the project file, it is only there for the program that uses the unit
@@ -118,10 +118,10 @@ type
     // other files (.css, img etc)
     property OtherFiles: TStrings read FOtherFiles;
     // not used
-    property AutoFollowLinks: Boolean read FAutoFollowLinks write FAutoFollowLinks;
-    { Table-Of-Content file name (*.hhc) }
+    property AutoFollowLinks: Boolean read FAutoFollowLinks write FAutoFollowLinks; deprecated;
+    { Table-Of-Content file name (*.hhc), must be in same directory with FileName }
     property TableOfContentsFileName: string read FTableOfContentsFileName write FTableOfContentsFileName;
-    { Search Index file name (*.hhk) }
+    { Search Index file name (*.hhk), must be in same directory with FileName }
     property IndexFileName: string read FIndexFileName write FIndexFileName;
     { Write binary TOC if True }
     property MakeBinaryTOC: Boolean read FMakeBinaryTOC write FMakeBinaryTOC;
@@ -944,8 +944,8 @@ var
         for n := 0 to Attributes.Length - 1 do
         begin
           AtNode := Attributes[n];
-          if Assigned(AtNode) and (UpperCase(AtNode.NodeName) = AttributeName) then
-            Exit(AtNode.NodeValue);
+          if Assigned(AtNode) and (UTF8Encode(UpperCase(AtNode.NodeName)) = AttributeName) then
+            Exit(UTF8Encode(AtNode.NodeValue));
         end;
       end;
     end;
@@ -958,6 +958,7 @@ var
     val: string;
   begin
     val := FindAttribute(Node, AttributeName);
+    fn := '';
     if SanitizeURL(FBasePath, val, LocalPath, LocalName, fn) then
     begin
       if (Length(fn) > 0) { Skip links to self using named anchors }
@@ -983,7 +984,7 @@ var
         ScanTags(ChildNode, LocalName, FileList);  // depth first.
         if (ChildNode is TDomElement) then
         begin
-          s := UpperCase(TDOMElement(ChildNode).TagName);
+          s := UTF8Encode(UpperCase(TDOMElement(ChildNode).TagName));
           if s = 'LINK' then
           begin
             //printattributes(ChildNode,'');
@@ -1042,14 +1043,12 @@ var
   DomDoc: THTMLDocument;
   i, j: Integer;
   fn, s: string;
-  ext: string;
   TmpLst: TStringList;
   //localpath : string;
 
   function TryPath(const AFileName: string): Boolean;
   var
     FileNameUpper: string;
-    TmpStrRec: TStringIndex;
   begin
     FileNameUpper := UpperCase(AFileName);
     if FileInTotalList(FileNameUpper) then
@@ -1165,7 +1164,6 @@ procedure TChmProject.ScanSitemap(SiteMap: TChmSiteMap; NewFiles: TStrings;
   end;
 
 var
-  i: Integer;
   LocalFileList: TStringList;
 
 begin
@@ -1275,8 +1273,8 @@ begin
     Writer.FullTextSearch := MakeSearchable;
     //Writer.HasBinaryTOC := MakeBinaryTOC;
     //Writer.HasBinaryIndex := MakeBinaryIndex;
-    Writer.IndexName := ExtractFileName(IndexFileName);
-    Writer.TocName := ExtractFileName(TableOfContentsFileName);
+    Writer.IndexName := IndexFileName;
+    Writer.TocName := TableOfContentsFileName;
     Writer.ReadmeMessage := ReadmeMessage;
     Writer.DefaultWindow := FDefaultWindow;
     Writer.LocaleID := LocaleID;
@@ -1319,16 +1317,19 @@ begin
 end;
 
 procedure TChmProject.LoadSiteMaps();
-// #IDXHDR (merged files) goes into the system file, and need to keep  TOC sitemap around
+var
+  FullFileName: string;
 begin
+  // #IDXHDR (merged files) goes into the system file, and need to keep  TOC sitemap around
   if FTableOfContentsFileName <> '' then
   begin
-    if FileExists(FTableOfContentsFileName) then
+    FullFileName := IncludeTrailingPathDelimiter(ProjectDir()) + ExtractFileName(FTableOfContentsFileName);
+    if FileExists(FullFileName) then
     begin
       FreeAndNil(FTocStream);
       FTocStream := TMemoryStream.Create();
       try
-        FTocStream.LoadFromFile(FTableOfContentsFilename);
+        FTocStream.LoadFromFile(FullFileName);
         //WriteLn(FTableOfContentsFileName, ' ' , FTocStream.Size);
         FTocStream.Position := 0;
         FreeAndNil(FToc);
@@ -1350,16 +1351,17 @@ begin
 
   if FIndexFileName <> '' then
   begin
-    if FileExists(FIndexFileName) then
+    FullFileName := IncludeTrailingPathDelimiter(ProjectDir()) + ExtractFileName(FIndexFileName);
+    if FileExists(FullFileName) then
     begin
       FreeAndNil(FIndexStream);
       FIndexStream := TMemoryStream.Create();
       try
-        FIndexStream.LoadFromFile(FIndexFileName);
+        FIndexStream.LoadFromFile(FullFileName);
         FIndexStream.Position := 0;
         FreeAndNil(FIndex);
         FIndex := TChmSiteMap.Create(stIndex);
-        FIndex.LoadFromFile(FIndexFileName);
+        FIndex.LoadFromFile(FullFileName);
       except
         on e: Exception do
         begin

@@ -23,221 +23,230 @@ program chmcmd;
 {$mode objfpc}{$H+}
 
 uses
-  {$ifdef Unix}cthreads,{$endif} Classes, Sysutils, chmfilewriter, GetOpts;
+ {$ifdef Unix}cthreads,
+ {$endif} Classes,
+  SysUtils,
+  chmfilewriter,
+  GetOpts;
 
-Const
+const
   CHMCMDVersion = '3.1.1';
 
-Procedure Usage;
-
-begin
-  Writeln(StdErr,'Usage: chmcmd [options] <filename>');
-  writeln(stderr);
-  writeln(stderr,'The following options are available :');
-  writeln(stderr,' --html-scan       : scan html for missing files or alinks  ');
-  writeln(stderr,' --no-html-scan    : don''t scan html for missing files or alinks ');
-  writeln(stderr,' -h, --help        : print this text');
-  writeln(stderr,'--verbosity number : set verbosity level 0..5, 0 is least');
-  writeln(stderr,'--generate-xml     : (if .hhp file), also generate a xml project from .hhp');
-  writeln(stderr);
-  writeln(stderr,' .hhp projects are default scanned for html, .xml not');
-  Halt(1);
-end;
+  procedure Usage();
+  begin
+    WriteLn(StdErr, 'Usage: chmcmd [options] <filename>');
+    WriteLn(StdErr);
+    WriteLn(StdErr, 'The following options are available :');
+    WriteLn(StdErr, ' --html-scan       : scan html for missing files or alinks  ');
+    WriteLn(StdErr, ' --no-html-scan    : don''t scan html for missing files or alinks ');
+    WriteLn(StdErr, ' -h, --help        : print this text');
+    WriteLn(StdErr, '--verbosity number : set verbosity level 0..5, 0 is least');
+    WriteLn(StdErr, '--generate-xml     : (if .hhp file), also generate a xml project from .hhp');
+    WriteLn(StdErr);
+    WriteLn(StdErr, ' .hhp projects are default scanned for html, .xml not');
+    Halt(1);
+  end;
 
 var
-  theopts : array[1..7] of TOption;
-  cores   : Integer = 0;
+  TheOpts: array[1..7] of TOption;
+  Cores: Integer = 0;
 
-procedure InitOptions;
-
-begin
-  with theopts[1] do
-   begin
-    name:='html-scan';
-    has_arg:=0;
-    flag:=nil;
-    value:=#0;
-  end;
-  with theopts[2] do
-   begin
-    name:='no-html-scan';
-    has_arg:=0;
-    flag:=nil;
-    value:=#0;
-  end;
-  with theopts[3] do
-   begin
-    name:='verbosity';
-    has_arg:=1;
-    flag:=nil;
-    value:=#0;
-  end;
-  with theopts[4] do
-   begin
-    name:='generate-xml';
-    has_arg:=0;
-    flag:=nil;
-    value:=#0;
-  end;
-  with theopts[5] do
-   begin
-    name:='help';
-    has_arg:=0;
-    flag:=nil;
-  end;
-  with theopts[6] do
-   begin
-    name:='cores';
-    has_arg:=1;
-    flag:=nil;
-  end;
-  with theopts[7] do
-   begin
-    name:='';
-    has_arg:=0;
-    flag:=nil;
-  end;
-end;
-
-Type THtmlScanenum = (scandefault,scanforce,scanforcedno);
-
-var
-  GenerateXMLForHHP  : boolean = false;
-  alloweddetaillevel : integer = 0;     // show if msg.detaillevel<=allowdetaillevel
-  htmlscan           : THtmlScanEnum = Scandefault;
-
-procedure OnError (Project: TChmProject;errorkind:TChmProjectErrorKind;msg:String;detailevel:integer=0);
-begin
-  if (detailevel<=alloweddetaillevel) or (errorkind < chmnote) then
-    if errorkind<>chmnone then
-      writeln(ChmErrorKindText[errorkind],': ',msg)
-    else
-      writeln(msg);
-end;
-
-procedure Processfile(name:string);
-
-var
-  OutStream: TFileStream;
-  Project: TChmProject;
-  xmlname: string;
-  ishhp  : boolean;
-
-begin
-  ishhp:=uppercase(extractfileext(name))='.HHP';
-  Project := TChmProject.Create;
-  Project.ReadMeMessage:='Compiled by CHMCmd '+CHMCMDVersion;
-  if ishhp then
+  procedure InitOptions();
+  begin
+    with TheOpts[1] do
     begin
-      xmlname:=changefileext(name,'.hhp.xml');
-      Project.OnError:=@OnError;
-      try
-        Project.LoadFromHHP(name,false) ;          // we need a param for this second param later
-       except
-         on e:exception do
-           begin
-             Writeln('This HHP CHM project seems corrupt, please check it ',name,' (', e.message,')');
-             halt(1);
-           end;
-       end;
-      project.ScanHtmlContents:=htmlscan<>scanforcedno;  // .hhp default SCAN
-    end
-  else
-    begin
-     try
-      project.ScanHtmlContents:=htmlscan=scanforce;  // .hhp default SCAN
-      Project.LoadFromFile(name);
-     except
-       on e:exception do
-         begin
-           Writeln('This XML CHM project seems corrupt, please check it ',name);
-           halt(1);
-         end;
-       end;
+      Name := 'html-scan';
+      Has_arg := 0;
+      Flag := nil;
+      Value := #0;
     end;
-  OutStream := TFileStream.Create(Project.OutputFileName, fmCreate);
-  Project.WriteChm(OutStream);
-  if Project.ScanHtmlContents then
-    Project.ShowUndefinedAnchors;
-  if ishhp and GenerateXMLForHHP then
+    with TheOpts[2] do
     begin
-      Writeln('Generating XML ',xmlname,'.');
-      Project.SaveToFile(xmlname);
+      Name := 'no-html-scan';
+      Has_arg := 0;
+      Flag := nil;
+      Value := #0;
     end;
-  OutStream.Free;
-  Project.Free;
+    with TheOpts[3] do
+    begin
+      Name := 'verbosity';
+      Has_arg := 1;
+      Flag := nil;
+      Value := #0;
+    end;
+    with TheOpts[4] do
+    begin
+      Name := 'generate-xml';
+      Has_arg := 0;
+      Flag := nil;
+      Value := #0;
+    end;
+    with TheOpts[5] do
+    begin
+      Name := 'help';
+      Has_arg := 0;
+      Flag := nil;
+    end;
+    with TheOpts[6] do
+    begin
+      Name := 'cores';
+      Has_arg := 1;
+      Flag := nil;
+    end;
+    with TheOpts[7] do
+    begin
+      Name := '';
+      Has_arg := 0;
+      Flag := nil;
+    end;
+  end;
 
-end;
+type
+  THtmlScanEnum = (scanDefault, scanForce, scanForcedNo);
 
 var
-  name   : string;
-  optionindex : integer;
-  c      : char;
-  verbtemp : integer;
-  verbbool : boolean;
+  GenerateXMLForHHP: Boolean = False;
+  AllowedDetailLevel: Integer = 0;     // show if msg.detaillevel<=allowdetaillevel
+  HtmlScan: THtmlScanEnum = scanDefault;
 
-begin
-  InitOptions;
-  Writeln(stderr,'chmcmd, a CHM compiler. (c) 2010 Free Pascal core.');
-  Writeln(Stderr);
-  repeat
-    c:=getlongopts('h',@theopts[1],optionindex);
-    case c of
-      #0 : begin
-             case optionindex-1 of
-               0 : htmlscan:=scanforce;
-               1 : htmlscan:=scanforcedno;
-               2 : begin
-                     verbbool:=trystrtoint(optarg,verbtemp);
-                     if verbbool then
-                       verbbool:=(verbtemp>=0) and (verbtemp<6);
-                     if verbbool then
-                       alloweddetaillevel:=verbtemp
-                     else
-                       begin
-                         Writeln('Illegal value for switch --verbosity :',optarg);
-                         Usage;
-                         Halt;
-                       end;
-                   end;
-               3 : GenerateXMLForHHP:=true;
-               4 : begin;
-                    Usage;
-                    Halt;
-                   end;
-               5 : begin
-                     if not trystrtoint(optarg,cores) then
-                       begin
-                         Writeln('Illegal value for switch --cores :',optarg);
-                         Usage;
-                         Halt;
-                       end;
-
-		   end;
-                end;
-           end;
-      '?' : begin
-              writeln('unknown option',optopt);
-              usage;
-              halt;
-            end;
-   end; { case }
- until c=endofoptions;
- if (paramcount-optind)=0 then  // if equal, then 1 parameter
+  procedure OnError(Project: TChmProject; ErrorKind: TChmProjectErrorKind;
+    Msg: string; DetailLevel: Integer = 0);
+  begin
+    if (DetailLevel <= AllowedDetailLevel) or (ErrorKind < chmNote) then
     begin
-      name:=paramstr(optind);
-      if not fileexists(name) then
-        begin
-          Writeln('Can''t find project file ',name);
-          halt;
+      if ErrorKind <> chmNone then
+        WriteLn(ChmErrorKindText[ErrorKind], ': ', Msg)
+      else
+        WriteLn(Msg);
+    end;
+  end;
+
+  procedure ProcessFile(Name: string);
+  var
+    OutStream: TFileStream;
+    Project: TChmProject;
+    XmlName: string;
+    IsHHP: Boolean;
+  begin
+    IsHHP := UpperCase(ExtractFileExt(Name)) = '.HHP';
+    Project := TChmProject.Create();
+    try
+      Project.ReadMeMessage := 'Compiled by CHMCmd ' + CHMCMDVersion;
+      if IsHHP then
+      begin
+        XmlName := ChangeFileExt(Name, '.hhp.xml');
+        Project.OnError := @OnError;
+        try
+          Project.LoadFromHHP(Name, False);
+          // we need a param for this second param later
+        except
+          on e: Exception do
+          begin
+            WriteLn('This HHP CHM project seems corrupt, please check it ', Name, ' (',
+              e.Message, ')');
+            halt(1);
+          end;
         end;
-      ProcessFile(Name);
-    end
- else
-   begin
-     Writeln('Invalid number of parameters :', paramcount-optind+1);
-     Usage;
-     halt;
-   end;
-end.
+        Project.ScanHtmlContents := (HtmlScan <> scanForcedNo);  // .hhp default SCAN
+      end
+      else
+      begin
+        try
+          Project.ScanHtmlContents := (HtmlScan = scanForce);  // .hhp default SCAN
+          Project.LoadFromFile(Name);
+        except
+          on e: Exception do
+          begin
+            WriteLn('This XML CHM project seems corrupt, please check it ', Name);
+            halt(1);
+          end;
+        end;
+      end;
+      OutStream := TFileStream.Create(Project.OutputFileName, fmCreate);
+      try
+        Project.WriteChm(OutStream);
+        if Project.ScanHtmlContents then
+          Project.ShowUndefinedAnchors();
+        if IsHHP and GenerateXMLForHHP then
+        begin
+          WriteLn('Generating XML ', XmlName, '.');
+          Project.SaveToFile(XmlName);
+        end;
+      finally
+        OutStream.Free();
+      end;
+    finally
+      Project.Free();
+    end;
+  end;
 
+var
+  Name: string;
+  OptionIndex: Integer;
+  c: char;
+  VerbTemp: Integer;
+  VerbBool: Boolean;
+
+begin
+  InitOptions();
+  WriteLn(StdErr, 'chmcmd, a CHM compiler. (c) 2010 Free Pascal core.');
+  WriteLn(StdErr);
+  repeat
+    c := GetLongOpts('h', @TheOpts[1], OptionIndex);
+    case c of
+      #0:
+      begin
+        case OptionIndex of
+          1: HtmlScan := scanForce;
+          2: HtmlScan := scanForcedNo;
+          3:
+          begin
+            VerbBool := TryStrToInt(OptArg, VerbTemp);
+            if VerbBool then
+              VerbBool := (VerbTemp >= 0) and (VerbTemp < 6);
+            if VerbBool then
+              AllowedDetailLevel := VerbTemp
+            else
+            begin
+              WriteLn('Illegal value for switch --verbosity :', OptArg);
+              Usage();
+            end;
+          end;
+          4: GenerateXMLForHHP := True;
+          5: Usage();
+          6:
+          begin
+            if not TryStrToInt(OptArg, Cores) then
+            begin
+              WriteLn('Illegal value for switch --cores :', OptArg);
+              Usage();
+            end;
+          end;
+        end;
+      end;
+      '?':
+      begin
+        WriteLn('unknown option', OptOpt);
+        Usage();
+        halt;
+      end;
+    end; { case }
+  until c = EndOfOptions;
+
+  if (ParamCount - OptInd) = 0 then  // if equal, then 1 parameter
+  begin
+    Name := ParamStr(OptInd);
+    if not FileExists(Name) then
+    begin
+      WriteLn('Can''t find project file ', Name);
+      halt;
+    end;
+    ProcessFile(Name);
+  end
+  else
+  begin
+    Writeln('Invalid number of parameters :', ParamCount - OptInd + 1);
+    Usage();
+    halt;
+  end;
+end.
