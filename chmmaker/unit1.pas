@@ -1,3 +1,4 @@
+{ Copyright (C) <2008> <Andrew Haines> }
 unit unit1;
 
 {$mode objfpc}{$H+}
