@@ -6,15 +6,26 @@ unit unit1;
 interface
 
 uses
-  Classes, SysUtils, types, chmsitemap, chmfilewriter,
-  Forms, Controls, Graphics, Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, EditBtn,
-  LazFileUtils, UTF8Process;
+  Classes, SysUtils, types, chmsitemap, chmfilewriter, Forms, Controls,
+  Graphics, Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, EditBtn, ActnList,
+  LazFileUtils, UTF8Process, chmreader;
 
 type
 
   { TCHMForm }
 
   TCHMForm = class(TForm)
+    actCompileAndView: TAction;
+    actCompile: TAction;
+    actAbout: TAction;
+    actExit: TAction;
+    actProjectImport: TAction;
+    actProjectClose: TAction;
+    actProjectSaveAs: TAction;
+    actProjectSave: TAction;
+    actProjectOpen: TAction;
+    actProjectNew: TAction;
+    alMain: TActionList;
     AddFilesBtn: TButton;
     AutoAddLinksBtn: TButton;
     AddAllBtn: TButton;
@@ -37,7 +48,9 @@ type
     lbCodepage: TLabel;
     lbTitle: TLabel;
     MemoLog: TMemo;
+    miProjectImport: TMenuItem;
     OpenDialog2: TOpenDialog;
+    OpenDialogImportChm: TOpenDialog;
     pgcMain: TPageControl;
     RemoveFilesBtn: TButton;
     btnTOCEdit: TButton;
@@ -48,21 +61,21 @@ type
     TableOfContentsLabel: TLabel;
     IndexLabel: TLabel;
     MainMenu1: TMainMenu;
-    MenuItem1: TMenuItem;
-    ProjSaveItem: TMenuItem;
-    ProjSaveAsItem: TMenuItem;
+    miProjectMenu: TMenuItem;
+    miProjectSave: TMenuItem;
+    miProjectSaveAs: TMenuItem;
     MenuItem12: TMenuItem;
-    ProjQuitItem: TMenuItem;
-    CompileItem: TMenuItem;
-    CompileProjItem: TMenuItem;
-    CompileOpenBttn: TMenuItem;
-    ProjCloseItem: TMenuItem;
-    MenuItem3: TMenuItem;
-    HelpHelpItem: TMenuItem;
+    miExit: TMenuItem;
+    miCompileMenu: TMenuItem;
+    miCompile: TMenuItem;
+    miCompileAndView: TMenuItem;
+    miProjectClose: TMenuItem;
+    miHelpMenu: TMenuItem;
+    miHelp: TMenuItem;
     MenuItem5: TMenuItem;
-    HelpAboutItem: TMenuItem;
-    ProjNewItem: TMenuItem;
-    ProjOpenItem: TMenuItem;
+    miAbout: TMenuItem;
+    miProjectNew: TMenuItem;
+    miProjectOpen: TMenuItem;
     MenuItem9: TMenuItem;
     OpenDialog1: TOpenDialog;
     MainPanel: TPanel;
@@ -72,14 +85,22 @@ type
     edTOCFilename: TFileNameEdit;
     tsLog: TTabSheet;
     tsMain: TTabSheet;
+    procedure actAboutExecute(Sender: TObject);
+    procedure actCompileAndViewExecute(Sender: TObject);
+    procedure actCompileExecute(Sender: TObject);
+    procedure actExitExecute(Sender: TObject);
+    procedure actProjectCloseExecute(Sender: TObject);
+    procedure actProjectImportExecute(Sender: TObject);
+    procedure actProjectNewExecute(Sender: TObject);
+    procedure actProjectOpenExecute(Sender: TObject);
+    procedure actProjectSaveAsExecute(Sender: TObject);
+    procedure actProjectSaveExecute(Sender: TObject);
     procedure AddAllBtnClick(Sender: TObject);
     procedure AddFilesBtnClick(Sender: TObject);
     procedure AutoAddLinksBtnClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure ChmFileNameEditAcceptFileName(Sender: TObject; var Value: string);
-    procedure CompileBtnClick(Sender: TObject);
-    procedure CompileViewBtnClick(Sender: TObject);
     procedure FileListBoxDrawItem({%H-}Control: TWinControl; Index: Integer;
       ARect: TRect; {%H-}State: TOwnerDrawState);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -87,13 +108,6 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure edIndexFilenameAcceptFileName(Sender: TObject; var Value: string);
     procedure btnIndexEditClick(Sender: TObject);
-    procedure HelpAboutItemClick(Sender: TObject);
-    procedure ProjCloseItemClick(Sender: TObject);
-    procedure ProjNewItemClick(Sender: TObject);
-    procedure ProjOpenItemClick(Sender: TObject);
-    procedure ProjQuitItemClick(Sender: TObject);
-    procedure ProjSaveAsItemClick(Sender: TObject);
-    procedure ProjSaveItemClick(Sender: TObject);
     procedure RemoveFilesBtnClick(Sender: TObject);
     procedure edTOCFilenameAcceptFileName(Sender: TObject; var Value: string);
     procedure btnTOCEditClick(Sender: TObject);
@@ -102,8 +116,9 @@ type
     procedure AddItems({%H-}AParentItem: TTreeNode; {%H-}ChmItems: TChmSiteMapItems);
 
     function GetModified: Boolean;
-    procedure Save(aAs: Boolean);
-    procedure CloseProject;
+    procedure SaveProject(AskFilename: Boolean);
+    procedure CloseProject();
+    function CompileProject(): Boolean;
 
     procedure AddFilesToProject(Strings: TStrings);
     procedure InitFileDialog(Dlg: TFileDialog);
@@ -227,57 +242,163 @@ begin
   end;
 end;
 
-procedure TCHMForm.AutoAddLinksBtnClick(Sender: TObject);
+procedure TCHMForm.actProjectNewExecute(Sender: TObject);
 begin
-  Project.ScanHtml();
-  Modified := True;
-end;
-
-procedure TCHMForm.Button2Click(Sender: TObject);
-begin
-    {
-  if OpenDialog1.Execute = False then Exit;
-  OutStream := TFileStream.Create('/home/andrew/test.chm', fmCreate or fmOpenWrite);
-  Chm := TChmWriter.Create(OutStream, False);
-  Chm.FilesToCompress.AddStrings(OpenDialog1.Files);
-  Chm.GetFileData := @GetData;
-  Chm.Title := 'test';
-  Chm.DefaultPage := 'index.html';
-  Chm.Execute;
-  OutStream.Free;
-  Chm.Free;
-     }
-
-end;
-
-procedure TCHMForm.ChmFileNameEditAcceptFileName(Sender: TObject; var Value: string);
-begin
-  if ExtractFileExt(Value) = '' then
-    Value := Value + '.chm';
-end;
-
-procedure TCHMForm.CompileBtnClick(Sender: TObject);
-var
-  OutFile: TFileStream;
-begin
-  if ChmFileNameEdit.FileName = '' then
+  InitFileDialog(SaveDialog1);
+  if SaveDialog1.Execute then
   begin
-    MessageDlg('You must set a filename for the output CHM file!',
-      mtError, [mbCancel], 0);
-    Exit;
-  end;
-  Save(False);
-  OutFile := TFileStream.Create(Project.OutputFileName, fmCreate or fmOpenWrite);
-  try
-    Project.WriteChm(OutFile);
-    ShowMessage('CHM file ' + ChmFileNameEdit.FileName + ' was created.');
-  finally
-    OutFile.Free();
+    if FileExists(SaveDialog1.FileName)
+    and (MessageDlg('File Already Exists! Ovewrite?', mtWarning, [mbYes, mbNo], 0) = mrNo) then
+      Exit;
+    OpenProject(SaveDialog1.FileName);
+    Project.SaveToFile(SaveDialog1.FileName);
   end;
 end;
 
+procedure TCHMForm.actProjectOpenExecute(Sender: TObject);
+begin
+  InitFileDialog(OpenDialog1);
+  if OpenDialog1.Execute then
+  begin
+    CloseProject();
+    OpenProject(OpenDialog1.FileName);
+  end;
+end;
 
-procedure TCHMForm.CompileViewBtnClick(Sender: TObject);
+procedure TCHMForm.actProjectSaveExecute(Sender: TObject);
+begin
+  SaveProject(False);
+end;
+
+procedure TCHMForm.actProjectSaveAsExecute(Sender: TObject);
+begin
+  SaveProject(True);
+end;
+
+procedure TCHMForm.actProjectCloseExecute(Sender: TObject);
+begin
+  CloseProject();
+end;
+
+function StripPath(s: string): string;
+begin
+  if Copy(s, 1, 1) = '/' then
+    Result := Copy(s, 2, MaxInt)
+  else
+    Result := s;
+end;
+
+procedure TCHMForm.actProjectImportExecute(Sender: TObject);
+var
+  ChmReader: TChmReader;
+  s, sProjectFileName, sProjectDir: string;
+  fsChm, fs: TFileStream;
+  SiteMap: TChmSiteMap;
+  sl: TStringList;
+  i: Integer;
+begin
+  MessageDlg('Import CHM notes', 'Place CHM file into empty directory.'
+    + sLineBreak + 'New Project will be created in that directory.',
+    mtInformation, [mbOk], 0);
+
+  if OpenDialogImportChm.Execute then
+  begin
+    // create project
+    CloseProject();
+    sProjectDir := IncludeTrailingPathDelimiter(ExtractFileDir(OpenDialogImportChm.FileName));
+    sProjectFileName := sProjectDir + ExtractFileNameOnly(OpenDialogImportChm.FileName)+'.hfp';
+    OpenProject(sProjectFileName);
+
+    fsChm := TFileStream.Create(OpenDialogImportChm.FileName, fmOpenRead);
+    ChmReader := TChmReader.Create(fsChm, False);
+    try
+      // get Project settings
+      Project.FileName := sProjectFileName;
+      Project.OutputFileName := ExtractFileName(OpenDialogImportChm.FileName);
+      Project.Title := ChmReader.Title;
+      Project.DefaultPage := StripPath(ChmReader.DefaultPage);
+      Project.LocaleID := ChmReader.LocaleID;
+      Project.DefaultFont := ChmReader.PreferedFont;
+
+      // extract TOC
+      Project.TableOfContentsFileName := StripPath(ChmReader.TOCFile);
+      SiteMap := TChmSiteMap.Create(stTOC);
+      try
+        ChmReader.ReadTOCSitemap(SiteMap);
+        SiteMap.SaveToFile(sProjectDir + Project.TableOfContentsFileName);
+      finally
+        FreeAndNil(SiteMap);
+      end;
+
+      // extract Index
+      Project.IndexFileName := StripPath(ChmReader.IndexFile);
+      SiteMap := TChmSiteMap.Create(stIndex);
+      try
+        ChmReader.ReadIndexSitemap(SiteMap);
+        SiteMap.SaveToFile(sProjectDir + Project.IndexFileName);
+      finally
+        FreeAndNil(SiteMap);
+      end;
+
+      // extract files
+      sl := TStringList.Create();
+      try
+        ChmReader.ReadFilesNamesList(sl, False);
+        for i := 0 to sl.Count-1 do
+        begin
+          //s := ExtractFileName(sl[i]);
+          s := StripPath(sl[i]);
+          if Length(s) > 1 then
+          begin
+            if Copy(s, Length(s), 1) = '/' then
+            begin
+              // folder
+              s := Copy(s, 1, Length(s)-1);
+              CreateDir(sProjectDir + s);
+              Continue;
+            end;
+
+            if (s = Project.TableOfContentsFileName)
+            or (s = Project.IndexFileName) then
+              Continue;
+            fs := TFileStream.Create(sProjectDir + s, fmCreate);
+            try
+              ChmReader.ReadFileContent(sl[i], fs);
+              if Project.Files.IndexOf(s) = -1 then
+                Project.Files.Append(s);
+            finally
+              FreeAndNil(fs);
+            end;
+          end;
+        end;
+
+      finally
+        sl.Free();
+      end;
+
+    finally
+      ChmReader.Free();
+      fsChm.Free();
+    end;
+
+    Project.SaveToFile(sProjectFileName);
+    //CloseProject();
+    OpenProject(sProjectFileName);
+  end;
+
+end;
+
+procedure TCHMForm.actExitExecute(Sender: TObject);
+begin
+  Close();
+end;
+
+procedure TCHMForm.actCompileExecute(Sender: TObject);
+begin
+  CompileProject();
+end;
+
+procedure TCHMForm.actCompileAndViewExecute(Sender: TObject);
 var
   LHelpName: string;
   LHelpConn: TLHelpConnection;
@@ -285,13 +406,8 @@ var
   ext: string;
   res: Integer;
 begin
-  if ChmFileNameEdit.FileName = '' then
-  begin
-    MessageDlg('You must set a filename for the output CHM file!',
-      mtError, [mbCancel], 0);
-    Exit;
-  end;
-  CompileBtnClick(Sender);
+  if not CompileProject() then Exit;
+
   // open
   // ...
   ext := ExtractFileExt(Application.ExeName);
@@ -326,6 +442,7 @@ begin
     else
       Exit;
   end;
+
   LHelpConn := TLHelpConnection.Create();
   try
     LHelpConn.StartHelpServer('chmmaker', LHelpName);
@@ -333,6 +450,44 @@ begin
   finally
     LHelpConn.Free();
   end;
+end;
+
+procedure TCHMForm.actAboutExecute(Sender: TObject);
+begin
+  MessageDlg('About chmmaker', 'CHM (Compiled HTML Help) maker'
+    + sLineBreak + 'version 1.1'
+    + sLineBreak + ''
+    + sLineBreak + 'Authors: FreePascal and Lazarus community',
+    mtInformation, [mbOk], 0);
+end;
+
+procedure TCHMForm.AutoAddLinksBtnClick(Sender: TObject);
+begin
+  Project.ScanHtml();
+  Modified := True;
+end;
+
+procedure TCHMForm.Button2Click(Sender: TObject);
+begin
+    {
+  if OpenDialog1.Execute = False then Exit;
+  OutStream := TFileStream.Create('/home/andrew/test.chm', fmCreate or fmOpenWrite);
+  Chm := TChmWriter.Create(OutStream, False);
+  Chm.FilesToCompress.AddStrings(OpenDialog1.Files);
+  Chm.GetFileData := @GetData;
+  Chm.Title := 'test';
+  Chm.DefaultPage := 'index.html';
+  Chm.Execute;
+  OutStream.Free;
+  Chm.Free;
+     }
+
+end;
+
+procedure TCHMForm.ChmFileNameEditAcceptFileName(Sender: TObject; var Value: string);
+begin
+  if ExtractFileExt(Value) = '' then
+    Value := Value + '.chm';
 end;
 
 procedure TCHMForm.FileListBoxDrawItem(Control: TWinControl; Index: Integer;
@@ -364,7 +519,7 @@ begin
     MResult := MessageDlg('Project is modified would you like to save the changes?',
       mtConfirmation, [mbYes, mbNo, mbCancel], 0);
     case MResult of
-      mrYes: Save(False);
+      mrYes: SaveProject(False);
       mrNo: CloseAction := caFree;
       mrCancel: CloseAction := caNone;
     else
@@ -429,15 +584,6 @@ begin
   end;
 end;
 
-procedure TCHMForm.HelpAboutItemClick(Sender: TObject);
-begin
-  MessageDlg('About chmmaker', 'CHM (Compiled HTML Help) maker'
-    + sLineBreak + 'version 1.1'
-    + sLineBreak + ''
-    + sLineBreak + 'Authors: FreePascal and Lazarus community',
-    mtInformation, [mbOk], 0);
-end;
-
 procedure TCHMForm.btnTOCEditClick(Sender: TObject);
 var
   Stream: TStream;
@@ -471,49 +617,6 @@ begin
   end;
 end;
 
-procedure TCHMForm.ProjCloseItemClick(Sender: TObject);
-begin
-  CloseProject();
-end;
-
-procedure TCHMForm.ProjNewItemClick(Sender: TObject);
-begin
-  InitFileDialog(SaveDialog1);
-  if SaveDialog1.Execute then
-  begin
-    if FileExists(SaveDialog1.FileName) and
-      (MessageDlg('File Already Exists! Ovewrite?', mtWarning, [mbYes, mbNo], 0) = mrNo) then
-      Exit;
-    OpenProject(SaveDialog1.FileName);
-    Project.SaveToFile(SaveDialog1.FileName);
-  end;
-end;
-
-procedure TCHMForm.ProjOpenItemClick(Sender: TObject);
-begin
-  InitFileDialog(OpenDialog1);
-  if OpenDialog1.Execute then
-  begin
-    CloseProject();
-    OpenProject(OpenDialog1.FileName);
-  end;
-end;
-
-procedure TCHMForm.ProjQuitItemClick(Sender: TObject);
-begin
-  Close();
-end;
-
-procedure TCHMForm.ProjSaveAsItemClick(Sender: TObject);
-begin
-  Save(True);
-end;
-
-procedure TCHMForm.ProjSaveItemClick(Sender: TObject);
-begin
-  Save(False);
-end;
-
 procedure TCHMForm.RemoveFilesBtnClick(Sender: TObject);
 var
   i: Integer;
@@ -532,9 +635,9 @@ begin
   Result := (Project <> nil) and FModified;
 end;
 
-procedure TCHMForm.Save(aAs: Boolean);
+procedure TCHMForm.SaveProject(AskFilename: Boolean);
 begin
-  if aAs or (Project.FileName = '') then
+  if AskFilename or (Project.FileName = '') then
   begin
     InitFileDialog(SaveDialog1);
     if SaveDialog1.Execute then
@@ -579,14 +682,38 @@ begin
   edIndexFilename.Clear();
   gbFiles.Enabled := False;
   MainPanel.Enabled := False;
-  CompileItem.Enabled := False;
-  ProjSaveAsItem.Enabled := False;
-  ProjSaveItem.Enabled := False;
-  ProjCloseItem.Enabled := False;
+  miCompileMenu.Enabled := False;
+  miProjectSaveAs.Enabled := False;
+  miProjectSave.Enabled := False;
+  miProjectClose.Enabled := False;
 
   chkScanHtmlContents.Checked := False;
   CreateSearchableCHMCheck.Checked := False;
   FreeAndNil(Project);
+end;
+
+function TCHMForm.CompileProject(): Boolean;
+var
+  OutFile: TFileStream;
+begin
+  Result := False;
+  if ChmFileNameEdit.FileName = '' then
+  begin
+    MessageDlg('You must set a filename for the output CHM file!',
+      mtError, [mbCancel], 0);
+    Exit;
+  end;
+
+  SaveProject(False);
+
+  OutFile := TFileStream.Create(Project.OutputFileName, fmCreate or fmOpenWrite);
+  try
+    Project.WriteChm(OutFile);
+    ShowMessage('CHM file ' + ChmFileNameEdit.FileName + ' was created.');
+    Result := True;
+  finally
+    OutFile.Free();
+  end;
 end;
 
 procedure TCHMForm.OpenProject(AFileName: string);
@@ -597,11 +724,12 @@ begin
   Project.LoadFromFile(AFileName);
   gbFiles.Enabled := True;
   MainPanel.Enabled := True;
-  CompileItem.Enabled := True;
-  ProjSaveAsItem.Enabled := True;
-  ProjSaveItem.Enabled := True;
-  ProjCloseItem.Enabled := True;
+  miCompileMenu.Enabled := True;
+  miProjectSaveAs.Enabled := True;
+  miProjectSave.Enabled := True;
+  miProjectClose.Enabled := True;
 
+  FileListBox.Items.Clear();
   FileListBox.Items.AddStrings(Project.Files);
   edTitle.Text := Project.Title;
   edTOCFilename.FileName := Project.TableOfContentsFileName;

@@ -1,7 +1,7 @@
 object CHMForm: TCHMForm
-  Left = 269
+  Left = 437
   Height = 555
-  Top = 217
+  Top = 246
   Width = 616
   HorzScrollBar.Page = 608
   VertScrollBar.Page = 453
@@ -302,12 +302,11 @@ object CHMForm: TCHMForm
           Height = 33
           Top = 437
           Width = 79
+          Action = actCompile
           Anchors = [akRight, akBottom]
           AutoSize = True
           BorderSpacing.Right = 9
           BorderSpacing.InnerBorder = 4
-          Caption = 'Compile'
-          OnClick = CompileBtnClick
           TabOrder = 7
         end
         object CompileViewBtn: TButton
@@ -317,12 +316,11 @@ object CHMForm: TCHMForm
           Height = 33
           Top = 437
           Width = 130
+          Action = actCompileAndView
           Anchors = [akRight, akBottom]
           AutoSize = True
           BorderSpacing.Right = 13
           BorderSpacing.InnerBorder = 4
-          Caption = 'Compile and View'
-          OnClick = CompileViewBtnClick
           TabOrder = 8
         end
         object ChmFileNameEdit: TFileNameEdit
@@ -464,59 +462,55 @@ object CHMForm: TCHMForm
   object MainMenu1: TMainMenu
     Left = 75
     Top = 20
-    object MenuItem1: TMenuItem
+    object miProjectMenu: TMenuItem
       Caption = 'Project'
-      object ProjNewItem: TMenuItem
-        Caption = 'New'
-        OnClick = ProjNewItemClick
+      object miProjectNew: TMenuItem
+        Action = actProjectNew
       end
-      object ProjOpenItem: TMenuItem
-        Caption = 'Open'
-        OnClick = ProjOpenItemClick
+      object miProjectOpen: TMenuItem
+        Action = actProjectOpen
+      end
+      object miProjectImport: TMenuItem
+        Action = actProjectImport
       end
       object MenuItem9: TMenuItem
         Caption = '-'
       end
-      object ProjSaveItem: TMenuItem
-        Caption = 'Save'
-        OnClick = ProjSaveItemClick
+      object miProjectSave: TMenuItem
+        Action = actProjectSave
       end
-      object ProjSaveAsItem: TMenuItem
-        Caption = 'Save as'
-        OnClick = ProjSaveAsItemClick
+      object miProjectSaveAs: TMenuItem
+        Action = actProjectSaveAs
       end
-      object ProjCloseItem: TMenuItem
-        Caption = 'Close'
-        OnClick = ProjCloseItemClick
+      object miProjectClose: TMenuItem
+        Action = actProjectClose
       end
       object MenuItem12: TMenuItem
         Caption = '-'
       end
-      object ProjQuitItem: TMenuItem
-        Caption = 'Quit Program'
-        OnClick = ProjQuitItemClick
+      object miExit: TMenuItem
+        Action = actExit
       end
     end
-    object CompileItem: TMenuItem
+    object miCompileMenu: TMenuItem
       Caption = 'Compile'
-      object CompileProjItem: TMenuItem
-        Caption = 'Compile Project'
+      object miCompile: TMenuItem
+        Action = actCompile
       end
-      object CompileOpenBttn: TMenuItem
-        Caption = 'Compile and Open chm'
+      object miCompileAndView: TMenuItem
+        Action = actCompileAndView
       end
     end
-    object MenuItem3: TMenuItem
+    object miHelpMenu: TMenuItem
       Caption = 'Help'
-      object HelpHelpItem: TMenuItem
+      object miHelp: TMenuItem
         Caption = 'Help'
       end
       object MenuItem5: TMenuItem
         Caption = '-'
       end
-      object HelpAboutItem: TMenuItem
-        Caption = 'About'
-        OnClick = HelpAboutItemClick
+      object miAbout: TMenuItem
+        Action = actAbout
       end
     end
   end
@@ -525,5 +519,65 @@ object CHMForm: TCHMForm
     Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
     Left = 12
     Top = 304
+  end
+  object alMain: TActionList
+    Left = 144
+    Top = 20
+    object actProjectNew: TAction
+      Category = 'Project'
+      Caption = 'New Project'
+      OnExecute = actProjectNewExecute
+    end
+    object actProjectOpen: TAction
+      Category = 'Project'
+      Caption = 'Open Project'
+      OnExecute = actProjectOpenExecute
+    end
+    object actProjectSave: TAction
+      Category = 'Project'
+      Caption = 'Save Project'
+      OnExecute = actProjectSaveExecute
+    end
+    object actProjectSaveAs: TAction
+      Category = 'Project'
+      Caption = 'Save Project As'
+      OnExecute = actProjectSaveAsExecute
+    end
+    object actProjectClose: TAction
+      Category = 'Project'
+      Caption = 'Close Project'
+      OnExecute = actProjectCloseExecute
+    end
+    object actCompile: TAction
+      Category = 'Compile'
+      Caption = 'Compile'
+      OnExecute = actCompileExecute
+    end
+    object actCompileAndView: TAction
+      Category = 'Compile'
+      Caption = 'Compile and View'
+      OnExecute = actCompileAndViewExecute
+    end
+    object actProjectImport: TAction
+      Category = 'Project'
+      Caption = 'Import From CHM'
+      OnExecute = actProjectImportExecute
+    end
+    object actAbout: TAction
+      Category = 'Program'
+      Caption = 'About'
+      OnExecute = actAboutExecute
+    end
+    object actExit: TAction
+      Category = 'Program'
+      Caption = 'Quit'
+      OnExecute = actExitExecute
+    end
+  end
+  object OpenDialogImportChm: TOpenDialog
+    DefaultExt = '.chm'
+    Filter = 'CHM files (*.chm)|*.chm'
+    Left = 12
+    Top = 72
   end
 end

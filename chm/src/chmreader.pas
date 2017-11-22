@@ -56,6 +56,7 @@ type
   TITSFReader = class(TObject)
   private
     FSectionNames: TStringList;
+    FTmpStrings: TStrings;
     function GetDirectoryChunk(Index: Integer; OutStream: TStream): Integer;
     function ReadPMGLchunkEntryFromStream(Stream: TMemoryStream; var PMGLEntry: TPMGListChunkEntry): Boolean;
     function ReadPMGIchunkEntryFromStream(Stream: TMemoryStream; var PMGIEntry: TPMGIIndexChunkEntry): Boolean;
@@ -67,6 +68,8 @@ type
     { Returns the blocksize }
     function FindBlocksFromUnCompressedAddr(const ResetTableEntry: TPMGListChunkEntry;
        out CompressedSize: QWord; out UnCompressedSize: QWord; out LZXResetTable: TLZXResetTableArr): QWord;
+
+    procedure ForEachHandler(Name: String; Offset, UncompressedSize, Section: Integer);
   protected
     { CHM file stream }
     FStream: TStream;
@@ -99,6 +102,9 @@ type
     function IsValidFile(): Boolean;
     { Read directory listing entries and pass every entry into ForEach callback method }
     procedure GetCompleteFileList(ForEach: TFileEntryForEach; AIncludeInternalFiles: Boolean = True); virtual;
+    { Read content files names into string list
+      AIncludeInternalFiles - include  }
+    procedure ReadFilesNamesList(sl: TStrings; AIncludeInternalFiles: Boolean = False);
     { Returns zero if no. Otherwise it is the size of the object
      Found AName directory entry is set as CachedEntry
      NOTE directories will return zero size even if they exist }
@@ -115,7 +121,10 @@ type
   end;
 
   { TChmReader }
-
+  { Provide CHM help features:
+    - Topics, TOC (Table Of Content), Index,
+    - Context ID and full-text search,
+    - browser windows appearance (fonts, colors, buttons) }
   TChmReader = class(TITSFReader)
   private
     FSearchReader: TChmSearchReader;
@@ -204,7 +213,9 @@ type
   TChmFileOpenEvent = procedure(ChmFileList: TChmFileList; Index: Integer) of object;
 
   { TChmFileList }
-
+  { CHM files list with associated CHM Readers
+    - get contents from library URLs - ms-its:name.chm::/topic.htm
+    - combine Topics and Index from multiple help files }
   TChmFileList = class(TStringList)
   protected
     FLastChm: TChmReader;
@@ -402,7 +413,7 @@ begin
   Result := True;
 end;
 
-function TITSFReader.IsValidFile: Boolean;
+function TITSFReader.IsValidFile(): Boolean;
 begin
   if (FStream = nil) then ChmLastError := ERR_STREAM_NOT_ASSIGNED
   else if (FITSFHeader.ITSFsig <> 'ITSF') then ChmLastError := ERR_NOT_VALID_FILE
@@ -488,6 +499,13 @@ begin
   finally
     ChunkStream.Free();
   end;
+end;
+
+procedure TITSFReader.ReadFilesNamesList(sl: TStrings; AIncludeInternalFiles: Boolean);
+begin
+  FTmpStrings := sl;
+  GetCompleteFileList(@ForEachHandler, AIncludeInternalFiles);
+  FTmpStrings := nil;
 end;
 
 function TITSFReader.ObjectExists(const AName: String): QWord;
@@ -883,6 +901,7 @@ begin
 
     //WriteLn('Compressed Data start''s at: ', FHeaderSuffix.Offset + FCachedEntry.ContentOffset,' Size is: ', FCachedEntry.DecompressedLength);
     AData.Size := BlockLength;
+    AData.Position := 0;  // some TStream descendants changes Position after resizing
     SetLength(InBuf, BlockSize);
     //OutBuf := GetMem(BlockSize);
     SetLength(OutBuf, BlockSize);
@@ -1005,6 +1024,13 @@ begin
   for I := 0 to High(LZXResetTable) do
     LZXResetTable[I] := LEtoN(LZXResetTable[I]);
   {$ENDIF}
+end;
+
+procedure TITSFReader.ForEachHandler(Name: String; Offset, UncompressedSize,
+  Section: Integer);
+begin
+  if Assigned(FTmpStrings) then
+    FTmpStrings.Append(Name);
 end;
 
 { TChmReader }
