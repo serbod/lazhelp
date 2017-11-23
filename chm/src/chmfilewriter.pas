@@ -25,7 +25,8 @@ unit chmfilewriter;
 interface
 
 uses
-  Strings, Classes, SysUtils, chmwriter, inifiles, contnrs, chmsitemap, avl_tree,
+  Classes, SysUtils, inifiles, contnrs, avl_tree, XmlCfg,
+  chmwriter, chmtypes, chmsitemap,
   {for html scanning } dom, SAX_HTML, dom_html;
 
 type
@@ -36,14 +37,26 @@ type
   TChmErrorCB = procedure(Project: TChmProject; ErrorKind: TChmProjectErrorKind;
     Msg: string; DetailLevel: Integer = 0);
 
+  TChmConfig = TXMLConfig;
+
   { TChmProject }
 
   TChmProject = class
   private
+    // created and destroyed
+    FFiles: TStrings;
+    FOtherFiles: TStrings; // Files found in a scan.
+    FAllowedExtensions: TStringList;
+    FWindows: TObjectList;
+    FMergeFiles: TStringList;
+    FTotalFileList: TStringIndexList;
+    FSpareString: TStringIndex;
+    FAnchorList: TStringList;
+    FContextList: TContextList;
+
     FAutoFollowLinks: Boolean;
     FDefaultFont: string;
     FDefaultPage: string;
-    FFiles: TStrings;
     FIndexFileName: string;
     FMakeBinaryTOC: Boolean;
     FMakeBinaryIndex: Boolean;
@@ -54,15 +67,8 @@ type
     FOutputFileName: string;
     FTableOfContentsFileName: string;
     FTitle: string;
-    FWindows: TObjectList;
-    FMergeFiles: TStringList;
     FDefaultWindow: string;
     FScanHtmlContents: Boolean;
-    FOtherFiles: TStrings; // Files found in a scan.
-    FAllowedExtensions: TStringList;
-    FTotalFileList: TStringIndexList;
-    FAnchorList: TStringList;
-    FSpareString: TStringIndex;
     FBasePath: string;
     // location of the .hhp file. Needed to resolve relative paths
     FReadmeMessage: string;     // readme message
@@ -117,6 +123,8 @@ type
     property Files: TStrings read FFiles;
     // other files (.css, img etc)
     property OtherFiles: TStrings read FOtherFiles;
+    { Help context list, contain THelpContext:URL pairs }
+    property ContextList: TContextList read FContextList;
     // not used
     property AutoFollowLinks: Boolean read FAutoFollowLinks write FAutoFollowLinks; deprecated;
     { Table-Of-Content file name (*.hhc), must be in same directory with FileName }
@@ -160,21 +168,12 @@ type
     property OnError: TChmErrorCB read FOnError write FOnError;
   end;
 
-  TChmContextNode = class
-    URLName: AnsiString;
-    ContextNumber: Integer;
-    ContextName: AnsiString;
-  end;
-
-
 
 const
   ChmErrorKindText: array[TCHMProjectErrorKind] of string =
     ('Error', 'Warning', 'Hint', 'Note', '');
 
 implementation
-
-uses XmlCfg, CHMTypes;
 
 type
 
@@ -273,6 +272,7 @@ begin
   FAnchorList := TStringList.Create();
   FAnchorList.Sorted := True;
   FAnchorList.OwnsObjects := True;
+  FContextList := TContextList.Create();
   FLocaleID := 0;
 end;
 
@@ -280,6 +280,7 @@ destructor TChmProject.Destroy();
 var
   i: Integer;
 begin
+  FreeAndNil(FContextList);
   FreeAndNil(FAnchorList);
   FreeAndNil(FSpareString);
   FreeAndNil(FTotalFileList);
@@ -460,14 +461,14 @@ end;
 
 procedure TChmProject.LoadFromFile(AFileName: string);
 var
-  Cfg: TXMLConfig;
+  Cfg: TChmConfig;
   MergeFileCount, WinCount, FileCount: Integer;
-  i: Integer;
-  ContextNode: TChmContextNode;
+  i, n: Integer;
+  //ContextNode: TChmContextNode;
   win: TCHMWindow;
-  s: string;
+  s, sAlias: string;
 begin
-  Cfg := TXMLConfig.Create(nil);
+  Cfg := TChmConfig.Create(nil);
   try
     Cfg.Filename := AFileName;
     FileName := AFileName;
@@ -477,11 +478,13 @@ begin
     FileCount := Cfg.GetValue('Files/Count/Value', 0);
     for i := 0 to FileCount - 1 do
     begin
-      ContextNode := TChmContextNode.Create();
-      ContextNode.URLName := Cfg.GetValue('Files/FileName' + IntToStr(i) + '/Value', '');
-      ContextNode.ContextNumber := Cfg.GetValue('Files/FileName' + IntToStr(i) + '/ContextNumber', 0);
-      ContextNode.ContextName := Cfg.GetValue('Files/FileName' + IntToStr(i) + '/ContextName', '');
-      Files.AddObject(ContextNode.URLName, ContextNode);
+      s := Cfg.GetValue('Files/FileName' + IntToStr(i) + '/Value', '');
+      Files.Add(s);
+
+      n := Cfg.GetValue('Files/FileName' + IntToStr(i) + '/ContextNumber', 0);
+      sAlias := Cfg.GetValue('Files/FileName' + IntToStr(i) + '/ContextName', '');
+      if n <> 0 then
+        ContextList.AddContext(n, sAlias, s);
     end;
 
     FileCount := Cfg.GetValue('OtherFiles/Count/Value', 0);
@@ -561,22 +564,25 @@ procedure TChmProject.LoadFromHHP(AFileName: string; LeaveInclude: Boolean);
   procedure AddAlias(const Key, Value: string);
   var
     i, j: Integer;
-    Node: TCHMContextNode;
-    KeyUpper, ValueUpper: string;
+    //Node: TChmContextNode;
+    //KeyUpper, ValueUpper: string;
   begin
     { Defaults other than global }
     MakeBinaryIndex := True;
 
     {$ifdef hhp_debug} WriteLn('alias entry:', Key, '=', Value); {$endif}
-    KeyUpper := UpperCase(Value);
+
+    ContextList.AddAliasUrl(Key, Value);
+
+    {KeyUpper := UpperCase(Value);
     i := 0;
     j := Files.Count;
-    while (i < j) and (UpperCase(TCHMContextnode(Files.Objects[i]).UrlName) <> KeyUpper) do
+    while (i < j) and (UpperCase(TChmContextNode(Files.Objects[i]).UrlName) <> KeyUpper) do
       Inc(i);
     if i = j then
     begin
       {$ifdef hhp_debug} WriteLn('alias new node:', Key); {$endif}
-      Node := TCHMContextNode.Create();
+      Node := TChmContextNode.Create();
       ValueUpper := StringReplace(Value, '\', '/', [rfReplaceAll]);
       ValueUpper := StringReplace(ValueUpper, '//', '/', [rfReplaceAll]);
       Node.URLName := ValueUpper;
@@ -584,9 +590,9 @@ procedure TChmProject.LoadFromHHP(AFileName: string; LeaveInclude: Boolean);
     end
     else
     begin
-      Node := TCHMContextNode(Files.Objects[i]);
+      Node := TChmContextNode(Files.Objects[i]);
       Node.ContextName := Key;
-    end;
+    end;}
   end;
 
   procedure ProcessAlias(sl: TStringList);
@@ -626,11 +632,15 @@ procedure TChmProject.LoadFromHHP(AFileName: string; LeaveInclude: Boolean);
   procedure AddMap(const Key, Value: string);
   var
     i, j: Integer;
-    Node: TCHMContextNode;
-    KeyUpper: string;
+    //Node: TCHMContextNode;
+    //KeyUpper: string;
   begin
     {$ifdef hhp_debug} WriteLn('map entry:', Key, '=', Value); {$endif}
-    KeyUpper := UpperCase(Key);
+
+    i := StrToIntDef(Value, 0);
+    ContextList.AddAliasContext(Key, i);
+
+    {KeyUpper := UpperCase(Key);
     i := 0;
     j := Files.Count;
     while (i < j) and (UpperCase(TCHMContextnode(Files.Objects[i]).ContextName) <> KeyUpper) do
@@ -641,7 +651,7 @@ procedure TChmProject.LoadFromHHP(AFileName: string; LeaveInclude: Boolean);
     begin
       Node := TCHMContextNode(Files.Objects[i]);
       Node.ContextNumber := StrToIntDef(Value, 0);
-    end;
+    end;  }
   end;
 
   procedure ProcessMap(sl: TStringList);
@@ -676,6 +686,10 @@ procedure TChmProject.LoadFromHHP(AFileName: string; LeaveInclude: Boolean);
         begin
           Delete(s, 1, 7);
           s := Trim(s);
+          // strip comments
+          j := Pos(';', s);
+          if j > 0 then
+            s := Copy(s, 1, j-1);
           j := Pos(' ', s);
           if j > 0 then
             AddMap(Trim(Copy(s, 1, j - 1)), Copy(s, j + 1, Length(s) - j));
@@ -694,7 +708,8 @@ var
   slSections, slValues: TStringList;
   i, j: Integer;
   Section: THHPSectionEnum;
-  ContextNode: TChmContextNode;
+  s: string;
+  //ContextNode: TChmContextNode;
 
 begin
   { Defaults other than global }
@@ -713,11 +728,8 @@ begin
     begin
       for j := 0 to slValues.Count - 1 do
       begin
-        ContextNode := TChmContextNode.Create();
-        ContextNode.URLName := StringReplace(slValues[j], '\', '/', [rfReplaceAll]);
-        ContextNode.ContextNumber := 0;
-        ContextNode.ContextName := '';
-        Files.AddObject(ContextNode.URLName, ContextNode);
+        s := StringReplace(slValues[j], '\', '/', [rfReplaceAll]);
+        Files.Add(s);
       end;
     end;
 
@@ -762,20 +774,21 @@ procedure TChmProject.AddFileWithContext(AContextId: Integer; AFileName: AnsiStr
   AContextName: AnsiString = '');
 var
   i: Integer;
-  ContextNode: TChmContextNode;
+  //ContextNode: TChmContextNode;
 begin
   i := Files.IndexOf(AFileName);
   if i = -1 then
   begin
-    ContextNode := TChmContextNode.Create();
+    Files.Add(AFileName);
+    {ContextNode := TChmContextNode.Create();
     ContextNode.URLName := AFileName;
     ContextNode.ContextNumber := AContextId;
     ContextNode.ContextName := AContextName;
-    Files.AddObject(ContextNode.URLName, ContextNode);
+    Files.AddObject(ContextNode.URLName, ContextNode); }
   end
   else
   begin
-    ContextNode := TChmContextNode(Files.Objects[i]);
+    {ContextNode := TChmContextNode(Files.Objects[i]);
     if not Assigned(ContextNode) then
     begin
       ContextNode := TChmContextNode.Create();
@@ -783,17 +796,18 @@ begin
       Files.Objects[i] := ContextNode;
     end;
     ContextNode.ContextNumber := AContextId;
-    ContextNode.ContextName := AContextName;
+    ContextNode.ContextName := AContextName; }
   end;
+  if AContextId <> 0 then
+    ContextList.AddContext(AContextId, '', AFileName);
 end;
 
 procedure TChmProject.SaveToFile(AFileName: string);
 var
-  Cfg: TXMLConfig;
+  Cfg: TChmConfig;
   i: Integer;
-  ContextNode: TChmContextNode;
 begin
-  Cfg := TXMLConfig.Create(nil);
+  Cfg := TChmConfig.Create(nil);
   try
     Cfg.StartEmpty := True;
     Cfg.Filename := AFileName;
@@ -801,13 +815,13 @@ begin
     Cfg.SetValue('Files/Count/Value', Files.Count);
     for i := 0 to Files.Count - 1 do
     begin
-      ContextNode := TChmContextNode(Files.Objects[i]);
       Cfg.SetValue('Files/FileName' + IntToStr(i) + '/Value', Files.Strings[i]);
+      {ContextNode := TChmContextNode(Files.Objects[i]);
       if Assigned(ContextNode) then
       begin
         Cfg.SetValue('Files/FileName' + IntToStr(i) + '/ContextNumber', ContextNode.ContextNumber);
         Cfg.SetValue('Files/FileName' + IntToStr(i) + '/ContextName', ContextNode.ContextName);
-      end;
+      end; }
     end;
 
     Cfg.SetValue('OtherFiles/Count/Value', OtherFiles.Count);
@@ -1243,8 +1257,8 @@ end;
 procedure TChmProject.WriteChm(AOutStream: TStream);
 var
   Writer: TChmWriter;
-  ContextNode: TChmContextNode;
   i: Integer;
+  ContextItem: TContextItem;
 begin
 
   LoadSiteMaps();
@@ -1278,14 +1292,14 @@ begin
     Writer.ReadmeMessage := ReadmeMessage;
     Writer.DefaultWindow := FDefaultWindow;
     Writer.LocaleID := LocaleID;
-    for i := 0 to Files.Count - 1 do
+
+    for i := 0 to ContextList.Count-1 do
     begin
-      ContextNode := TChmContextNode(Files.Objects[i]);
-      if not FileExists(Files[i]) then
-        Error(chmWarning, 'File ' + Files[i] + ' does not exist');
-      if Assigned(ContextNode) and (ContextNode.ContextNumber <> 0) then
-        Writer.AddContext(ContextNode.ContextNumber, Files[i]);
+      ContextItem := ContextList.GetItem(i);
+      if Assigned(ContextItem) and (ContextItem.ContextID <> 0) then
+        Writer.AddContext(ContextItem.ContextID, ContextItem.UrlAlias);
     end;
+
     if FWindows.Count > 0 then
       Writer.Windows := FWindows;
     if FMergeFiles.Count > 0 then

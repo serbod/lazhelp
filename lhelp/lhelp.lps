@@ -8,7 +8,7 @@
       <Unit0>
         <Filename Value="lhelp.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="12"/>
         <TopLine Value="43"/>
         <CursorPos X="9" Y="34"/>
         <UsageCount Value="128"/>
@@ -46,7 +46,7 @@
         <ComponentName Value="HelpForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="13"/>
         <TopLine Value="38"/>
         <CursorPos X="87" Y="644"/>
         <UsageCount Value="128"/>
@@ -106,7 +106,7 @@
       <Unit11>
         <Filename Value="lcid_conv.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="10"/>
         <CursorPos X="35" Y="25"/>
         <UsageCount Value="41"/>
         <Loaded Value="True"/>
@@ -520,7 +520,8 @@
       <Unit70>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\chm\src\fasthtmlparser.pas"/>
         <UnitName Value="FastHTMLParser"/>
-        <EditorIndex Value="10"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="9"/>
         <TopLine Value="164"/>
         <CursorPos X="10" Y="177"/>
         <UsageCount Value="12"/>
@@ -536,7 +537,7 @@
       <Unit72>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\win32\classes.pp"/>
         <UnitName Value="Classes"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="11"/>
         <TopLine Value="30"/>
         <CursorPos X="20" Y="93"/>
         <UsageCount Value="12"/>
@@ -560,12 +561,10 @@
       </Unit74>
       <Unit75>
         <Filename Value="..\chm\src\chmwriter.pas"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="9"/>
-        <TopLine Value="134"/>
-        <CursorPos X="16" Y="136"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="139"/>
+        <CursorPos X="52" Y="144"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit75>
     </Units>
     <OtherDefines Count="1">

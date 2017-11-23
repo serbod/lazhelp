@@ -323,6 +323,30 @@ type
     MergeFilesList: array [0..1003] of LongWord; // List of offsets in the #STRINGS file that are the [MERGE FILES] list. Zero terminated, but don't count on it.
   end;
 
+  { [ALIAS] and [MAP] section items pairs }
+
+  TContextItem = class(TObject)
+  public
+    ContextID: THelpContext;
+    UrlAlias: String;
+    Url: String;
+  end;
+
+  { TContextList }
+
+  TContextList = class(TList)
+  protected
+    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
+  public
+    function AddContext(AContextID: THelpContext; const AAlias, AUrl: String): TContextItem;
+    { Add Alias to ContextID assignment from [MAP] section }
+    procedure AddAliasContext(const AAlias: String; AContextID: THelpContext);
+    { Add Alias to Url assignment from [ALIAS] section }
+    procedure AddAliasUrl(const AAlias, AUrl: String);
+    function GetURL(AContextID: THelpContext): String;
+    function GetItem(AIndex: Integer): TContextItem;
+  end;
+
 function PageBookInfoRecordSize(ARecord: PTOCEntryPageBookInfo): Integer;
 
 const DefValidFlags = [valid_Navigation_pane_style, valid_Window_style_flags, valid_Initial_window_position, valid_Navigation_pane_width, valid_Buttons, valid_Tab_position];
@@ -337,6 +361,98 @@ begin
     Result := 28
   else
     Result := 20;
+end;
+
+{ TContextList }
+
+procedure TContextList.Notify(Ptr: Pointer; Action: TListNotification);
+begin
+  inherited Notify(Ptr, Action);
+  if Action = lnDeleted then
+    TContextItem(Ptr).Free();
+end;
+
+function TContextList.AddContext(AContextID: THelpContext; const AAlias,
+  AUrl: String): TContextItem;
+begin
+  Result := TContextItem.Create();
+  Add(Result);
+  Result.ContextID := AContextID;
+  Result.UrlAlias := AAlias;
+  Result.Url := AUrl;
+end;
+
+procedure TContextList.AddAliasContext(const AAlias: String; AContextID: THelpContext);
+var
+  Item: TContextItem;
+  i: Integer;
+  UpcaseAlias: string;
+begin
+  UpcaseAlias := UpperCase(AAlias);
+  for i := 0 to Count-1 do
+  begin
+    Item := TContextItem(Get(i));
+    if UpperCase(Item.UrlAlias) = UpcaseAlias then
+    begin
+      Item.ContextID := AContextID;
+      Exit;
+    end;
+  end;
+
+  Item := TContextItem.Create();
+  Add(Item);
+  Item.ContextID := AContextID;
+  Item.UrlAlias := AAlias;
+  Item.Url := '';
+end;
+
+procedure TContextList.AddAliasUrl(const AAlias, AUrl: String);
+var
+  Item: TContextItem;
+  i: Integer;
+  UpcaseAlias: string;
+begin
+  UpcaseAlias := UpperCase(AAlias);
+  for i := 0 to Count-1 do
+  begin
+    Item := TContextItem(Get(i));
+    if UpperCase(Item.UrlAlias) = UpcaseAlias then
+    begin
+      Item.Url := AUrl;
+      Exit;
+    end;
+  end;
+
+  Item := TContextItem.Create();
+  Add(Item);
+  Item.ContextID := 0;
+  Item.UrlAlias := AAlias;
+  Item.Url := AUrl;
+end;
+
+function TContextList.GetURL(AContextID: THelpContext): String;
+var
+  i: Integer;
+  Item: TContextItem;
+begin
+  Result := '';
+  for i := 0 to Count-1 do
+  begin
+    Item := TContextItem(Get(i));
+    if Item.ContextID = AContextID then
+    begin
+      Result := Item.Url;
+      Exit;
+    end;
+  end;
+end;
+
+function TContextList.GetItem(AIndex: Integer): TContextItem;
+begin
+  if (AIndex >= 0) and (AIndex < Count) then
+    Result := TContextItem(Get(AIndex))
+  else
+    Result := nil;
 end;
 
 { TCHMWindowList }

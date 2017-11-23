@@ -8,7 +8,7 @@ interface
 uses
   Classes, SysUtils, types, chmsitemap, chmfilewriter, Forms, Controls,
   Graphics, Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, EditBtn, ActnList,
-  LazFileUtils, UTF8Process, chmreader;
+  ValEdit, LazFileUtils, UTF8Process, chmreader, chmtypes;
 
 type
 
@@ -43,10 +43,12 @@ type
     CompileTimeOptionsLabel: TLabel;
     FilesNoteLabel: TLabel;
     DefaultPageLabel: TLabel;
+    lbContextInfo: TLabel;
     lbCHMFilename: TLabel;
     lbProjectDir: TLabel;
     lbCodepage: TLabel;
     lbTitle: TLabel;
+    lvAliases: TListView;
     MemoLog: TMemo;
     miProjectImport: TMenuItem;
     OpenDialog2: TOpenDialog;
@@ -83,6 +85,7 @@ type
     SaveDialog1: TSaveDialog;
     StatusBar1: TStatusBar;
     edTOCFilename: TFileNameEdit;
+    tsContext: TTabSheet;
     tsLog: TTabSheet;
     tsMain: TTabSheet;
     procedure actAboutExecute(Sender: TObject);
@@ -108,6 +111,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure edIndexFilenameAcceptFileName(Sender: TObject; var Value: string);
     procedure btnIndexEditClick(Sender: TObject);
+    procedure lvAliasesData(Sender: TObject; Item: TListItem);
     procedure RemoveFilesBtnClick(Sender: TObject);
     procedure edTOCFilenameAcceptFileName(Sender: TObject; var Value: string);
     procedure btnTOCEditClick(Sender: TObject);
@@ -123,6 +127,8 @@ type
     procedure AddFilesToProject(Strings: TStrings);
     procedure InitFileDialog(Dlg: TFileDialog);
     procedure ProjectDirChanged();
+    procedure UpdateAliasesList();
+
     function CreateRelativeProjectFile(Filename: string): string;
     function CreateAbsoluteProjectFile(Filename: string): string;
   public
@@ -165,7 +171,8 @@ begin
       Item := TreeView1.Items.AddChild(AParentItem, ChmItems.Item[I].Text);
       AddItems(Item, ChmItems.Item[I].Children);
     end;
- } end;
+ }
+end;
 
 procedure TCHMForm.Button1Click(Sender: TObject);
 begin
@@ -296,6 +303,7 @@ var
   SiteMap: TChmSiteMap;
   sl: TStringList;
   i: Integer;
+  ContextItem: TContextItem;
 begin
   MessageDlg('Import CHM notes', 'Place CHM file into empty directory.'
     + sLineBreak + 'New Project will be created in that directory.',
@@ -322,22 +330,48 @@ begin
 
       // extract TOC
       Project.TableOfContentsFileName := StripPath(ChmReader.TOCFile);
-      SiteMap := TChmSiteMap.Create(stTOC);
-      try
-        ChmReader.ReadTOCSitemap(SiteMap);
-        SiteMap.SaveToFile(sProjectDir + Project.TableOfContentsFileName);
-      finally
-        FreeAndNil(SiteMap);
+      if Project.TableOfContentsFileName <> '' then
+      begin
+        SiteMap := TChmSiteMap.Create(stTOC);
+        try
+          ChmReader.ReadTOCSitemap(SiteMap);
+          SiteMap.SaveToFile(sProjectDir + Project.TableOfContentsFileName);
+        finally
+          FreeAndNil(SiteMap);
+        end;
       end;
 
       // extract Index
       Project.IndexFileName := StripPath(ChmReader.IndexFile);
-      SiteMap := TChmSiteMap.Create(stIndex);
+      if Project.IndexFileName <> '' then
+      begin
+        SiteMap := TChmSiteMap.Create(stIndex);
+        try
+          ChmReader.ReadIndexSitemap(SiteMap);
+          SiteMap.SaveToFile(sProjectDir + Project.IndexFileName);
+        finally
+          FreeAndNil(SiteMap);
+        end;
+      end;
+
+      // extract Aliases (Context)
+      sl := TStringList.Create();
+      //fs := TFileStream.Create(sProjectDir + '_alias.ini', fmCreate);
       try
-        ChmReader.ReadIndexSitemap(SiteMap);
-        SiteMap.SaveToFile(sProjectDir + Project.IndexFileName);
+        for i := 0 to ChmReader.ContextList.Count-1 do
+        begin
+          ContextItem := ChmReader.ContextList.GetItem(i);
+          if Assigned(ContextItem) then
+          begin
+            Project.ContextList.AddContext(ContextItem.ContextID, ContextItem.UrlAlias, ContextItem.Url);
+            sl.Add(ContextItem.UrlAlias + '=' + ContextItem.Url);
+          end;
+        end;
+        if sl.Count > 0 then
+          sl.SaveToFile(sProjectDir + '_context.ali');
       finally
-        FreeAndNil(SiteMap);
+        //FreeAndNil(fs);
+        FreeAndNil(sl);
       end;
 
       // extract files
@@ -584,6 +618,23 @@ begin
   end;
 end;
 
+procedure TCHMForm.lvAliasesData(Sender: TObject; Item: TListItem);
+var
+  ContextItem: TContextItem;
+begin
+  if Assigned(Project) and Assigned(Item) then
+  begin
+    ContextItem := Project.ContextList.GetItem(Item.Index);
+    if Assigned(ContextItem) then
+    begin
+      Item.Caption := IntToStr(ContextItem.ContextID);
+      Item.SubItems.Clear();
+      Item.SubItems.Add(ContextItem.UrlAlias);
+      Item.SubItems.Add(ContextItem.Url);
+    end;
+  end;
+end;
+
 procedure TCHMForm.btnTOCEditClick(Sender: TObject);
 var
   Stream: TStream;
@@ -742,6 +793,8 @@ begin
   CreateSearchableCHMCheck.Checked := Project.MakeSearchable;
   ChmFileNameEdit.FileName := Project.OutputFileName;
 
+  UpdateAliasesList();
+
   ProjectDirChanged();
 end;
 
@@ -792,6 +845,16 @@ begin
   edTOCFilename.InitialDir := Dir;
   edIndexFilename.InitialDir := Dir;
   ChmFileNameEdit.InitialDir := Dir;
+end;
+
+procedure TCHMForm.UpdateAliasesList();
+begin
+  if Assigned(Project) then
+    lvAliases.Items.Count := Project.ContextList.Count
+  else
+    lvAliases.Items.Count := 0;
+
+  lvAliases.Invalidate();
 end;
 
 function TCHMForm.CreateRelativeProjectFile(Filename: string): string;

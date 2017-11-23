@@ -3,8 +3,8 @@ object CHMForm: TCHMForm
   Height = 555
   Top = 246
   Width = 616
-  HorzScrollBar.Page = 608
-  VertScrollBar.Page = 453
+  HorzScrollBar.Page = 600
+  VertScrollBar.Page = 475
   AutoScroll = True
   Caption = 'Compiled HTML Help Project - [Made with Freepascal]'
   ClientHeight = 535
@@ -27,9 +27,9 @@ object CHMForm: TCHMForm
     Height = 512
     Top = 0
     Width = 616
-    ActivePage = tsMain
+    ActivePage = tsContext
     Align = alClient
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 1
     object tsMain: TTabSheet
       Caption = 'Main page'
@@ -430,6 +430,50 @@ object CHMForm: TCHMForm
           Caption = 'make binary Index'
           TabOrder = 14
         end
+      end
+    end
+    object tsContext: TTabSheet
+      Caption = 'Context'
+      ClientHeight = 484
+      ClientWidth = 608
+      object lbContextInfo: TLabel
+        Left = 185
+        Height = 34
+        Top = 6
+        Width = 407
+        AutoSize = False
+        Caption = 'Aliases HelpContext number to Help page URL'
+        ParentColor = False
+      end
+      object lvAliases: TListView
+        Left = 8
+        Height = 372
+        Top = 52
+        Width = 584
+        Columns = <        
+          item
+            Caption = 'Context ID'
+            MinWidth = 50
+            Width = 100
+          end        
+          item
+            Caption = 'Alias'
+            MinWidth = 100
+            Width = 150
+          end        
+          item
+            AutoSize = True
+            Caption = 'Help page URL'
+            MinWidth = 200
+            Width = 93
+          end>
+        GridLines = True
+        OwnerData = True
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 0
+        ViewStyle = vsReport
+        OnData = lvAliasesData
       end
     end
     object tsLog: TTabSheet

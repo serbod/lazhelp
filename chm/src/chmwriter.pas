@@ -274,8 +274,8 @@ type
     procedure AppendIndex(AStream: TStream);
     { Write AStream to internal file AName }
     procedure AppendSearchDB(AName: string; AStream: TStream);
-    { Add ContextID and ATopic name to context list }
-    procedure AddContext(AContext: DWord; ATopic: string);
+    { Add ContextID and local Url to context list }
+    procedure AddContext(AContext: DWord; AUrl: string);
     { Write empty internal file '/$WWAssociativeLinks/Property' }
     procedure AddDummyALink();
 
@@ -2592,7 +2592,7 @@ begin
 end;
 
 
-procedure TChmWriter.AddContext(AContext: DWord; ATopic: string);
+procedure TChmWriter.AddContext(AContext: DWord; AUrl: string);
 var
   Offset: DWord;
 begin
@@ -2605,7 +2605,7 @@ begin
   end;
   // an entry is a context id and then the offset of the name of the topic in the strings file
   FContextStream.WriteDWord(NToLE(AContext));
-  Offset := NToLE(AddString(ATopic));
+  Offset := NToLE(AddString(AUrl));
   FContextStream.WriteDWord(Offset);
 end;
 

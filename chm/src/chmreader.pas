@@ -34,19 +34,6 @@ type
 
   TLZXResetTableArr = array of QWord;
 
-  PContextItem = ^TContextItem;
-  TContextItem = record
-    Context: THelpContext;
-    Url: String;
-  end;
-
-  TContextList = class(TList)
-  public
-    procedure AddContext(Context: THelpContext; const Url: String);
-    function GetURL(Context: THelpContext): String;
-    procedure Clear(); override;
-  end;
-
 
   TFileEntryForEach = procedure(Name: String; Offset, UncompressedSize, Section: Integer) of object;
 
@@ -1226,7 +1213,7 @@ begin
         Value := LEtoN(msIVB.ReadDWord);
         OffSet := LEtoN(msIVB.ReadDWord);
         Str := '/' + FixUrl(ReadStringsEntry(Offset));
-        FContextList.AddContext(Value, Str);
+        FContextList.AddContext(Value, '', Str);
       end;
     end;
   finally
@@ -1764,44 +1751,6 @@ end;
 function TChmReader.HasContextList: Boolean;
 begin
   Result := FContextList.Count > 0;
-end;
-
-{ TContextList }
-
-procedure TContextList.AddContext(Context: THelpContext; const Url: String);
-var
-  ContextItem: PContextItem;
-begin
-  New(ContextItem);
-  Add(ContextItem);
-  ContextItem^.Context := Context;
-  ContextItem^.Url := Url;
-end;
-
-function TContextList.GetURL(Context: THelpContext): String;
-var
-  X: Integer;
-begin
-  Result := '';
-  for X := 0 to Count-1 do
-  begin
-    if PContextItem(Get(X))^.Context = Context then
-    begin
-      Result := PContextItem(Get(X))^.Url;
-      Exit;
-    end;
-  end;
-end;
-
-procedure TContextList.Clear();
-var
-  X: Integer;
-begin
-  for X := Count-1 downto 0 do
-  begin
-    Dispose(PContextItem(Get(X)));
-    Delete(X);
-  end;
 end;
 
 
