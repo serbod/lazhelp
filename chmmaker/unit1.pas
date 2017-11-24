@@ -8,9 +8,22 @@ interface
 uses
   Classes, SysUtils, types, chmsitemap, chmfilewriter, Forms, Controls,
   Graphics, Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, EditBtn, ActnList,
-  ValEdit, LazFileUtils, UTF8Process, chmreader, chmtypes;
+  LazFileUtils, UTF8Process, chmreader, chmtypes;
 
 type
+
+  { TProjImportThread }
+
+  TProjImportThread = class(TThread)
+  protected
+    procedure Execute(); override;
+    procedure SyncProc();
+    procedure SetStatusStr(const AText: string);
+  public
+    Project: TChmProject;
+    ChmFilename: string;
+    StatusStr: string;
+  end;
 
   { TCHMForm }
 
@@ -85,6 +98,7 @@ type
     SaveDialog1: TSaveDialog;
     StatusBar1: TStatusBar;
     edTOCFilename: TFileNameEdit;
+    tmrImport: TTimer;
     tsContext: TTabSheet;
     tsLog: TTabSheet;
     tsMain: TTabSheet;
@@ -115,8 +129,11 @@ type
     procedure RemoveFilesBtnClick(Sender: TObject);
     procedure edTOCFilenameAcceptFileName(Sender: TObject; var Value: string);
     procedure btnTOCEditClick(Sender: TObject);
+    procedure tmrImportTimer(Sender: TObject);
   private
     FModified: Boolean;
+    FProjectFileName: string;
+    FProjImportThread: TProjImportThread;
     procedure AddItems({%H-}AParentItem: TTreeNode; {%H-}ChmItems: TChmSiteMapItems);
 
     function GetModified: Boolean;
@@ -128,6 +145,8 @@ type
     procedure InitFileDialog(Dlg: TFileDialog);
     procedure ProjectDirChanged();
     procedure UpdateAliasesList();
+
+    procedure SetStatusStr(const AText: string);
 
     function CreateRelativeProjectFile(Filename: string): string;
     function CreateAbsoluteProjectFile(Filename: string): string;
@@ -147,6 +166,15 @@ implementation
 
 uses CHMSiteMapEditor, LHelpControl, Process;
 
+
+function StripPath(s: string): string;
+begin
+  if Copy(s, 1, 1) = '/' then
+    Result := Copy(s, 2, MaxInt)
+  else
+    Result := s;
+end;
+
 procedure ChmErrorHandler(Project: TChmProject; ErrorKind: TChmProjectErrorKind;
     Msg: string; DetailLevel: Integer = 0);
 var
@@ -161,6 +189,142 @@ begin
     chmNone: s := s + 'NONE ';
   end;
   CHMForm.MemoLog.Append(s + Msg);
+end;
+
+{ TProjImportThread }
+
+procedure TProjImportThread.Execute();
+var
+  ChmReader: TChmReader;
+  s, sProjectFileName, sProjectDir: string;
+  fsChm, fs: TFileStream;
+  SiteMap: TChmSiteMap;
+  sl: TStringList;
+  i: Integer;
+  ContextItem: TContextItem;
+begin
+  if Terminated then Exit;
+  sProjectDir := IncludeTrailingPathDelimiter(ExtractFileDir(ChmFilename));
+  sProjectFileName := sProjectDir + ExtractFileNameOnly(ChmFilename)+'.hfp';
+  //OpenProject(sProjectFileName);
+
+  fsChm := TFileStream.Create(ChmFilename, fmOpenRead);
+  ChmReader := TChmReader.Create(fsChm, False);
+  try
+    // get Project settings
+    Project.FileName := sProjectFileName;
+    Project.OutputFileName := ExtractFileName(ChmFilename);
+    Project.Title := ChmReader.Title;
+    Project.DefaultPage := StripPath(ChmReader.DefaultPage);
+    Project.LocaleID := ChmReader.LocaleID;
+    Project.DefaultFont := ChmReader.PreferedFont;
+
+    // extract TOC
+    Project.TableOfContentsFileName := StripPath(ChmReader.TOCFile);
+    if Project.TableOfContentsFileName <> '' then
+    begin
+      SetStatusStr('Extracting: Table of Contents');
+      SiteMap := TChmSiteMap.Create(stTOC);
+      try
+        ChmReader.ReadTOCSitemap(SiteMap);
+        SiteMap.SaveToFile(sProjectDir + Project.TableOfContentsFileName);
+      finally
+        FreeAndNil(SiteMap);
+      end;
+    end;
+
+    // extract Index
+    Project.IndexFileName := StripPath(ChmReader.IndexFile);
+    if Project.IndexFileName <> '' then
+    begin
+      SetStatusStr('Extracting: Index');
+      SiteMap := TChmSiteMap.Create(stIndex);
+      try
+        ChmReader.ReadIndexSitemap(SiteMap);
+        SiteMap.SaveToFile(sProjectDir + Project.IndexFileName);
+      finally
+        FreeAndNil(SiteMap);
+      end;
+    end;
+
+    // extract Aliases (Context)
+    sl := TStringList.Create();
+    //fs := TFileStream.Create(sProjectDir + '_alias.ini', fmCreate);
+    try
+      SetStatusStr('Extracting: Constext');
+      for i := 0 to ChmReader.ContextList.Count-1 do
+      begin
+        ContextItem := ChmReader.ContextList.GetItem(i);
+        if Assigned(ContextItem) then
+        begin
+          Project.ContextList.AddContext(ContextItem.ContextID, ContextItem.UrlAlias, ContextItem.Url);
+          sl.Add(ContextItem.UrlAlias + '=' + ContextItem.Url);
+        end;
+      end;
+      if sl.Count > 0 then
+        sl.SaveToFile(sProjectDir + '_context.ali');
+    finally
+      //FreeAndNil(fs);
+      FreeAndNil(sl);
+    end;
+
+    // extract files
+    sl := TStringList.Create();
+    try
+      ChmReader.ReadFilesNamesList(sl, False);
+      for i := 0 to sl.Count-1 do
+      begin
+        //s := ExtractFileName(sl[i]);
+        s := StripPath(sl[i]);
+        if Length(s) > 1 then
+        begin
+          SetStatusStr('Extracting: ('+IntToStr(i+1) + '/' + IntToStr(sl.Count)+ '): ' + s);
+          if Copy(s, Length(s), 1) = '/' then
+          begin
+            // folder
+            s := Copy(s, 1, Length(s)-1);
+            CreateDir(sProjectDir + s);
+            Continue;
+          end;
+
+          if (s = Project.TableOfContentsFileName)
+          or (s = Project.IndexFileName) then
+            Continue;
+          fs := TFileStream.Create(sProjectDir + s, fmCreate);
+          try
+            ChmReader.ReadFileContent(sl[i], fs);
+            if Project.Files.IndexOf(s) = -1 then
+              Project.Files.Append(s);
+          finally
+            FreeAndNil(fs);
+          end;
+        end;
+      end;
+
+    finally
+      sl.Free();
+    end;
+
+  finally
+    ChmReader.Free();
+    fsChm.Free();
+  end;
+  SetStatusStr('Saving project..');
+  Project.SaveToFile(sProjectFileName);
+  //CloseProject();
+  SetStatusStr('');
+  Terminate();
+end;
+
+procedure TProjImportThread.SyncProc();
+begin
+  CHMForm.StatusBar1.SimpleText := StatusStr;
+end;
+
+procedure TProjImportThread.SetStatusStr(const AText: string);
+begin
+  StatusStr := AText;
+  Synchronize(@SyncProc);
 end;
 
 { TCHMForm }
@@ -287,23 +451,9 @@ begin
   CloseProject();
 end;
 
-function StripPath(s: string): string;
-begin
-  if Copy(s, 1, 1) = '/' then
-    Result := Copy(s, 2, MaxInt)
-  else
-    Result := s;
-end;
-
 procedure TCHMForm.actProjectImportExecute(Sender: TObject);
 var
-  ChmReader: TChmReader;
-  s, sProjectFileName, sProjectDir: string;
-  fsChm, fs: TFileStream;
-  SiteMap: TChmSiteMap;
-  sl: TStringList;
-  i: Integer;
-  ContextItem: TContextItem;
+  sProjectFileName, sProjectDir: string;
 begin
   MessageDlg('Import CHM notes', 'Place CHM file into empty directory.'
     + sLineBreak + 'New Project will be created in that directory.',
@@ -315,111 +465,22 @@ begin
     CloseProject();
     sProjectDir := IncludeTrailingPathDelimiter(ExtractFileDir(OpenDialogImportChm.FileName));
     sProjectFileName := sProjectDir + ExtractFileNameOnly(OpenDialogImportChm.FileName)+'.hfp';
-    OpenProject(sProjectFileName);
+    //OpenProject(sProjectFileName);
+    if not Assigned(Project) then
+      Project := TChmProject.Create();
+    Project.OnError := @ChmErrorHandler;
+    FProjectFileName := sProjectFileName;
 
-    fsChm := TFileStream.Create(OpenDialogImportChm.FileName, fmOpenRead);
-    ChmReader := TChmReader.Create(fsChm, False);
-    try
-      // get Project settings
-      Project.FileName := sProjectFileName;
-      Project.OutputFileName := ExtractFileName(OpenDialogImportChm.FileName);
-      Project.Title := ChmReader.Title;
-      Project.DefaultPage := StripPath(ChmReader.DefaultPage);
-      Project.LocaleID := ChmReader.LocaleID;
-      Project.DefaultFont := ChmReader.PreferedFont;
+    actProjectNew.Enabled := False;
+    actProjectOpen.Enabled := False;
+    actProjectImport.Enabled := False;
 
-      // extract TOC
-      Project.TableOfContentsFileName := StripPath(ChmReader.TOCFile);
-      if Project.TableOfContentsFileName <> '' then
-      begin
-        SiteMap := TChmSiteMap.Create(stTOC);
-        try
-          ChmReader.ReadTOCSitemap(SiteMap);
-          SiteMap.SaveToFile(sProjectDir + Project.TableOfContentsFileName);
-        finally
-          FreeAndNil(SiteMap);
-        end;
-      end;
-
-      // extract Index
-      Project.IndexFileName := StripPath(ChmReader.IndexFile);
-      if Project.IndexFileName <> '' then
-      begin
-        SiteMap := TChmSiteMap.Create(stIndex);
-        try
-          ChmReader.ReadIndexSitemap(SiteMap);
-          SiteMap.SaveToFile(sProjectDir + Project.IndexFileName);
-        finally
-          FreeAndNil(SiteMap);
-        end;
-      end;
-
-      // extract Aliases (Context)
-      sl := TStringList.Create();
-      //fs := TFileStream.Create(sProjectDir + '_alias.ini', fmCreate);
-      try
-        for i := 0 to ChmReader.ContextList.Count-1 do
-        begin
-          ContextItem := ChmReader.ContextList.GetItem(i);
-          if Assigned(ContextItem) then
-          begin
-            Project.ContextList.AddContext(ContextItem.ContextID, ContextItem.UrlAlias, ContextItem.Url);
-            sl.Add(ContextItem.UrlAlias + '=' + ContextItem.Url);
-          end;
-        end;
-        if sl.Count > 0 then
-          sl.SaveToFile(sProjectDir + '_context.ali');
-      finally
-        //FreeAndNil(fs);
-        FreeAndNil(sl);
-      end;
-
-      // extract files
-      sl := TStringList.Create();
-      try
-        ChmReader.ReadFilesNamesList(sl, False);
-        for i := 0 to sl.Count-1 do
-        begin
-          //s := ExtractFileName(sl[i]);
-          s := StripPath(sl[i]);
-          if Length(s) > 1 then
-          begin
-            if Copy(s, Length(s), 1) = '/' then
-            begin
-              // folder
-              s := Copy(s, 1, Length(s)-1);
-              CreateDir(sProjectDir + s);
-              Continue;
-            end;
-
-            if (s = Project.TableOfContentsFileName)
-            or (s = Project.IndexFileName) then
-              Continue;
-            fs := TFileStream.Create(sProjectDir + s, fmCreate);
-            try
-              ChmReader.ReadFileContent(sl[i], fs);
-              if Project.Files.IndexOf(s) = -1 then
-                Project.Files.Append(s);
-            finally
-              FreeAndNil(fs);
-            end;
-          end;
-        end;
-
-      finally
-        sl.Free();
-      end;
-
-    finally
-      ChmReader.Free();
-      fsChm.Free();
-    end;
-
-    Project.SaveToFile(sProjectFileName);
-    //CloseProject();
-    OpenProject(sProjectFileName);
+    FProjImportThread := TProjImportThread.Create(True);
+    FProjImportThread.ChmFilename := OpenDialogImportChm.FileName;
+    FProjImportThread.Project := Project;
+    FProjImportThread.Suspended := False;
+    tmrImport.Enabled := True;
   end;
-
 end;
 
 procedure TCHMForm.actExitExecute(Sender: TObject);
@@ -564,6 +625,7 @@ end;
 
 procedure TCHMForm.FormCreate(Sender: TObject);
 begin
+  pgcMain.ActivePage := tsMain;
   CloseProject();
 end;
 
@@ -668,6 +730,26 @@ begin
   end;
 end;
 
+procedure TCHMForm.tmrImportTimer(Sender: TObject);
+begin
+  if Assigned(FProjImportThread) then
+  begin
+    if FProjImportThread.Terminated then
+    begin
+      FreeAndNil(FProjImportThread);
+
+      OpenProject(FProjectFileName);
+      ShowMessage('CHM file ' + ChmFileNameEdit.FileName + ' imported.');
+
+      actProjectNew.Enabled := True;
+      actProjectOpen.Enabled := True;
+      actProjectImport.Enabled := True;
+    end;
+  end
+  else
+    tmrImport.Enabled := False;
+end;
+
 procedure TCHMForm.RemoveFilesBtnClick(Sender: TObject);
 var
   i: Integer;
@@ -768,11 +850,26 @@ begin
 end;
 
 procedure TCHMForm.OpenProject(AFileName: string);
+var
+  s: string;
 begin
   if not Assigned(Project) then
     Project := TChmProject.Create();
   Project.OnError := @ChmErrorHandler;
-  Project.LoadFromFile(AFileName);
+
+  s := LowerCase(ExtractFileExt(AFileName));
+  if s = '.hfp' then
+    Project.LoadFromFile(AFileName)
+  else if s = '.hhp' then
+    Project.LoadFromHHP(AFileName)
+  else
+  begin
+    ShowMessage('Incorect file: ' + AFileName);
+    FreeAndNil(Project);
+    Exit;
+  end;
+
+  FProjectFileName := AFileName;
   gbFiles.Enabled := True;
   MainPanel.Enabled := True;
   miCompileMenu.Enabled := True;
@@ -855,6 +952,11 @@ begin
     lvAliases.Items.Count := 0;
 
   lvAliases.Invalidate();
+end;
+
+procedure TCHMForm.SetStatusStr(const AText: string);
+begin
+  StatusBar1.SimpleText := AText;
 end;
 
 function TCHMForm.CreateRelativeProjectFile(Filename: string): string;

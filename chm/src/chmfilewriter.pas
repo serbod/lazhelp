@@ -94,7 +94,7 @@ type
     { Load settings from XML config file }
     procedure LoadFromFile(AFileName: string); virtual;
     { Load settings from HHP config file }
-    procedure LoadFromHHP(AFileName: string; LeaveInclude: Boolean); virtual;
+    procedure LoadFromHHP(AFileName: string; AIgnoreInclude: Boolean = False); virtual;
     { Save settings to XML config file }
     procedure SaveToFile(AFileName: string); virtual;
     { Compile CHM file and write to AOutStream }
@@ -506,6 +506,15 @@ begin
     for i := 0 to MergeFileCount - 1 do
       MergeFiles.Add(Cfg.GetValue('MergeFiles/FileName' + IntToStr(i) + '/value', ''));
 
+    FileCount := Cfg.GetValue('Context/Count/Value', 0);
+    for i := 0 to FileCount - 1 do
+    begin
+      n := Cfg.GetValue('Context/item' + IntToStr(i) + '/ID', 0);
+      sAlias := Cfg.GetValue('Context/item' + IntToStr(i) + '/Alias', '');
+      s := Cfg.GetValue('Context/item' + IntToStr(i) + '/Url', '');
+      ContextList.AddContext(n, sAlias, s);
+    end;
+
     // load some values that changed key backwards compatible.
 
     IndexFileName := Cfg.GetValue('Files/IndexFile/Value', '');
@@ -558,41 +567,20 @@ begin
     Result := Trim(s);
 end;
 
-procedure TChmProject.LoadFromHHP(AFileName: string; LeaveInclude: Boolean);
-// leaveinclude=true leaves includefiles includefiles.
+procedure TChmProject.LoadFromHHP(AFileName: string; AIgnoreInclude: Boolean);
 
   procedure AddAlias(const Key, Value: string);
   var
-    i, j: Integer;
-    //Node: TChmContextNode;
-    //KeyUpper, ValueUpper: string;
+    TmpValue: string;
   begin
     { Defaults other than global }
     MakeBinaryIndex := True;
 
     {$ifdef hhp_debug} WriteLn('alias entry:', Key, '=', Value); {$endif}
 
-    ContextList.AddAliasUrl(Key, Value);
-
-    {KeyUpper := UpperCase(Value);
-    i := 0;
-    j := Files.Count;
-    while (i < j) and (UpperCase(TChmContextNode(Files.Objects[i]).UrlName) <> KeyUpper) do
-      Inc(i);
-    if i = j then
-    begin
-      {$ifdef hhp_debug} WriteLn('alias new node:', Key); {$endif}
-      Node := TChmContextNode.Create();
-      ValueUpper := StringReplace(Value, '\', '/', [rfReplaceAll]);
-      ValueUpper := StringReplace(ValueUpper, '//', '/', [rfReplaceAll]);
-      Node.URLName := ValueUpper;
-      Node.ContextName := Key;
-    end
-    else
-    begin
-      Node := TChmContextNode(Files.Objects[i]);
-      Node.ContextName := Key;
-    end;}
+    TmpValue := StringReplace(Value, '\', '/', [rfReplaceAll]);
+    TmpValue := StringReplace(TmpValue, '//', '/', [rfReplaceAll]);
+    ContextList.AddAliasUrl(Key, TmpValue);
   end;
 
   procedure ProcessAlias(sl: TStringList);
@@ -606,6 +594,8 @@ procedure TChmProject.LoadFromHHP(AFileName: string; LeaveInclude: Boolean);
       s := CleanupString(sl[i]);
       if UpperCase(Copy(s, 1, 8)) = '#INCLUDE' then
       begin
+        if AIgnoreInclude then Continue;
+
         Delete(s, 1, 8);
         s := Trim(s);
         if FileExists(s) then
@@ -631,27 +621,12 @@ procedure TChmProject.LoadFromHHP(AFileName: string; LeaveInclude: Boolean);
 
   procedure AddMap(const Key, Value: string);
   var
-    i, j: Integer;
-    //Node: TCHMContextNode;
-    //KeyUpper: string;
+    i: Integer;
   begin
     {$ifdef hhp_debug} WriteLn('map entry:', Key, '=', Value); {$endif}
 
     i := StrToIntDef(Value, 0);
     ContextList.AddAliasContext(Key, i);
-
-    {KeyUpper := UpperCase(Key);
-    i := 0;
-    j := Files.Count;
-    while (i < j) and (UpperCase(TCHMContextnode(Files.Objects[i]).ContextName) <> KeyUpper) do
-      Inc(i);
-    if i = j then
-      raise Exception.Create('context "' + Key + '" not found!')
-    else
-    begin
-      Node := TCHMContextNode(Files.Objects[i]);
-      Node.ContextNumber := StrToIntDef(Value, 0);
-    end;  }
   end;
 
   procedure ProcessMap(sl: TStringList);
@@ -666,6 +641,8 @@ procedure TChmProject.LoadFromHHP(AFileName: string; LeaveInclude: Boolean);
       {$ifdef hhp_debug} WriteLn('map item:', s); {$endif}
       if UpperCase(Copy(s, 1, 8)) = '#INCLUDE' then
       begin
+        if AIgnoreInclude then Continue;
+
         Delete(s, 1, 8);
         s := Trim(s);
         if FileExists(s) then
@@ -709,7 +686,6 @@ var
   i, j: Integer;
   Section: THHPSectionEnum;
   s: string;
-  //ContextNode: TChmContextNode;
 
 begin
   { Defaults other than global }
@@ -806,6 +782,7 @@ procedure TChmProject.SaveToFile(AFileName: string);
 var
   Cfg: TChmConfig;
   i: Integer;
+  ContextItem: TContextItem;
 begin
   Cfg := TChmConfig.Create(nil);
   try
@@ -822,6 +799,15 @@ begin
         Cfg.SetValue('Files/FileName' + IntToStr(i) + '/ContextNumber', ContextNode.ContextNumber);
         Cfg.SetValue('Files/FileName' + IntToStr(i) + '/ContextName', ContextNode.ContextName);
       end; }
+    end;
+
+    Cfg.SetValue('Context/Count/Value', ContextList.Count);
+    for i := 0 to ContextList.Count - 1 do
+    begin
+      ContextItem := ContextList.GetItem(i);
+      Cfg.SetValue('Context/item' + IntToStr(i) + '/ID', ContextItem.ContextID);
+      Cfg.SetValue('Context/item' + IntToStr(i) + '/Alias', ContextItem.UrlAlias);
+      Cfg.SetValue('Context/item' + IntToStr(i) + '/Url', ContextItem.Url);
     end;
 
     Cfg.SetValue('OtherFiles/Count/Value', OtherFiles.Count);
