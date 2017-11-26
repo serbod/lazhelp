@@ -213,7 +213,7 @@ type
     FAvlURLStr: TAVLTree;    // dedupe urltbl + binindex must resolve URL to topicid
     //SpareString: TStringIndex;
     SpareUrlStr: TUrlStrIndex;
-    FWindows: TObjectList;
+    FWindows: TCHMWindowList;
     FDefaultWindow: string;
     FTocName: string;
     FIndexName: string;
@@ -259,7 +259,7 @@ type
     function AddTopic(ATitle, AnUrl: AnsiString; code: Integer = -1): Integer;
     procedure ScanSitemap(ASiteMap: TCHMSiteMap);
     function NextTopicIndex: Integer;
-    procedure SetWindows(AWindowList: TObjectList);
+    procedure SetWindows(AWindowList: TCHMWindowList);
     procedure SetMergeFiles(Src: TStringList);
   public
     constructor Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean); override;
@@ -293,7 +293,7 @@ type
     property DefaultFont: string read FDefaultFont write FDefaultFont;
     property DefaultPage: string read FDefaultPage write FDefaultPage;
     { TCHMWindow items }
-    property Windows: TObjectList read FWindows write SetWindows;
+    property Windows: TCHMWindowList read FWindows write SetWindows;
     property TOCName: string read FTocName write FTocName;
     property IndexName: string read FIndexName write FIndexName;
     property DefaultWindow: string read FDefaultWindow write FDefaultWindow;
@@ -1566,9 +1566,9 @@ begin
     WindowStream.WriteDword(NToLE(DWord(FWindows.Count)));
     WindowStream.WriteDword(NToLE(DWord(196))); // 1.1 or later. 188 is old style.
     // #WINDOWS entries
-    for i := 0 to FWindows.Count - 1 do
+    for i := 0 to Windows.Count - 1 do
     begin
-      Win := TChmWindow(FWindows[i]);
+      Win := Windows[i];
 
       FillChar(we, SizeOf(we), #0);
       we.EntrySize := NtoLE(196);
@@ -1675,7 +1675,7 @@ begin
   FIDXHdrStream := TMemoryStream.Create();
   // the #IDXHDR and chunk 13 in #SYSTEM
   //    for searching purposes
-  FWindows := TObjectList.Create(True);
+  FWindows := TCHMWindowList.Create();
   FDefaultWindow := '';
   FMergeFiles := TStringList.Create();
   FNrTopics := 0;
@@ -2623,17 +2623,17 @@ begin
   end;
 end;
 
-procedure TChmWriter.SetWindows(AWindowList: TObjectList);
+procedure TChmWriter.SetWindows(AWindowList: TCHMWindowList);
 var
   i: Integer;
   x: TCHMWindow;
 begin
-  FWindows.Clear();
+  Windows.Clear();
   for i := 0 to AWindowList.Count - 1 do
   begin
     x := TChmWindow.Create();
-    x.Assign(TChmWindow(AWindowList[i]));
-    FWindows.Add(x);
+    x.Assign(AWindowList[i]);
+    Windows.Add(x);
   end;
 end;
 

@@ -3,8 +3,8 @@ object CHMForm: TCHMForm
   Height = 555
   Top = 246
   Width = 616
-  HorzScrollBar.Page = 608
-  VertScrollBar.Page = 453
+  HorzScrollBar.Page = 600
+  VertScrollBar.Page = 475
   AutoScroll = True
   Caption = 'Compiled HTML Help Project - [Made with Freepascal]'
   ClientHeight = 535
@@ -27,9 +27,9 @@ object CHMForm: TCHMForm
     Height = 512
     Top = 0
     Width = 616
-    ActivePage = tsMain
+    ActivePage = tsContext
     Align = alClient
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 1
     object tsMain: TTabSheet
       Caption = 'Main page'
@@ -442,7 +442,7 @@ object CHMForm: TCHMForm
         Top = 6
         Width = 407
         AutoSize = False
-        Caption = 'Aliases HelpContext number to Help page URL'
+        Caption = 'Mapping between HelpContext <-> Alias <-> Help page URL'
         ParentColor = False
       end
       object lvAliases: TListView
@@ -498,7 +498,7 @@ object CHMForm: TCHMForm
     Top = 20
   end
   object SaveDialog1: TSaveDialog
-    Filter = 'Help File Project(*.hfp)|*.hfp'
+    Filter = 'HTML Help Project (*.hhp)|*.hhp|Help File Project (*.hfp)|*.hfp'
     FilterIndex = 0
     Left = 40
     Top = 20

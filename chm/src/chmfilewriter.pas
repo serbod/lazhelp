@@ -47,7 +47,7 @@ type
     FFiles: TStrings;
     FOtherFiles: TStrings; // Files found in a scan.
     FAllowedExtensions: TStringList;
-    FWindows: TObjectList;
+    FWindows: TCHMWindowList;
     FMergeFiles: TStringList;
     FTotalFileList: TStringIndexList;
     FSpareString: TStringIndex;
@@ -91,12 +91,14 @@ type
   public
     constructor Create(); virtual;
     destructor Destroy(); override;
-    { Load settings from XML config file }
+    { Load project settings from XML config file }
     procedure LoadFromFile(AFileName: string); virtual;
-    { Load settings from HHP config file }
+    { Load project settings from HHP config file }
     procedure LoadFromHHP(AFileName: string; AIgnoreInclude: Boolean = False); virtual;
-    { Save settings to XML config file }
+    { Save project settings to XML config file }
     procedure SaveToFile(AFileName: string); virtual;
+    { Save project settings to HHP config file }
+    procedure SaveToHHP(AFileName: string); virtual;
     { Compile CHM file and write to AOutStream }
     procedure WriteChm(AOutStream: TStream); virtual;
     { Show undefined anchors list to Error log }
@@ -117,7 +119,7 @@ type
     // though stored in the project file, it is only there for the program that uses the unit
     // since we actually write to a stream
     property OutputFileName: string read FOutputFileName write FOutputFileName;
-    { XML config file name }
+    { Project file name (*.hhp or *.hfp) }
     property FileName: string read FFileName write FFileName;
     // html help files list
     property Files: TStrings read FFiles;
@@ -144,7 +146,7 @@ type
     { Default font name }
     property DefaultFont: string read FDefaultFont write FDefaultFont;
     { Help Windows settings }
-    property Windows: TObjectList read FWindows;
+    property Windows: TCHMWindowList read FWindows;
     { Additional CHM files list }
     property MergeFiles: TStringList read FMergeFiles;
     { Default window name }
@@ -264,7 +266,7 @@ begin
   FAllowedExtensions := TStringList.Create();
   FAllowedExtensions.Add('.HTM');
   FAllowedExtensions.Add('.HTML');
-  FWindows := TObjectList.Create(True);
+  FWindows := TCHMWindowList.Create();
   FMergeFiles := TStringList.Create();
   ScanHtmlContents := False;
   FTotalFileList := TStringIndexList.Create();
@@ -815,13 +817,13 @@ begin
       Cfg.SetValue('OtherFiles/FileName' + IntToStr(i) + '/Value', OtherFiles.Strings[i]);
 
 
-    Cfg.SetValue('Windows/Count/Value', FWindows.Count);
-    for i := 0 to FWindows.Count - 1 do
-      TCHMWindow(FWindows[i]).SaveToXml(Cfg, 'Windows/item' + IntToStr(i) + '/');
+    Cfg.SetValue('Windows/Count/Value', Windows.Count);
+    for i := 0 to Windows.Count - 1 do
+      Windows[i].SaveToXml(Cfg, 'Windows/item' + IntToStr(i) + '/');
 
-    Cfg.SetValue('MergeFiles/Count/Value', FMergeFiles.Count);
-    for i := 0 to FMergeFiles.Count - 1 do
-      Cfg.SetValue('MergeFiles/FileName' + IntToStr(i) + '/value', FMergeFiles[i]);
+    Cfg.SetValue('MergeFiles/Count/Value', MergeFiles.Count);
+    for i := 0 to MergeFiles.Count - 1 do
+      Cfg.SetValue('MergeFiles/FileName' + IntToStr(i) + '/value', MergeFiles[i]);
 
     // delete legacy keys.
     Cfg.DeleteValue('Files/IndexFile/Value');
@@ -848,6 +850,104 @@ begin
     Cfg.Flush();
   finally
     Cfg.Free();
+  end;
+end;
+
+function BoolAsStr(b: Boolean): string;
+begin
+  if b then
+    Result := 'Yes'
+  else
+    Result := 'No';
+end;
+
+procedure TChmProject.SaveToHHP(AFileName: string);
+var
+  sl: TStringList;
+  s, sSection: string;
+  i: Integer;
+  ContextItem: TContextItem;
+
+  procedure SetOption(const AKey, AValue: string);
+  begin
+    if AValue <> '' then
+      sl.Add(AKey + '=' + AValue);
+  end;
+
+begin
+  sl := TStringList.Create();
+  try
+    sl.Add('[OPTIONS]');
+    SetOption('Title', Title);
+    SetOption('Compatibility', '1.1 or later');
+    SetOption('Compiled file', OutputFileName);
+    SetOption('Default Topic', DefaultPage);
+    SetOption('Default Font', DefaultFont);
+    SetOption('Default Window', DefaultWindow);
+    SetOption('Display compile progress', 'Yes');
+    //SetOption('Error log file', 'errors.log');
+    SetOption('Contents file', TableOfContentsFileName);
+    //SetOption('Auto Index', BoolAsStr(MakeBinaryIndex));
+    SetOption('Index file', IndexFileName);
+    SetOption('Binary Index', BoolAsStr(MakeBinaryIndex));
+    SetOption('Binary TOC', BoolAsStr(MakeBinaryTOC));
+    SetOption('Full-text search', BoolAsStr(MakeSearchable));
+    SetOption('Language', '0x' + IntToHex(LocaleID, 4));
+
+    sl.Add('');
+    sl.Add('[FILES]');
+    for i := 0 to Files.Count - 1 do
+    begin
+      s := StringReplace(Files.Strings[i], '/', '\', [rfReplaceAll]);
+      sl.Add(s);
+    end;
+
+    if MergeFiles.Count > 0 then
+    begin
+      sl.Add('');
+      sl.Add('[MERGE FILES]');
+      for i := 0 to MergeFiles.Count - 1 do
+      begin
+        sl.Add(MergeFiles.Strings[i]);
+      end;
+    end;
+
+    if Windows.Count > 0 then
+    begin
+      sl.Add('');
+      sl.Add('[WINDOWS]');
+      for i := 0 to Windows.Count-1 do
+      begin
+        Windows[i].SaveToIni(s);
+        sl.Add(s);
+      end;
+    end;
+
+    if ContextList.Count > 0 then
+    begin
+      sl.Add('');
+      sl.Add('[ALIAS]');
+      for i := 0 to ContextList.Count - 1 do
+      begin
+        ContextItem := ContextList.GetItem(i);
+        sl.Add(ContextItem.UrlAlias + '=' + ContextItem.Url);
+      end;
+
+      sl.Add('');
+      sl.Add('[MAP]');
+      for i := 0 to ContextList.Count - 1 do
+      begin
+        ContextItem := ContextList.GetItem(i);
+        sl.Add('#define ' + ContextItem.UrlAlias + ' ' + IntToStr(ContextItem.ContextID));
+      end;
+    end;
+
+    //sl.Add('');
+    //sl.Add('[INFOTYPES]');
+
+    sl.SaveToFile(AFileName);
+  finally
+    sl.Free();
   end;
 end;
 

@@ -131,6 +131,7 @@ type
     FURLSTRStream: TMemoryStream;
     FURLTBLStream: TMemoryStream;
     FStringsStream: TMemoryStream;
+    FIftiMainStream: TMemoryStream;
     FDefaultPage: String;
     FIndexFile: String;
     FTOCFile: String;
@@ -146,15 +147,15 @@ type
     { Read #WINDOWS section items }
     procedure ReadWindows(mem: TMemoryStream);
   public
-    { Read data from CHM to internal cache }
-    procedure ReadCommonData();
-    { Return True if common data was readed }
-    function CheckCommonStreams(): Boolean;
     { Set AStream as CHM file, read common data (TOC, Index, Context)
       Warning! AStream MUST NOT be freed before Destroy()!
       Set FreeStreamOnDestroy = True to automatically Free() AStream on Destroy() }
     constructor Create(AStream: TStream; FreeStreamOnDestroy: Boolean); override;
     destructor Destroy; override;
+    { Read data from CHM to internal cache }
+    procedure ReadCommonData();
+    { Return True if common data was readed }
+    function CheckCommonStreams(): Boolean;
     { Returns URL by help context ID }
     function GetContextUrl(Context: THelpContext): String;
     { Return TOC topics count }
@@ -173,6 +174,8 @@ type
     function ReadTopicList(ATopicList: TChmTopicItemList): Boolean;
     { Returns True if Context list not empty }
     function HasContextList(): Boolean;
+    { Returns True if full-text search available }
+    function CheckSearchReader(): Boolean;
 
     { Default page URL }
     property DefaultPage: String read FDefaultPage;
@@ -186,8 +189,9 @@ type
     property PreferedFont: String read FPreferedFont;
     { MS Windows locale ID code }
     property LocaleID: DWord read FLocaleID;
-    { Full-text search reader }
-    property SearchReader: TChmSearchReader read FSearchReader write FSearchReader;
+    { Full-text search reader (optional). Do CheckSearchReader() before using SearchReader!
+      It returns TopicID arrays as result, so use LookupTopicByID() for converting TopicID to URL }
+    property SearchReader: TChmSearchReader read FSearchReader;
     { Help context list, contain THelpContext:URL pairs }
     property ContextList: TContextList read FContextList;
     { Help window appearance defenitions (TChmWindow) list }
@@ -1031,6 +1035,7 @@ begin
   FURLSTRStream := TMemoryStream.Create();
   FURLTBLStream := TMemoryStream.Create();
   FStringsStream := TMemoryStream.Create();
+  FIftiMainStream := TMemoryStream.Create();
   FDefaultWindow := '';
 
   inherited Create(AStream, FreeStreamOnDestroy);
@@ -1049,6 +1054,7 @@ begin
   FreeAndNil(FURLSTRStream);
   FreeAndNil(FURLTBLStream);
   FreeAndNil(FStringsStream);
+  FreeAndNil(FIftiMainStream);
   inherited Destroy;
 end;
 
@@ -1357,7 +1363,7 @@ begin
  Result := FContextList.GetURL(Context);
 end;
 
-function TChmReader.GetTopicsCount: Integer;
+function TChmReader.GetTopicsCount(): Integer;
 begin
   Result := FTOPICSStream.Size div 16;
 end;
@@ -1425,9 +1431,10 @@ begin
   n := head - oldHead;
   SetLength(ws, n div SizeOf(widechar));
   Move(oldHead^, ws[1], n);
-  for n:=1 to Length(ws) do
+  for n := 1 to Length(ws) do
     Word(ws[n]) := LEToN(Word(ws[n]));
-  readv := ws; // force conversion for now, and hope it doesn't require cwstring
+  //readv := ws; // force conversion for now, and hope it doesn't require cwstring
+  readv := UTF8Encode(ws);
 end;
 
 procedure CreateSiteMapEntry(SiteMap: TChmSiteMap; var Item: TChmSiteMapItem; const Name: AnsiString; CharIndex: Integer; const Topic, Title: AnsiString);
@@ -1748,9 +1755,20 @@ begin
     FreeAndNil(Result);
 end;
 
-function TChmReader.HasContextList: Boolean;
+function TChmReader.HasContextList(): Boolean;
 begin
   Result := FContextList.Count > 0;
+end;
+
+function TChmReader.CheckSearchReader(): Boolean;
+begin
+  Result := Assigned(SearchReader);
+
+  if (not Result) and ReadFileContent('/$FIftiMain', FIftiMainStream) then
+  begin
+    FSearchReader := TChmSearchReader.Create(FIftiMainStream, False);
+  end;
+  Result := Assigned(SearchReader);
 end;
 
 

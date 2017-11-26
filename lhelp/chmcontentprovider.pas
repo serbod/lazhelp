@@ -135,7 +135,7 @@ type
   private
     Doc: THTMLDocument;
     Words: TStrings;
-    Color: String;
+    ColorStr: DOMString;
     procedure ScanSubNodes(ADomNode: TDOMNode);
     procedure CheckTextNode(var ATextNode: TDomNode);
   public
@@ -165,32 +165,31 @@ end;
 
 procedure THTMLWordHighlighter.CheckTextNode(var ATextNode: TDomNode);
 var
-  i: Integer;
-  fPos: Integer;
+  i, iPos: Integer;
   WordStart,
   After: TDOMText;
   Span: TDomElement;
-  aWord: String;
+  s: String;
   Parent: TDomNode;
 begin
    Parent := AtextNode.ParentNode;
    for i := 0 to Words.Count-1 do
    begin
-     aWord := Words[i];
-     fPos := Pos(aWord, LowerCase(ATextNode.TextContent));
-     while fpos > 0 do
+     s := LowerCase(Words[i]);
+     iPos := Pos(s, LowerCase(ATextNode.TextContent));
+     while iPos > 0 do
      begin
-       WordStart:= TDOMText(ATextNode).SplitText(fPos-1);
-       After := WordStart.SplitText(Length(aword));
-       Span := doc.CreateElement('span');
-       Span.SetAttribute('style', 'color:'+Color+';background-color:lightgray');
+       WordStart := TDOMText(ATextNode).SplitText(iPos-1);
+       After := WordStart.SplitText(Length(s));
+       Span := Doc.CreateElement('span');
+       Span.SetAttribute('style', 'color:' + ColorStr + ';background-color:lightgray');
        Parent.InsertBefore(Span, After);
        Span.AppendChild(WordStart);
 
        // or we'll keep finding our new node again and again
        ATextNode := After;
 
-       fPos := Pos(aWord, ATextNode.TextContent);
+       iPos := Pos(s, ATextNode.TextContent);
      end;
    end;
 end;
@@ -205,7 +204,7 @@ var
   Elem: TDOMNode;
 begin
   Words := AWords;
-  Color := AColor;
+  ColorStr := UTF8Decode(AColor);
   Elem := Doc.DocumentElement.FirstChild;
 
   ScanSubNodes(Elem);
@@ -950,15 +949,16 @@ begin
   ACfg.SetValue(ClassName+'/TabControlWidth/Value', FChmFrame.pgcNavigation.Width);
 end;
 
-procedure TChmContentProvider.SearchButtonClick ( Sender: TObject ) ;
+procedure TChmContentProvider.SearchButtonClick(Sender: TObject);
 type
   TTopicEntry = record
-    Topic:Integer;
+    Topic: Integer;
     Hits: Integer;
     TitleHits: Integer;
     FoundForThisRound: Boolean;
   end;
   TFoundTopics = array of TTopicEntry;
+
 var
   FoundTopics: TFoundTopics;
 
@@ -1012,9 +1012,8 @@ var
 var
   TopicResults: TChmWLCTopicArray;
   TitleResults: TChmWLCTopicArray;
-  FIftiMainStream: TMemoryStream;
   SearchWords: TStringList;
-  SearchReader: TChmSearchReader;
+  ChmReader: TChmReader;
   DocTitle: String;
   DocURL: String;
   i: Integer;
@@ -1023,30 +1022,28 @@ var
   Item: TContentTreeNode;
 begin
   //  if FKeywordCombo.Text = '' then Exit;
-  SearchWords := TStringList.Create;
+  if FChmFrame.cboxKeyword.Items.IndexOf(FChmFrame.cboxKeyword.Text) = -1 then
+    FChmFrame.cboxKeyword.Items.Add(FChmFrame.cboxKeyword.Text);
+
+  FChmFrame.tvSearchResults.BeginUpdate();
+  FChmFrame.tvSearchResults.Items.Clear();
+
+  SearchWords := TStringList.Create();
   try
     SearchWords.Delimiter := ' ';
     Searchwords.DelimitedText := FChmFrame.cboxKeyword.Text;
-    if FChmFrame.cboxKeyword.Items.IndexOf(FChmFrame.cboxKeyword.Text) = -1 then
-      FChmFrame.cboxKeyword.Items.Add(FChmFrame.cboxKeyword.Text);
-    FChmFrame.tvSearchResults.BeginUpdate;
-    FChmFrame.tvSearchResults.Items.Clear;
+
     //WriteLn('Search words: ', SearchWords.Text);
     for i := 0 to FChmFileList.Count-1 do
     begin
+      ChmReader := FChmFileList.ChmReaders[i];
+      SetLength(FoundTopics, 0);
+
       for j := 0 to SearchWords.Count-1 do
       begin
-        if FChmFileList.ChmReaders[i].SearchReader = nil then
-        begin
-          FIftiMainStream := FChmFileList.ChmReaders[i].GetObject('/$FIftiMain');
-          if FIftiMainStream = nil then
-            continue;
-          SearchReader := TChmSearchReader.Create(FIftiMainStream, True); //frees the stream when done
-          FChmFileList.ChmReaders[i].SearchReader := SearchReader;
-        end
-        else
-          SearchReader := FChmFileList.ChmReaders[i].SearchReader;
-        TopicResults := SearchReader.LookupWord(SearchWords[j], TitleResults);
+        if not ChmReader.CheckSearchReader() then
+          Continue;
+        TopicResults := ChmReader.SearchReader.LookupWord(SearchWords[j], TitleResults);
         // Body results
         for k := 0 to High(TopicResults) do
           UpdateTopic(TopicResults[k].TopicIndex, High(TopicResults[k].LocationCodes), 0, j = 0);
@@ -1075,32 +1072,33 @@ begin
       for j := 0 to High(FoundTopics) do
       begin
         try
-          DocURL := FChmFileList.ChmReaders[i].LookupTopicByID(FoundTopics[j].Topic, DocTitle);
+          DocURL := ChmReader.LookupTopicByID(FoundTopics[j].Topic, DocTitle);
           if (Length(DocURL) > 0) and (DocURL[1] <> '/') then
             Insert('/', DocURL, 1);
           if DocTitle = '' then
             DocTitle := slhelp_Untitled;
+
           Item := TContentTreeNode(FChmFrame.tvSearchResults.Items.Add(Item, DocTitle));
-          Item.Data:= FChmFileList.ChmReaders[i];
-          Item.Url:= DocURL;
+          Item.Data := ChmReader;
+          Item.Url := DocURL;
         except
           //WriteLn('Exception');
           // :)
         end;
       end;
 
-      SetLength(FoundTopics, 0);
     end;
     SetLength(FoundTopics, 0);
+
+    if FChmFrame.tvSearchResults.Items.Count = 0 then
+    begin
+      FChmFrame.tvSearchResults.Items.Add(nil, slhelp_NoResults);
+    end;
   finally
-    SearchWords.Free;
+    SearchWords.Free();
+    FChmFrame.tvSearchResults.EndUpdate();
   end;
 
-  if FChmFrame.tvSearchResults.Items.Count = 0 then
-  begin
-    FChmFrame.tvSearchResults.Items.Add(nil, slhelp_NoResults);
-  end;
-  FChmFrame.tvSearchResults.EndUpdate;
 end;
 
 procedure TChmContentProvider.SearchResultsDblClick ( Sender: TObject ) ;
@@ -1246,7 +1244,7 @@ end;
 class function TChmContentProvider.GetProperContentProviderClass(const AURL: String
   ): TBaseContentProviderClass;
 begin
-  Result:=TChmContentProvider;
+  Result := TChmContentProvider;
 end;
 
 constructor TChmContentProvider.Create(AParent: TWinControl; AImageList: TImageList);

@@ -8,7 +8,7 @@ interface
 uses
   Classes, SysUtils, types, chmsitemap, chmfilewriter, Forms, Controls,
   Graphics, Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, EditBtn, ActnList,
-  LazFileUtils, UTF8Process, chmreader, chmtypes;
+  LazFileUtils, UTF8Process, chmreader, chmtypes, lcid_conv;
 
 type
 
@@ -769,13 +769,16 @@ begin
 end;
 
 procedure TCHMForm.SaveProject(AskFilename: Boolean);
+var
+  sExt: string;
 begin
   if AskFilename or (Project.FileName = '') then
   begin
     InitFileDialog(SaveDialog1);
     if SaveDialog1.Execute then
     begin
-      Project.FileName := ChangeFileExt(SaveDialog1.FileName, '.hfp');
+      //Project.FileName := ChangeFileExt(SaveDialog1.FileName, '.hfp');
+      Project.FileName := SaveDialog1.FileName;
       ProjectDirChanged();
     end;
   end;
@@ -803,7 +806,12 @@ begin
     9: Project.LocaleID := 1066; // CP: 1258 - Vietnamese
   end;
 
-  Project.SaveToFile(Project.FileName);
+  sExt := ExtractFileExt(Project.FileName);
+  if sExt = '.hhp' then
+    Project.SaveToHHP(Project.FileName)
+  else
+    Project.SaveToFile(Project.FileName);
+
   Modified := False;
 end;
 
@@ -852,6 +860,7 @@ end;
 procedure TCHMForm.OpenProject(AFileName: string);
 var
   s: string;
+  wcp: Word;
 begin
   if not Assigned(Project) then
     Project := TChmProject.Create();
@@ -889,6 +898,14 @@ begin
   chkScanHtmlContents.Checked := Project.ScanHtmlContents;
   CreateSearchableCHMCheck.Checked := Project.MakeSearchable;
   ChmFileNameEdit.FileName := Project.OutputFileName;
+
+  cbCodepage.ItemIndex := 0;
+  if Project.LocaleID <> 0 then
+  begin
+    wcp := LCIDToWinCP(Project.LocaleID);
+    if (wcp >= 1250) and (wcp <= 1258) then
+      cbCodepage.ItemIndex := (wcp - 1250 + 1);
+  end;
 
   UpdateAliasesList();
 

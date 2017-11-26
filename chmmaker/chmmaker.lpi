@@ -155,6 +155,7 @@
       <Filename Value="chmmaker"/>
     </Target>
     <SearchPaths>
+      <OtherUnitFiles Value="../chm/src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

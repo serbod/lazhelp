@@ -169,6 +169,23 @@ begin
   end;
 end;
 
+function WinCPToLCID(AWinCP: Word): Word;
+begin
+  case AWinCP of
+    1250: Result := 1052; // CP: 1250 - Albanian
+    1251: Result := 1049; // CP: 1251 - Russian
+    1252: Result := 1033; // CP: 1252 - English - United States
+    1253: Result := 1032; // CP: 1253 - Greek
+    1254: Result := 1055; // CP: 1254 - Turkish
+    1255: Result := 1037; // CP: 1255 - Hebrew
+    1256: Result := 1025; // CP: 1256 - Arabic - Saudi Arabia
+    1257: Result := 1061; // CP: 1257 - Estonian
+    1258: Result := 1066; // CP: 1258 - Vietnamese
+  else
+    Result := 0; // UTF-8
+  end;
+end;
+
 function ConvToUTF8FromLCID(ALCID: Word; AStr: string): string;
 var
   wcp: Word;

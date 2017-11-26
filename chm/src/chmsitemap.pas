@@ -101,7 +101,7 @@ type
 
   TChmSiteMapItems = class(TPersistent)
   private
-    FInternalData: Dword;
+    FInternalData: DWord;
     FList: TList;
     FOwner: TChmSiteMap;
     FParentItem: TChmSiteMapItem;
@@ -121,11 +121,11 @@ type
     property Count: Integer read GetCount;
     property ParentItem: TChmSiteMapItem read FParentItem;
     property Owner: TChmSiteMap read FOwner;
-    property InternalData: Dword read FInternalData write FInternalData;
+    property InternalData: DWord read FInternalData write FInternalData;
   end;
 
 
-  { TChmSiteMapTree }
+  { TChmSiteMap }
   TSiteMapType = (stTOC, stIndex);
 
   TSiteMapTag = (smtUnknown, smtNone, smtHTML, smtHEAD, smtBODY);
@@ -159,15 +159,22 @@ type
     FWindowStyles: LongInt;
     procedure SetItems(const AValue: TChmSiteMapItems);
   protected
+    { Callback for HTML parser }
     procedure FoundTag(ACaseInsensitiveTag, AActualTag: string);
+    { Callback for HTML parser }
     procedure FoundText(AText: string);
   public
+    { Create sitemap of desired type (stTOC, stIndex)
+      Note: sitemap type cannot be changed later }
     constructor Create(AType: TSiteMapType);
     destructor Destroy; override;
+    { Load sitemap items from HHC or HHK file }
     procedure LoadFromFile(AFileName: string);
     procedure LoadFromStream(AStream: TStream);
+    { Load sitemap items to HHC or HHK file }
     procedure SaveToFile(AFileName: string);
     procedure SaveToStream(AStream: TStream);
+
     property Items: TChmSiteMapItems read FItems write SetItems;
     property SiteMapType: TSiteMapType read FSiteMapType;
     // SiteMap properties. most of these are invalid for the index
@@ -217,7 +224,7 @@ begin
   Add(Result);
 end;
 
-{ TChmSiteMapTree }
+{ TChmSiteMap }
 
 procedure TChmSiteMap.SetItems(const AValue: TChmSiteMapItems);
 begin
@@ -484,11 +491,11 @@ procedure TChmSiteMap.SaveToFile(AFileName: string);
 var
   fs: TFileStream;
 begin
-  fs := TFileStream.Create(AFileName, fmcreate);
+  fs := TFileStream.Create(AFileName, fmCreate);
   try
     SaveToStream(fs);
   finally
-    fs.Free;
+    fs.Free();
   end;
 end;
 
@@ -501,7 +508,7 @@ var
     I: Integer;
   begin
     for I := 0 to Indent - 1 do
-      AStream.WriteByte(byte(' '));
+      AStream.WriteByte(Byte(' '));
     AStream.Write(PChar(AString)^, Length(AString));
     AStream.WriteByte(10);
   end;

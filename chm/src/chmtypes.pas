@@ -179,9 +179,11 @@ type
     flags : TValidWindowFields; // bitset that keeps track of which fields are filled.
                                 // of certain fields. Needs to be inserted into #windows stream
     constructor Create(s: string = '');
-    procedure load_from_ini(txt: string);
+    procedure load_from_ini(txt: string); deprecated;
     procedure SaveToXml(cfg: TXMLConfig; key: string);
     procedure LoadFromXml(cfg: TXMLConfig; key: string);
+    procedure SaveToIni(out s: string);
+    procedure LoadFromIni(s: string);
     procedure Assign(obj: TCHMWindow);
   end;
 
@@ -709,73 +711,8 @@ begin
 end;
 
 procedure TCHMWindow.load_from_ini(txt: string);
-var ind,len,
-    j,k     : integer;
-    arr     : array[0..3] of integer;
-    s2      : string;
-    bArr    : Boolean;
 begin
-  j := Pos('=', txt);
-  if j > 0 then
-    txt[j] := ',';
-
-  ind := 1;
-  len := Length(txt);
-  window_type       := GetNext(txt, ind, len);
-  Title_bar_text    := GetNext(txt, ind, len);
-  Toc_file          := GetNext(txt, ind, len);
-  index_file        := GetNext(txt, ind, len);
-  Default_File      := GetNext(txt, ind, len);
-  Home_button_file  := GetNext(txt, ind, len);
-  Jumpbutton_1_File := GetNext(txt, ind, len);
-  Jumpbutton_1_Text := GetNext(txt, ind, len);
-  Jumpbutton_2_File := GetNext(txt, ind, len);
-  Jumpbutton_2_Text := GetNext(txt, ind, len);
-  nav_style         := GetNextInt(txt, ind, len, flags, valid_navigation_pane_style);
-  navpanewidth      := GetNextInt(txt, ind, len, flags, valid_navigation_pane_width);
-  buttons           := GetNextInt(txt, ind, len, flags, valid_buttons);
-  
-  (* initialize arr[] *)
-  arr[0] := 0;
-  arr[1] := 0;
-  arr[2] := 0;
-  arr[3] := 0;
-  k := 0;
-  bArr := False;
-  (* "[" int,int,int,int "]", |,  *)
-  s2 := GetNext(txt, ind, len);
-  if Length(s2) > 0 then
-  begin
-    (* check if first chart is "[" *)
-    if (s2[1] = '[') then
-    begin
-      Delete(s2, 1, 1);
-      bArr := True;
-    end;
-    (* looking for a max 4 int followed by a closing "]" *)
-    repeat
-      if k > 0 then s2 := GetNext(txt, ind, len);
-      
-      j := Pos(']', s2);
-      if j > 0 then Delete(s2, j, 1);
-      if Length(Trim(s2)) > 0 then
-        Include(flags, valid_tab_position);
-      arr[k] := StrToIntDef(s2, 0);
-      Inc(k);
-    until (bArr <> True) or (j <> 0) or (ind > len);
-  end;
-   
-  left   := arr[0];
-  top    := arr[1];
-  right  := arr[2];
-  bottom := arr[3];
-  styleflags               := GetNextInt(txt, ind, len, flags, valid_buttons);
-  xtdstyleflags            := GetNextInt(txt, ind, len, flags, valid_window_style_flags);
-  window_show_state        := GetNextInt(txt, ind, len, flags, valid_window_extended_style_flags);
-  navpane_initially_closed := GetNextInt(txt, ind, len, flags, valid_navigation_pane_initially_closed_state);
-  navpane_default          := GetNextInt(txt, ind, len, flags, valid_default_pane);
-  navpane_location         := GetNextInt(txt, ind, len, flags, valid_tab_position);
-  wm_notify_id             := GetNextInt(txt, ind, len, flags, valid_unknown1);
+  LoadFromIni(txt);
 end;
 
 procedure TCHMWindow.SaveToXml(cfg: TXMLConfig; key: string);
@@ -834,11 +771,112 @@ begin
   wm_notify_id          := cfg.GetValue(key+'wm_notify_id',0);
 end;
 
+procedure TCHMWindow.SaveToIni(out s: string);
+begin
+  s := window_type + '=';
+  s := s + '"' + Title_bar_text + '"';
+  s := s + ',"' + Toc_file + '"';
+  s := s + ',"' + index_file + '"';
+  s := s + ',"' + Default_File + '"';
+  s := s + ',"' + Home_button_file + '"';
+  s := s + ',"' + Jumpbutton_1_File + '"';
+  s := s + ',"' + Jumpbutton_1_Text + '"';
+  s := s + ',"' + Jumpbutton_2_File + '"';
+  s := s + ',"' + Jumpbutton_2_Text + '"';
+  s := s + ',0x' + IntToHex(nav_style, 1);
+  s := s + ',' + IntToStr(navpanewidth);
+  s := s + ',0x' + IntToHex(buttons, 1);
+  s := s + ',[' + IntToStr(left);
+  s := s + ',' + IntToStr(top);
+  s := s + ',' + IntToStr(right);
+  s := s + ',' + IntToStr(bottom) + ']';
+  s := s + ',0x' + IntToHex(styleflags, 1);
+  if xtdstyleflags <> 0 then
+   s := s + ',0x' + IntToHex(xtdstyleflags, 1)
+  else
+   s := s + ',';
+  s := s + ',0x' + IntToHex(window_show_state, 1);
+  s := s + ',' + IntToStr(navpane_initially_closed);
+  s := s + ',' + IntToStr(navpane_default);
+  s := s + ',' + IntToStr(navpane_location);
+  //s := s + ',' + IntToStr(wm_notify_id);
+end;
+
+procedure TCHMWindow.LoadFromIni(s: string);
+var ind,len,
+    j,k     : integer;
+    arr     : array[0..3] of integer;
+    s2      : string;
+    bArr    : Boolean;
+begin
+  j := Pos('=', s);
+  if j > 0 then
+    s[j] := ',';
+
+  ind := 1;
+  len := Length(s);
+  window_type       := GetNext(s, ind, len);
+  Title_bar_text    := GetNext(s, ind, len);
+  Toc_file          := GetNext(s, ind, len);
+  index_file        := GetNext(s, ind, len);
+  Default_File      := GetNext(s, ind, len);
+  Home_button_file  := GetNext(s, ind, len);
+  Jumpbutton_1_File := GetNext(s, ind, len);
+  Jumpbutton_1_Text := GetNext(s, ind, len);
+  Jumpbutton_2_File := GetNext(s, ind, len);
+  Jumpbutton_2_Text := GetNext(s, ind, len);
+  nav_style         := GetNextInt(s, ind, len, flags, valid_navigation_pane_style);
+  navpanewidth      := GetNextInt(s, ind, len, flags, valid_navigation_pane_width);
+  buttons           := GetNextInt(s, ind, len, flags, valid_buttons);
+
+  (* initialize arr[] *)
+  arr[0] := 0;
+  arr[1] := 0;
+  arr[2] := 0;
+  arr[3] := 0;
+  k := 0;
+  bArr := False;
+  (* "[" int,int,int,int "]", |,  *)
+  s2 := GetNext(s, ind, len);
+  if Length(s2) > 0 then
+  begin
+    (* check if first chart is "[" *)
+    if (s2[1] = '[') then
+    begin
+      Delete(s2, 1, 1);
+      bArr := True;
+    end;
+    (* looking for a max 4 int followed by a closing "]" *)
+    repeat
+      if k > 0 then s2 := GetNext(s, ind, len);
+
+      j := Pos(']', s2);
+      if j > 0 then Delete(s2, j, 1);
+      if Length(Trim(s2)) > 0 then
+        Include(flags, valid_tab_position);
+      arr[k] := StrToIntDef(s2, 0);
+      Inc(k);
+    until (bArr <> True) or (j <> 0) or (ind > len);
+  end;
+
+  left   := arr[0];
+  top    := arr[1];
+  right  := arr[2];
+  bottom := arr[3];
+  styleflags               := GetNextInt(s, ind, len, flags, valid_buttons);
+  xtdstyleflags            := GetNextInt(s, ind, len, flags, valid_window_style_flags);
+  window_show_state        := GetNextInt(s, ind, len, flags, valid_window_extended_style_flags);
+  navpane_initially_closed := GetNextInt(s, ind, len, flags, valid_navigation_pane_initially_closed_state);
+  navpane_default          := GetNextInt(s, ind, len, flags, valid_default_pane);
+  navpane_location         := GetNextInt(s, ind, len, flags, valid_tab_position);
+  wm_notify_id             := GetNextInt(s, ind, len, flags, valid_unknown1);
+end;
+
 constructor TCHMWindow.Create(s: string = '');
 begin
  flags := DefValidFlags;
  if s <> '' then
-   load_from_ini(s);
+   LoadFromIni(s);
 end;
 
 
