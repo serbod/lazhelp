@@ -25,6 +25,7 @@ http://www.nongnu.org/chmspec/latest/
 Copyright © 2017  Free Software Foundation, Inc.
 }
 unit chmFiftiMain;
+
 {$mode objfpc}{$H+}
 interface
 
@@ -33,13 +34,13 @@ uses Classes, HTMLIndexer;
 type
   { Full-text search index section main header }
   TFiftiMainHeader = record
-    Sig: array [0..3] of byte;    // $00,$00,$28,$00
+    Sig: array [0..3] of Byte;    // $00,$00,$28,$00
     HTMLFilesCount: DWord;        // Number of HTML files indexed after any automatic splitting.
     RootNodeOffset: DWord;        // Offset to the single leaf node (if there are no index nodes), or the root index node of the tree (if there are any index nodes). This will be 4096 less than the file length.
     Unknown1: DWord;              // = 0
     LeafNodeCount: DWord;         // The number of leaf nodes in the file.
     CopyOfRootNodeOffset: DWord;  // Same as the value at offset 8.
-    TreeDepth: Word;              // How many nodes deep the tree is
+    TreeDepth: word;              // How many nodes deep the tree is
     Unknown2: DWord;              // = 7
     DocIndexScale: Byte;          // Scale for encoding of the document index in the WLCs
     DocIndexRootSize: Byte;       // Root size for encoding of the document index in the WLCs
@@ -47,7 +48,7 @@ type
     CodeCountRootSize: Byte;      // Root size for encoding of the code count in the WLCs
     LocationCodeScale: Byte;      // Scale for encoding of the location codes in the WLCs
     LocationCodeRootSize: Byte;   // Root size for encoding of the location codes in the WLCs
-    Unknown3: array[0..9] of byte; // = 0
+    Unknown3: array[0..9] of Byte; // = 0
     NodeSize: DWord;              // = 4096 Size in bytes of each of the leaf and index nodes
     Unknown4: DWord;              // 0 or 1;
     LastDupWordIndex: DWord;      // Word index of the last duplicate
@@ -56,7 +57,7 @@ type
     TotalWordsIndexed: DWord;     // Number of words including duplicates
     TotalWords: DWord;            // Number of words not including duplicates
     TotalWordsLengthPart1: DWord; // length of all the words with duplicates plus the next dword!
-    TotalWordsLengthPart2: DWord; //
+    TotalWordsLengthPart2: DWord;
     TotalWordsLength: DWord;      // length of all words not including duplicates
     WordBlockUnusedBytes: DWord;  // Length of unused/null bytes at the end of the word block (if only 1 block, more than total if > 1 block - possibly some free space in WLC blocks).
     Unknown5: DWord;              // 0
@@ -71,18 +72,18 @@ type
 
   TFIftiNode = class(TObject)
   protected
-    FLastWord: String;
+    FLastWord: string;
     FWriteStream: TStream;
     FBlockStream: TMemoryStream;
   public
     ParentNode: TFIftiNode;
-    OwnsParentNode : boolean;
-    function  AdjustedWord(AWord: String; out AOffset: Byte; AOldWord: String): String;
-    procedure ChildIsFull(AWord: String; ANodeOffset: DWord); virtual; abstract;
-    function  GuessIfCanHold(AWord: String): Boolean; virtual; abstract;
+    OwnsParentNode: Boolean;
+    function AdjustedWord(AWord: string; out AOffset: Byte; AOldWord: string): string;
+    procedure ChildIsFull(AWord: string; ANodeOffset: DWord); virtual; abstract;
+    function GuessIfCanHold(const AWord: string): Boolean; virtual; abstract;
     procedure Flush(NewBlockNeeded: Boolean); virtual; abstract;
     procedure FillRemainingSpace;
-    function  RemainingSpace: DWord;
+    function RemainingSpace: DWord;
     constructor Create(AStream: TStream);
     destructor Destroy; override;
   end;
@@ -103,13 +104,15 @@ type
     constructor Create(AStream: TStream; AWordList: TIndexedWordList);
     destructor Destroy; override;
     procedure WriteToStream();
-    property  HasData: Boolean read GetHasData;
+    property HasData: Boolean read GetHasData;
   end;
 
-  { TChmSearchReader }
-
+  { TChmWLCTopic }
+  { Word Location Codes }
   TChmWLCTopic = record
+    { Topic ID }
     TopicIndex: DWord;
+    { Array of word positions in Topic page }
     LocationCodes: array of DWord;
   end;
 
@@ -117,7 +120,8 @@ type
 
   TChmSearchReader = class;
 
-  TChmSearchReaderFoundDataEvent = procedure(Sender: TChmSearchReader; AWord: String; ATopic: DWord; AWordIndex: DWord) of object;
+  TChmSearchReaderFoundDataEvent = procedure(Sender: TChmSearchReader;
+    AWord: string; ATopic: DWord; AWordIndex: DWord) of object;
 
   { TChmSearchReader }
   { Find CHM topics by keywords from full-text search index section }
@@ -126,32 +130,37 @@ type
     FStream: TStream;
     FFileIsValid: Boolean;
     FFreeStreamOnDestroy: Boolean;
-    FDocRootSize,
-    FCodeCountRootSize,
-    FLocCodeRootSize: Integer;
+    FDocRootSize, FCodeCountRootSize, FLocCodeRootSize: Integer;
     FTreeDepth: Integer;
     FRootNodeOffset: DWord;
     FActiveNodeStart: DWord;
-    FActiveNodeFreeSpace: Word;
+    FActiveNodeFreeSpace: word;
     FNextLeafNode: DWord;
-    procedure ReadCommonData;
-    procedure MoveToFirstLeafNode;
-    procedure MoveToRootNode;
+    procedure ReadCommonData();
+    procedure MoveToFirstLeafNode();
+    procedure MoveToRootNode();
     procedure MoveToNode(ANodeOffset: DWord; ANodeDepth: Integer);
-    // returns the whole word using the last word as a base
-    function  ReadWordOrPartialWord(const ALastWord: String): String;
-    function  ReadIndexNodeEntry(const ALastWord: String; out AWord: String; out ASubNodeStart: DWord): Boolean;
-    function  ReadLeafNodeEntry(const ALastWord: String; out AWord: String; out AInTitle: Boolean; out AWLCCount: DWord; out AWLCOffset: DWord; out AWLCSize: DWord): Boolean;
-    function  ReadWLCEntries(AWLCCount: DWord; AWLCOffset: DWord; AWLCSize: DWord): TChmWLCTopicArray;
+    { returns the whole word using the last word as a base
+      for ReadIndexNodeEntry() and ReadLeafNodeEntry() }
+    function ReadWordOrPartialWord(const ALastWord: string): string;
+    function ReadIndexNodeEntry(const ALastWord: string; out AWord: string;
+      out ASubNodeStart: DWord): Boolean;
+    function ReadLeafNodeEntry(const ALastWord: string; out AWord: string;
+      out AInTitle: Boolean; out AWLCCount: DWord; out AWLCOffset: DWord;
+      out AWLCSize: DWord): Boolean;
+    { read WLC (Word Location Codes) for block with specified position and size }
+    function ReadWLCEntries(AWLCCount: DWord; AWLCOffset: DWord;
+      AWLCSize: DWord; var AWLCArr: TChmWLCTopicArray): Boolean;
   public
     constructor Create(AStream: TStream; AFreeStreamOnDestroy: Boolean);
-    destructor  Destroy; override;
-    procedure   DumpData(AFoundDataEvent: TChmSearchReaderFoundDataEvent);
+    destructor Destroy; override;
+    procedure DumpData(AFoundDataEvent: TChmSearchReaderFoundDataEvent);
     { Get list of topic indexes, that contains specified AWord in body text
       ATitleHits - topic indexes, that contain AWord in Title text
       AStartsWith - False: whole words comparsion; True: when starts with AWord }
-    function    LookupWord(AWord: String; out ATitleHits: TChmWLCTopicArray; AStartsWith: Boolean = True): TChmWLCTopicArray;
-    property    FileIsValid: Boolean read FFileIsValid;
+    function LookupWord(AWord: string; out ATitleHits: TChmWLCTopicArray;
+      AStartsWith: Boolean = True): TChmWLCTopicArray;
+    property FileIsValid: Boolean read FFileIsValid;
   end;
 
 const
@@ -163,12 +172,12 @@ uses SysUtils, Math, ChmBase;
 
 type
 
-{ TIndexNode }
+  { TIndexNode }
 
   TIndexNode = class(TFIftiNode)
   public
-    function  GuessIfCanHold(AWord: String): Boolean; override;
-    procedure ChildIsFull(AWord: String; ANodeOffset: DWord ); override;
+    function GuessIfCanHold(const AWord: string): Boolean; override;
+    procedure ChildIsFull(AWord: string; ANodeOffset: DWord); override;
     procedure Flush(NewBlockNeeded: Boolean); override;
   end;
 
@@ -178,36 +187,35 @@ type
   private
     FLeafNodeCount: DWord;
     FLastNodeStart: DWord;
-    FDocRootSize,
-    FCodeRootSize,
-    FLocRootSize: Byte;
+    FDocRootSize, FCodeRootSize, FLocRootSize: Byte;
   public
     FreeSpace: DWord;
     procedure WriteInitialHeader;
-    Destructor Destroy; override;
-    function  GuessIfCanHold(AWord: String): Boolean; override;
+    destructor Destroy; override;
+    function GuessIfCanHold(const AWord: string): Boolean; override;
     procedure Flush(NewBlockNeeded: Boolean); override;
     procedure AddWord(AWord: TIndexedWord);
-    procedure ChildIsFull(AWord: String; ANodeOffset: DWord); override;
-    function WriteWLCEntries(AWord: TIndexedWord; ADocRootSize, ACodeRootSize, ALocRootSize: Byte): DWord;
+    procedure ChildIsFull(AWord: string; ANodeOffset: DWord); override;
+    function WriteWLCEntries(AWord: TIndexedWord;
+      ADocRootSize, ACodeRootSize, ALocRootSize: Byte): DWord;
     property LeafNodeCount: DWord read FLeafNodeCount;
     property DocRootSize: Byte read FDocRootSize write FDocRootSize;
     property CodeRootSize: Byte read FCodeRootSize write FCodeRootSize;
     property LocRootSize: Byte read FLocRootSize write FLocRootSize;
   end;
 
-function GetCompressedIntegerBE(Stream: TStream): DWord;
+function GetCompressedIntegerBE(AStream: TStream): DWord;
 var
   Buf: Byte;
-  Value: Dword = 0;
-  Shift: Integer = 0;
+  Shift: Integer;
 begin
+  Result := 0;
+  Shift := 0;
   repeat
-    Buf := Stream.ReadByte;
-    Value := Value or  (Buf and $7F) shl Shift;
+    Buf := AStream.ReadByte();
+    Result := Result or (Buf and $7F) shl Shift;
     Inc(Shift, 7);
   until (Buf and $80) = 0;
-  Result := Value;
 end;
 
 procedure WriteCompressedIntegerBE(Stream: TStream; AInt: DWord);
@@ -238,12 +246,12 @@ function WriteScaleRootInt(ANumber: DWord; out Bits: DWord; Root: Integer): Byte
 var
   Tmp: DWord;
   Mask: DWord;
-//  Scale: Integer;
+  //  Scale: Integer;
   NeededBits: Integer;
   PrefixBits: Integer;
   RootBits: Integer;
 begin
-//  Scale := 2;
+  //  Scale := 2;
   Bits := 0;
   Result := Root;
 
@@ -254,24 +262,24 @@ begin
     Inc(NeededBits);
     Tmp := Tmp shr 1;
   end;
-  PrefixBits := Max(0, NeededBits-Root);
+  PrefixBits := Max(0, NeededBits - Root);
 
-  RootBits := NeededBits -1; //
+  RootBits := NeededBits - 1;
   if RootBits < Root then
     RootBits := Root;
   if RootBits < 0 then
     RootBits := 0;
 
   Mask := 0;
-  if RootBits-1 >= 0 then
-    for Tmp := 0 to RootBits-1 do
-       Mask := Mask or (DWord(1) shl Tmp);
+  if RootBits - 1 >= 0 then
+    for Tmp := 0 to RootBits - 1 do
+      Mask := Mask or (DWord(1) shl Tmp);
   Bits := not Mask;
   Bits := Bits shl 1; // make space for empty bit
   Bits := Bits or (ANumber and Mask);
 
   Result := PrefixBits + 1 + RootBits;
-  Bits := (Bits shl (32-Result)) shr (32 - Result);
+  Bits := (Bits shl (32 - Result)) shr (32 - Result);
 end;
 
 { TChmSearchWriter }
@@ -296,7 +304,8 @@ var
 begin
   if IsPlaceHolder then
   begin
-    FStream.Size := $400; // the header size. we will fill this after the nodes have been determined
+    FStream.Size := $400;
+    // the header size. we will fill this after the nodes have been determined
     FStream.Position := $400;
     FillChar(PChar(TMemoryStream(FStream).Memory)^, $400, 0);
     FHeaderRec.DocIndexRootSize := 1;
@@ -307,7 +316,7 @@ begin
   // write the glorious header
   FHeaderRec.Sig[2] := $28;
   FHeaderRec.HTMLFilesCount := FWordList.IndexedFileCount;
-  FHeaderRec.RootNodeOffset := FStream.Size-FIFTI_NODE_SIZE;
+  FHeaderRec.RootNodeOffset := FStream.Size - FIFTI_NODE_SIZE;
   FHeaderRec.LeafNodeCount := TLeafNode(FActiveLeafNode).LeafNodeCount;
   FHeaderRec.CopyOfRootNodeOffset := FHeaderRec.RootNodeOffset;
   FHeaderRec.TreeDepth := 0;
@@ -366,11 +375,13 @@ begin
   FStream.WriteDWord(NtoLE(FHeaderRec.TotalWordsLength));
   FStream.WriteDWord(NtoLE(TLeafNode(FActiveLeafNode).FreeSpace));
   FStream.WriteDWord(NtoLE(0));
-  FStream.WriteDWord(NtoLE(FHeaderRec.HTMLFilesCount-1));
-  for i := 0 to 23 do FStream.WriteByte(0);
+  FStream.WriteDWord(NtoLE(FHeaderRec.HTMLFilesCount - 1));
+  for i := 0 to 23 do
+    FStream.WriteByte(0);
   FStream.WriteDWord(NtoLE(FHeaderRec.WindowsCodePage));
   FStream.WriteDWord(NtoLE(DWord(1033))); // LCID
-  for i := 0 to 893 do FStream.WriteByte(0);
+  for i := 0 to 893 do
+    FStream.WriteByte(0);
 end;
 
 procedure TChmSearchWriter.WriteAWord(AWord: TIndexedWord);
@@ -443,10 +454,10 @@ begin
     FBlockStream.WriteByte(0);
 end;
 
-function TFIftiNode.AdjustedWord(AWord: String; out AOffset: Byte; AOldWord: String): String;
+function TFIftiNode.AdjustedWord(AWord: string; out AOffset: Byte;
+  AOldWord: string): string;
 var
-  Count1,
-  Count2: Integer;
+  Count1, Count2: Integer;
   Count: Integer;
   i: Integer;
 begin
@@ -466,9 +477,9 @@ begin
 
   for i := 1 to Count do
   begin
-    AOffset := i-1;
-    if AOldWord[i] <> AWord[i]
-      then Exit(Copy(AWord, i, Length(AWord)));
+    AOffset := i - 1;
+    if AOldWord[i] <> AWord[i] then
+      Exit(Copy(AWord, i, Length(AWord)));
   end;
   Result := AWord;
   AOffset := 0;
@@ -486,11 +497,11 @@ begin
   inherited Destroy;
 end;
 
-function TLeafNode.GuessIfCanHold ( AWord: String ) : Boolean;
+function TLeafNode.GuessIfCanHold(const AWord: string): Boolean;
 var
   WordOffset: Byte;
 begin
-  Result := 17 + Length(AdjustedWord(AWord, WordOffset, FLastWord)) < RemainingSpace;
+  Result := (17 + Length(AdjustedWord(AWord, WordOffset, FLastWord)) < RemainingSpace);
 end;
 
 procedure TLeafNode.Flush(NewBlockNeeded: Boolean);
@@ -514,7 +525,7 @@ begin
 
   // update the leaf header to show the available space.
   FBlockStream.Position := 6;
-  FBlockStream.WriteWord(NtoLE(Word(FreeSpace)));
+  FBlockStream.WriteWord(NtoLE(word(FreeSpace)));
 
   // copy the leaf block to the fiftimain file
   FBlockStream.Position := 0;
@@ -524,10 +535,10 @@ begin
   if NewBlockNeeded or ((NewBlockNeeded = False) and (ParentNode <> nil)) then
   begin
     if ParentNode = nil then
-      begin
-        ParentNode := TIndexNode.Create(FWriteStream);
-        OwnsParentNode:=True;
-      end;
+    begin
+      ParentNode := TIndexNode.Create(FWriteStream);
+      OwnsParentNode := True;
+    end;
     ParentNode.ChildIsFull(FLastWord, FLastNodeStart);
     if (NewBlockNeeded = False) then
       ParentNode.Flush(False);
@@ -536,10 +547,10 @@ begin
   FLastWord := '';
 end;
 
-procedure TLeafNode.AddWord ( AWord: TIndexedWord ) ;
+procedure TLeafNode.AddWord(AWord: TIndexedWord);
 var
   Offset: Byte;
-  NewWord: String;
+  NewWord: string;
   WLCSize: DWord;
 begin
   if Length(AWord.TheWord) > 99 then
@@ -551,7 +562,7 @@ begin
 
   FLastWord := AWord.TheWord;
 
-  FBlockStream.WriteByte(Length(NewWord)+1);
+  FBlockStream.WriteByte(Length(NewWord) + 1);
   FBlockStream.WriteByte(Offset);
 
   // length can be 0 if it is the same word as the last. there is a word entry each for title and content
@@ -572,7 +583,7 @@ begin
     raise Exception.Create('FIFTIMAIN Leaf node has written past the block!');
 end;
 
-procedure TLeafNode.ChildIsFull(AWord: String; ANodeOffset: DWord);
+procedure TLeafNode.ChildIsFull(AWord: string; ANodeOffset: DWord);
 begin
   // ???
 end;
@@ -581,33 +592,38 @@ function Min(AValue, BValue: Byte): Byte;
 begin
   if AValue < BValue then
     Result := AValue
-  else Result := BValue;
+  else
+    Result := BValue;
 end;
 
 function Max(AValue, BValue: Byte): Byte;
 begin
   if AValue > BValue then
     Result := AValue
-  else Result := BValue;
+  else
+    Result := BValue;
 end;
 
 function Max(AValue, BValue: Integer): Integer;
 begin
   if AValue > BValue then
     Result := AValue
-  else Result := BValue;
+  else
+    Result := BValue;
 end;
 
 function Max(AValue, BValue: DWord): DWord;
 begin
   if AValue > BValue then
     Result := AValue
-  else Result := BValue;
+  else
+    Result := BValue;
 end;
 
 
 
-function TLeafNode.WriteWLCEntries ( AWord: TIndexedWord ; ADocRootSize, ACodeRootSize, ALocRootSize: Byte) : DWord;
+function TLeafNode.WriteWLCEntries(AWord: TIndexedWord;
+  ADocRootSize, ACodeRootSize, ALocRootSize: Byte): DWord;
 var
   LastDocIndex: DWord;
   LastLocCode: DWord;
@@ -665,16 +681,15 @@ var
   StartPos: DWord;
   Bits: DWord;
   BitCount: Byte;
-  i,
-  j: Integer;
+  i, j: Integer;
   Doc: TIndexDocument;
-//  proced
+  //  proced
 begin
   StartPos := FWriteStream.Position;
   LastDocIndex := 0;
   UsedBits := 0;
   Buf := 0;
-  for i := 0 to AWord.DocumentCount-1 do
+  for i := 0 to AWord.DocumentCount - 1 do
   begin
     LastLocCode := 0;
     Doc := AWord.GetLogicalDocument(i);
@@ -684,7 +699,7 @@ begin
     BitCount := WriteScaleRootInt(Doc.NumberOfIndexEntries, Bits, ACodeRootSize);
     AddValue(Bits, BitCount);
 
-    for j := 0 to Doc.NumberOfIndexEntries-1 do
+    for j := 0 to Doc.NumberOfIndexEntries - 1 do
     begin
       LocDelta := NewLocCode(Doc.IndexEntry[j]);
       BitCount := WriteScaleRootInt(LocDelta, Bits, ALocRootSize);
@@ -694,33 +709,34 @@ begin
   end;
 
 
-  Result := FWriteStream.Position-StartPos;
+  Result := FWriteStream.Position - StartPos;
 end;
 
 
 { TIndexNode }
 
-function TIndexNode.GuessIfCanHold ( AWord: String ) : Boolean;
+function TIndexNode.GuessIfCanHold(const AWord: string): Boolean;
 var
   Offset: Byte;
 begin
-  Result := FBlockStream.Position + 8 + Length(AdjustedWord(AWord, Offset, FLastWord)) < FIFTI_NODE_SIZE;
+  Result := FBlockStream.Position + 8 + Length(AdjustedWord(AWord, Offset, FLastWord)) <
+    FIFTI_NODE_SIZE;
 end;
 
-procedure TIndexNode.ChildIsFull ( AWord: String; ANodeOffset: DWord ) ;
+procedure TIndexNode.ChildIsFull(AWord: string; ANodeOffset: DWord);
 var
   Offset: Byte;
-  NewWord: String;
+  NewWord: string;
 begin
   if FBlockStream.Position = 0 then
     FBlockStream.WriteWord(0); // free space at end. updated when the block is flushed
   if GuessIfCanHold(AWord) = False then
     Flush(True);
   NewWord := AdjustedWord(AWord, Offset, FLastWord);
-  FLastWord:=AWord;
+  FLastWord := AWord;
 
   // Write the Index node Entry
-  FBlockStream.WriteByte(Length(NewWord)+1);
+  FBlockStream.WriteByte(Length(NewWord) + 1);
   FBlockStream.WriteByte(Offset);
   FBlockStream.Write(NewWord[1], Length(NewWord));
   FBlockStream.WriteDWord(NtoLE(ANodeOffset));
@@ -729,17 +745,17 @@ begin
     raise Exception.Create('FIFTIMAIN Index node has written past the block!');
 end;
 
-procedure TIndexNode.Flush ( NewBlockNeeded: Boolean ) ;
+procedure TIndexNode.Flush(NewBlockNeeded: Boolean);
 var
   RemSize: DWord;
 begin
   if NewBlockNeeded then
   begin
     if ParentNode = nil then
-      begin
-        ParentNode := TIndexNode.Create(FWriteStream);
-        OwnsParentNode:=True;
-      end;
+    begin
+      ParentNode := TIndexNode.Create(FWriteStream);
+      OwnsParentNode := True;
+    end;
   end;
 
   if ParentNode <> nil then
@@ -760,8 +776,8 @@ begin
   if NewBlockNeeded then
     FBlockStream.WriteDWord(0) // placeholder to write free space in when block is full
   else
-    if ParentNode <> nil then
-      ParentNode.Flush(NewBlockNeeded);
+  if ParentNode <> nil then
+    ParentNode.Flush(NewBlockNeeded);
 end;
 
 { TChmSearchReader }
@@ -770,34 +786,34 @@ procedure TChmSearchReader.ReadCommonData;
 var
   Sig: DWord;
 begin
-   FStream.Position := 0;
-   Sig := LEtoN(FStream.ReadDWord);
-   FFileIsValid :=  Sig = $00280000;
+  FStream.Position := 0;
+  Sig := LEtoN(FStream.ReadDWord);
+  FFileIsValid := Sig = $00280000;
 
-   if not FileIsValid then
-     Exit;
+  if not FileIsValid then
+    Exit;
 
-   // root node address
-   FStream.Position := $8;
-   FRootNodeOffset := LEtoN(FStream.ReadDWord);
+  // root node address
+  FStream.Position := $8;
+  FRootNodeOffset := LEtoN(FStream.ReadDWord);
 
-   // Tree Depth
-   FStream.Position := $18;
-   FTreeDepth := LEtoN(FStream.ReadWord);
+  // Tree Depth
+  FStream.Position := $18;
+  FTreeDepth := LEtoN(FStream.ReadWord);
 
-   // Root sizes for scale and root integers
-   FStream.Position := $1E;
-   if FStream.ReadByte <> 2 then // we only can read the files when scale is 2
-     FFileIsValid := False;
-   FDocRootSize := FStream.ReadByte;
+  // Root sizes for scale and root integers
+  FStream.Position := $1E;
+  if FStream.ReadByte <> 2 then // we only can read the files when scale is 2
+    FFileIsValid := False;
+  FDocRootSize := FStream.ReadByte;
 
-   if FStream.ReadByte <> 2 then
-     FFileIsValid := False;
-   FCodeCountRootSize := FStream.ReadByte;
+  if FStream.ReadByte <> 2 then
+    FFileIsValid := False;
+  FCodeCountRootSize := FStream.ReadByte;
 
-   if FStream.ReadByte <> 2 then
-     FFileIsValid := False;
-   FLocCodeRootSize := FStream.ReadByte;
+  if FStream.ReadByte <> 2 then
+    FFileIsValid := False;
+  FLocCodeRootSize := FStream.ReadByte;
 
 end;
 
@@ -805,8 +821,8 @@ procedure TChmSearchReader.MoveToFirstLeafNode;
 var
   NodeDepth: Integer;
   NodeOffset: DWord;
-  LastWord: String;
-  NewWord: String;
+  LastWord: string;
+  NewWord: string;
 begin
   NodeDepth := FTreeDepth;
   MoveToRootNode;
@@ -841,7 +857,7 @@ begin
   end;
 end;
 
-function TChmSearchReader.ReadWordOrPartialWord(const ALastWord: String): String;
+function TChmSearchReader.ReadWordOrPartialWord(const ALastWord: string): string;
 var
   WordLength: Integer;
   CopyLastWordCharCount: Integer;
@@ -850,13 +866,13 @@ begin
   CopyLastWordCharCount := FStream.ReadByte;
   if CopyLastWordCharCount > 0 then
     Result := Copy(ALastWord, 1, CopyLastWordCharCount);
-  SetLength(Result, (WordLength-1) + CopyLastWordCharCount);
+  SetLength(Result, (WordLength - 1) + CopyLastWordCharCount);
   if WordLength > 1 then
-    FStream.Read(Result[1+CopyLastWordCharCount], WordLength-1);
+    FStream.Read(Result[1 + CopyLastWordCharCount], WordLength - 1);
 end;
 
-function TChmSearchReader.ReadIndexNodeEntry(const ALastWord: String; out AWord: String;
-  out ASubNodeStart: DWord ): Boolean;
+function TChmSearchReader.ReadIndexNodeEntry(const ALastWord: string;
+  out AWord: string; out ASubNodeStart: DWord): Boolean;
 begin
   Result := FStream.Position - FActiveNodeStart < FIFTI_NODE_SIZE - FActiveNodeFreeSpace;
   if not Result then
@@ -866,12 +882,12 @@ begin
   FStream.ReadWord();
 end;
 
-function TChmSearchReader.ReadLeafNodeEntry(const ALastWord: String; out AWord: String;
-  out AInTitle: Boolean; out AWLCCount: DWord;
+function TChmSearchReader.ReadLeafNodeEntry(const ALastWord: string;
+  out AWord: string; out AInTitle: Boolean; out AWLCCount: DWord;
   out AWLCOffset: DWord; out AWLCSize: DWord): Boolean;
 begin
-  { TODO : Debug }
-  Result := (FStream.Position - FActiveNodeStart) < (FIFTI_NODE_SIZE - FActiveNodeFreeSpace);
+  Result := (FStream.Position - FActiveNodeStart) <
+    (FIFTI_NODE_SIZE - FActiveNodeFreeSpace);
   if not Result then
     Exit;
   AWord := ReadWordOrPartialWord(ALastWord);
@@ -880,116 +896,129 @@ begin
   AWLCOffset := LEtoN(FStream.ReadDWord);
   FStream.ReadWord();
   AWLCSize := GetCompressedIntegerBE(FStream);
-
 end;
 
-function TChmSearchReader.ReadWLCEntries(AWLCCount: DWord; AWLCOffset: DWord; AWLCSize: DWord): TChmWLCTopicArray;
-
-  function AtEndOfWLCEntries: Boolean;
-  begin
-    Result := (AWLCOffset + AWLCSize <= FStream.Position);
-  end;
-
+function TChmSearchReader.ReadWLCEntries(AWLCCount: DWord; AWLCOffset: DWord;
+  AWLCSize: DWord; var AWLCArr: TChmWLCTopicArray): Boolean;
 var
   Buf: Byte;
   BitsInBuffer: Integer;
+  FinalPosition: int64;
+  {$ifdef DEBUG}bs, rs: ShortString;{$endif}
 
-  procedure FillBuffer;
+  // read byte into buffer
+  function GetNextByte(): Boolean;
   begin
-    while (BitsInBuffer = 0) and (not AtEndOfWLCEntries) do
+    Result := (FStream.Position <= FinalPosition);
+    if Result then
     begin
-      Buf := FStream.ReadByte;
+      Buf := FStream.ReadByte();
       Inc(BitsInBuffer, 8);
+      {$ifdef DEBUG}bs := binStr(Buf, 8);{$endif}
     end;
   end;
 
-  function ReadWLC(RootSize: DWord): DWord;
-  var
-    PrefixBits: Integer = 0;
-    BitCount: Integer = 0;
-    RemainingBits: Integer; // only the bits for this number not the bits in buffer
+  function ShiftBuf(): Boolean;
   begin
-    FillBuffer();
-    Result := 0;
-    while (Buf and $80) > 0 do // find out how many prefix bits there are
+    Buf := (Buf and $7F) shl 1;
+    {$ifdef DEBUG}bs := binStr(Buf, 8);{$endif}
+    Dec(BitsInBuffer);
+    Result := (BitsInBuffer > 0) or GetNextByte();
+  end;
+
+  // read scale-and-root endcoded integer
+  function ReadWLC(RemainingBits: DWord): DWord;
+  var
+    PrefixBits: Integer;    // Scale bits count
+    //RemainingBits: Integer; // Root bits count + Scale size
+  begin
+    if (BitsInBuffer = 0) then
+      GetNextByte();
+    PrefixBits := 0;
+    Result := (Buf and $80) shr 7;
+
+    // find out how many prefix bits there are
+    while ((Buf and $80) <> 0) do
     begin
       Inc(PrefixBits);
-      Buf := Buf and $7F;
-      Buf := Buf shl 1;
-      Dec(BitsInBuffer);
-      FillBuffer();
+      if not ShiftBuf() then
+        Exit;
     end;
 
-    if PrefixBits > 0 then
-      Result := 1;
-    Inc(BitCount, PrefixBits+1);
-    Buf := Buf shl 1;
-    Dec(BitsInBuffer);
+    // skip divider (zero) bit
+    if not ShiftBuf() then
+      Exit;
 
-    FillBuffer();
-    RemainingBits := RootSize + Max(Integer(PrefixBits-1), 0);
+    // set high bit of result
+    if PrefixBits > 1 then
+      RemainingBits := RemainingBits + PrefixBits - 1;
+
+    // calculate result
     while RemainingBits > 0 do
     begin
-      Result := Result shl 1;
-      Result := Result or (Buf shr 7);
+      Result := (Result shl 1) or (Buf shr 7);
+      {$ifdef DEBUG}rs := binStr(Result, 32);{$endif}
       Dec(RemainingBits);
-      Buf := Buf and $7F;
-      Buf := Buf shl 1;
-      Dec(BitsInBuffer);
-      FillBuffer();
-      Inc(BitCount);
+      if not ShiftBuf() then
+        Exit;
     end;
   end;
 
-  procedure ClearBuffer();
+  procedure ClearBuf();
   begin
-    BitsInBuffer := 0;
-    Buf := 0;
+    if BitsInBuffer < 8 then
+    begin
+      BitsInBuffer := 0;
+      Buf := 0;
+      {$ifdef DEBUG}bs := binStr(Buf, 8);{$endif}
+    end;
   end;
 
 var
   TopicHits: DWord;
-  i: Integer;
+  i, WLCArrBase: Integer;
   j: Integer;
   CachedStreamPos: QWord;
-  LastDoc,
-  LastLocCode: DWord;
+  PrevTopicID, LastLocCode: DWord;
 begin
+  Result := False;
+  FinalPosition := AWLCOffset + AWLCSize;
   CachedStreamPos := FStream.Position;
   FStream.Position := AWLCOffset;
   {for i := 0 to AWLCSize-1 do
   begin
     Buf := FStream.ReadByte;
     Write(binStr(Buf, 8), ' ');
-  end;}
-  FStream.Position := AWLCOffset;
-  SetLength(Result, AWLCCount);
+  end;
+  FStream.Position := AWLCOffset; }
+  WLCArrBase := Length(AWLCArr);
+  SetLength(AWLCArr, WLCArrBase + AWLCCount);
   Buf := 0;
   BitsInBuffer := 0;
-  LastDoc := 0;
+  PrevTopicID := 0;
 
-  for i := 0 to AWLCCount-1 do
+  for i := WLCArrBase to AWLCCount - 1 do
   begin
-    Result[i].TopicIndex := ReadWLC(FDocRootSize) + LastDoc;
+    AWLCArr[i].TopicIndex := ReadWLC(FDocRootSize) + PrevTopicID;
+    PrevTopicID := AWLCArr[i].TopicIndex;
 
-    LastDoc := Result[i].TopicIndex;
     TopicHits := ReadWLC(FCodeCountRootSize);
-    SetLength(Result[i].LocationCodes, TopicHits);
+    SetLength(AWLCArr[i].LocationCodes, TopicHits);
     LastLocCode := 0;
-    for j := 0 to TopicHits-1 do
+    for j := 0 to TopicHits - 1 do
     begin
-      Result[i].LocationCodes[j] := ReadWLC(FLocCodeRootSize) + LastLocCode;
-      LastLocCode := Result[i].LocationCodes[j];
+      AWLCArr[i].LocationCodes[j] := ReadWLC(FLocCodeRootSize) + LastLocCode;
+      LastLocCode := AWLCArr[i].LocationCodes[j];
     end;
-    ClearBuffer();
+    ClearBuf();
+    Result := True;
   end;
   FStream.Position := CachedStreamPos;
 end;
 
 
 
-constructor TChmSearchReader.Create ( AStream: TStream;
-  AFreeStreamOnDestroy: Boolean ) ;
+constructor TChmSearchReader.Create(AStream: TStream; AFreeStreamOnDestroy: Boolean);
 begin
   FStream := AStream;
   FFreeStreamOnDestroy := AFreeStreamOnDestroy;
@@ -1003,23 +1032,23 @@ begin
   inherited Destroy;
 end;
 
-procedure TChmSearchReader.DumpData (
-  AFoundDataEvent: TChmSearchReaderFoundDataEvent ) ;
+procedure TChmSearchReader.DumpData(AFoundDataEvent: TChmSearchReaderFoundDataEvent);
 var
-  LastWord: String;
-  TheWord: String;
+  LastWord: string;
+  TheWord: string;
   InTitle: Boolean;
   WLCCount: DWord;
   WLCOffset: DWord;
   WLCSize: DWord;
-  FoundHits: TChmWLCTopicArray;
+  FoundWLC: TChmWLCTopicArray;
   i: Integer;
   j: Integer;
 begin
-  MoveToFirstLeafNode;
+  MoveToFirstLeafNode();
   LastWord := '';
   repeat
-    if (ReadLeafNodeEntry(LastWord, TheWord, InTitle, WLCCount, WLCOffset, WLCSize) = False) then
+    if (ReadLeafNodeEntry(LastWord, TheWord, InTitle, WLCCount, WLCOffset, WLCSize) =
+      False) then
     begin
       if FnextLeafNode <> 0 then
       begin
@@ -1029,23 +1058,30 @@ begin
       else
         Break;
     end
-    else begin
+    else
+    begin
       LastWord := TheWord;
       //WriteLn('Reading Hits for ', TheWord ,' at ', hexstr(WLCOffset,8) );
-      FoundHits := ReadWLCEntries(WLCCount, WLCOffset, WLCSize);
+      Setlength(FoundWLC, 0);
+      ReadWLCEntries(WLCCount, WLCOffset, WLCSize, FoundWLC);
       //WriteLn('DONE Reading Hits for ', TheWord);
-     // AFoundDataEvent(Self, TheWord, 0,0);//FoundHits[i].TopicIndex ,-1);//FoundHits[i].LocationCodes[j]);
-      for i := 0 to High(FoundHits) do
-        for j := 0 to High(FoundHits[i].LocationCodes) do
-           AFoundDataEvent(Self, TheWord, FoundHits[i].TopicIndex ,FoundHits[i].LocationCodes[j]);
+      // AFoundDataEvent(Self, TheWord, 0,0);//FoundWLC[i].TopicIndex ,-1);//FoundWLC[i].LocationCodes[j]);
+      for i := 0 to High(FoundWLC) do
+      begin
+        for j := 0 to High(FoundWLC[i].LocationCodes) do
+        begin
+          AFoundDataEvent(Self, TheWord, FoundWLC[i].TopicIndex, FoundWLC[i].LocationCodes[j]);
+        end;
+      end;
     end;
   until False; //FStream.Position - FActiveNodeStart >= FIFTI_NODE_SIZE - FActiveNodeFreeSpace
 end;
 
-function TChmSearchReader.LookupWord(AWord: String; out ATitleHits: TChmWLCTopicArray; AStartsWith: Boolean = True): TChmWLCTopicArray;
+function TChmSearchReader.LookupWord(AWord: string; out ATitleHits: TChmWLCTopicArray;
+  AStartsWith: Boolean = True): TChmWLCTopicArray;
 var
-  LastWord: String;
-  NewWord: String;
+  LastWord: string;
+  NewWord: string;
   NodeLevel: Integer;
   NewNodePosition: DWord;
   InTitle: Boolean;
@@ -1058,6 +1094,7 @@ begin
   AWord := LowerCase(AWord);
   NodeLevel := FTreeDepth;
   MoveToRootNode();
+  SetLength(ATitleHits, 0);
   SetLength(Result, 0);
   LastWord := '';
   // descend the index node tree until we find the leafnode
@@ -1066,28 +1103,29 @@ begin
     //WriteLn('At Node Level ', NodeLevel);
     if ReadIndexNodeEntry(LastWord, NewWord, NewNodePosition) <> False then
     begin
-     LastWord := NewWord;
-     //WriteLn('Found Index Entry: ', NewWord, ' Comparing to ', AWord);
-     if ChmCompareText(NewWord, AWord) >= 0 then
-     begin
-       LastWord := '';
-       Dec(NodeLevel);
-       MoveToNode(NewNodePosition, NodeLevel);
-     end;
+      LastWord := NewWord;
+      //WriteLn('Found Index Entry: ', NewWord, ' Comparing to ', AWord);
+      if ChmCompareText(NewWord, AWord) >= 0 then
+      begin
+        LastWord := '';
+        Dec(NodeLevel);
+        MoveToNode(NewNodePosition, NodeLevel);
+      end;
     end
     else
-     Break;
+      Break;
   end;
   if NodeLevel > 1 then
     Exit; // the entry we are looking for is > than the last entry of the last index node
 
   // now we are in a leafnode
-  while ReadLeafNodeEntry(LastWord, NewWord, InTitle, WLCCount, WLCOffset, WLCSize) <> False do
+  while ReadLeafNodeEntry(LastWord, NewWord, InTitle, WLCCount,
+      WLCOffset, WLCSize) <> False do
   begin
     //WriteLn('Found Leaf Entry: ', NewWord, ' Comparing to ', AWord);
     LastWord := NewWord;
     if Length(NewWord) < Length(AWord) then
-      continue;
+      Continue;
 
     if AStartsWith then //it only has to start with the searched term
       CompareResult := ChmCompareText(AWord, Copy(NewWord, 1, Length(AWord)))
@@ -1098,9 +1136,9 @@ begin
     if CompareResult = 0 then
     begin
       if InTitle then
-        ATitleHits := ReadWLCEntries(WLCCount, WLCOffset, WLCSize)
+        ReadWLCEntries(WLCCount, WLCOffset, WLCSize, ATitleHits)
       else
-        Result := ReadWLCEntries(WLCCount, WLCOffset, WLCSize);
+        ReadWLCEntries(WLCCount, WLCOffset, WLCSize, Result);
 
       // check if the next entry is the same word since there is an entry for titles and for body
       if ReadLeafNodeEntry(LastWord, NewWord, InTitle, WLCCount, WLCOffset, WLCSize) then
@@ -1109,15 +1147,16 @@ begin
       begin
         MoveToNode(FNextLeafNode, 1);
         LastWord := '';
-        ReadNextResult := ReadLeafNodeEntry(LastWord, NewWord, InTitle, WLCCount, WLCOffset, WLCSize);
+        ReadNextResult := ReadLeafNodeEntry(LastWord, NewWord, InTitle,
+          WLCCount, WLCOffset, WLCSize);
       end;
 
       if ReadNextResult and (NewWord = AWord) then
       begin
         if InTitle then
-          ATitleHits := ReadWLCEntries(WLCCount, WLCOffset, WLCSize)
+          ReadWLCEntries(WLCCount, WLCOffset, WLCSize, ATitleHits)
         else
-          Result := ReadWLCEntries(WLCCount, WLCOffset, WLCSize);
+          ReadWLCEntries(WLCCount, WLCOffset, WLCSize, Result);
       end;
       Exit;
     end;
@@ -1126,4 +1165,3 @@ end;
 
 
 end.
-

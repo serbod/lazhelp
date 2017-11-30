@@ -49,6 +49,7 @@
           <Linking>
             <Debugging>
               <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
             </Debugging>
             <Options>
               <Win32>

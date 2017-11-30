@@ -1111,10 +1111,11 @@ var
   //Version: DWord;
   EntryType: Word;
   EntryLength: Word;
-  Data: array[0..511] of char;
+  Data: array[0..511] of Char;
   ms: TMemoryStream;
   Tmp: String;
 begin
+  Data[0] := #0;
   ms := TMemoryStream.Create();
   try
     if ReadFileContent('/#SYSTEM', ms) and (ms.Size >= SizeOf(DWord)) then
@@ -1247,6 +1248,7 @@ var
   buf: array[0..49] of Char;
 begin
   Result := '';
+  buf[0] := #0;
   if APosition < FStringsStream.Size-1 then
   begin
     FStringsStream.Position := APosition;
@@ -1489,6 +1491,8 @@ var
   SeeAlsoStr, Topic, Name: AnsiString;
 begin
   //setlength (curitem,10);
+  Name := '';
+  SeeAlsoStr := '';
   hdr := PBTreeBlockHeader(p);
   hdr^.Length           := LEToN(hdr^.Length);
   hdr^.NumberOfEntries  := LEToN(hdr^.NumberOfEntries);

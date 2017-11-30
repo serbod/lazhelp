@@ -89,7 +89,7 @@ begin
         Inc(i);
         if i > len then Break;
       end;
-      ws := UTF8Encode(ampStr);
+      ws := UTF8Decode(ampStr);
       if ResolveHTMLEntityReference(ws, entity) then
         Result := Result + UnicodeToUTF8(cardinal(entity))
       else
