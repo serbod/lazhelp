@@ -47,7 +47,7 @@ type
     FOnGetHtmlPage: THtmlPageLoadStreamEvent;
     FOnHelpPopup: THelpPopupEvent;
     function StripInPageLink(AURL: String): String;
-    function DetectHtmlCodepage(AStr: string): Word;
+    function DetectHtmlCodepage(AStr: string): string;
   protected
     function DoGetHtmlStream(const URL: string;
       {%H-}PostData: TIpFormDataEntity) : TStream; override;
@@ -92,13 +92,13 @@ begin
     Result := Copy(Result, 1, i-1);
 end;
 
-function TIpChmDataProvider.DetectHtmlCodepage(AStr: string): Word;
+function TIpChmDataProvider.DetectHtmlCodepage(AStr: string): string;
 var
   s, sRes: string;
   n, i: Integer;
-  IsRec: Boolean;
+  InQuotes: Boolean;
 begin
-  Result := 0;
+  Result := '';
   AStr := LowerCase(AStr);
 
   while Length(AStr) > 0 do
@@ -118,17 +118,17 @@ begin
         if n > 0 then
         begin
           s := Copy(s, n+7, MaxInt);
-          IsRec := False;
-          sRes := '';
+          InQuotes := False;
           for i := 1 to Length(s) do
           begin
             case s[i] of
-              '=': IsRec := True;
-              '"', '>', ';': IsRec := False;
-              '0'..'9': if IsRec then sRes := sRes + s[i];
+              '=', ' ': if not InQuotes then Result := '';
+              '"': InQuotes := not InQuotes;
+              '>', ';': Break;
+            else
+              Result := Result + s[i];
             end;
           end;
-          Result := StrTointDef(sRes, 0);
           Exit;
         end;
       end
@@ -145,7 +145,6 @@ function TIpChmDataProvider.DoGetHtmlStream(const URL: string;
 var
  Tmp, sHead: string;
  LCID: Word;
- wcp: Word;
 begin
   Result := TMemoryStream.Create();
   // If for some reason we were not able to get the page return something so that
@@ -172,15 +171,7 @@ begin
 
       // detect codepage from HTML header
       sHead := Copy(Tmp, 1, 1024);
-      wcp := DetectHtmlCodepage(sHead);
-      if wcp <> 0 then
-      begin
-        // convert from HTML codepage
-        // 8 = utf-8 or very old encoding
-        if wcp <> 8 then
-          Tmp := ConvToUTF8FromCP(wcp, Tmp);
-      end
-      else
+      if DetectHtmlCodepage(sHead) = '' then
       begin
         // convert from locale codepage
         Tmp := ConvToUTF8FromLCID(LCID, Tmp);

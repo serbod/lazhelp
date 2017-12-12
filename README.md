@@ -8,6 +8,7 @@ chm package:
 - source readability: formatting, naming, commenting
 - improve performance of operations with strings and memory
 - improve usability for users
+- fixed full-text index reader
 
 LHelp:
 

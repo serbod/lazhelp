@@ -10,6 +10,8 @@ uses
   Classes, SysUtils, LConvEncoding;
 
 function LCIDToWinCP(ALCID: Word): Word;
+function WinCPToLCID(AWinCP: Word): Word;
+
 function ConvToUTF8FromLCID(ALCID: Word; AStr: string): string;
 function ConvToUTF8FromCP(ACP: Word; AStr: string): string;
 
