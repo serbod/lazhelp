@@ -1028,7 +1028,7 @@ end;
 
 constructor TChmReader.Create(AStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
-  FContextList := TContextList.Create;
+  FContextList := TContextList.Create();
   FWindowsList := TCHMWindowList.Create();
   FWindowsList.OwnsObjects := True;
   FTOPICSStream := TMemoryStream.Create();
@@ -1077,7 +1077,7 @@ begin
       OffSet := msWindows.Position;
       for X := 0 to EntryCount -1 do
       begin
-        EntryStart := OffSet + (X*EntrySize);
+        EntryStart := OffSet + (X * EntrySize);
         if FTitle = '' then
         begin
           msWindows.Position := EntryStart + $14;

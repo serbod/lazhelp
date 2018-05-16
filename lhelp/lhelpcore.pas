@@ -285,7 +285,9 @@ begin
     if OpenDialog1.Execute then
     begin
       if OpenURL('file://'+OpenDialog1.FileName) = Ord(srSuccess) then
-        AddRecentFile('file://'+OpenDialog1.FileName);
+        AddRecentFile('file://'+OpenDialog1.FileName)
+      else
+        MessageDlg(Format(slhelp_NotFound, [OpenDialog1.FileName]), mtError, [mbOK], 0);
       RefreshState;
     end;
   finally
@@ -429,13 +431,12 @@ end;
 
 procedure THelpForm.ApplyLayoutPreferencesOnce;
 begin
-  if not(assigned(FConfig)) then exit;
-  if (not(FHide)) and
-    (not(FLayoutApplied)) then
+  if (not Assigned(FConfig)) then exit;
+  if (not FHide) and (not FLayoutApplied) then
   begin
-    if (FConfig.GetValue('Position/Maximized', false)=true) then
+    if (FConfig.GetValue('Position/Maximized', False) = True) then
     begin
-      Windowstate:=wsMaximized
+      Windowstate := wsMaximized
     end
     else
     begin
@@ -514,15 +515,15 @@ begin
   FShowStatus := FConfig.GetValue('OpenWithStatus/Value', True);
 end;
 
-procedure THelpForm.SavePreferences;
+procedure THelpForm.SavePreferences();
 var
   i: Integer;
 begin
-  if not(assigned(FConfig)) then
+  if (not Assigned(FConfig)) then
     exit; //silently abort
   if not (WindowState = wsMaximized) then
   begin
-    FConfig.SetValue('Position/Maximized', false);
+    FConfig.SetValue('Position/Maximized', False);
     FConfig.SetValue('Position/Left/Value', Left);
     FConfig.SetValue('Position/Top/Value', Top);
     FConfig.SetValue('Position/Width/Value', Width);
@@ -530,7 +531,7 @@ begin
   end
   else
   begin
-    FConfig.SetValue('Position/Maximized', true);
+    FConfig.SetValue('Position/Maximized', True);
   end;
 
   FConfig.SetValue('LastFileOpen/Value', OpenDialog1.FileName);
@@ -543,8 +544,8 @@ begin
   FConfig.SetValue('OpenSepTabs/Value', FShowSepTabs);
   FConfig.SetValue('OpenWithStatus/Value', FShowStatus);
 
-  FConfig.Flush;
-  FConfig.Free;
+  FConfig.Flush();
+  FConfig.Free();
 end;
 
 procedure THelpForm.AddRecentFile(AFileName: String);
@@ -584,9 +585,13 @@ end;
 procedure THelpForm.OpenRecentItemClick(Sender: TObject);
 var
   Item: TRecentMenuItem absolute Sender;
+  res: DWord;
 begin
-  OpenURL(Item.URL);
-  AddRecentFile(Item.URL);
+  res := OpenURL(Item.URL);
+  if res = Ord(srSuccess) then
+    AddRecentFile(Item.URL)
+  else
+    MessageDlg(Format(slhelp_NotFound, [Item.URL]), mtError, [mbOK], 0);
 end;
 
 procedure THelpForm.SendResponse(Response: DWord);
@@ -758,8 +763,8 @@ var
   Filename: String;
 begin
   FillChar(IsHandled{%H-}, 51, 0);
-  X:=1;
-  while X<=ParamCount do
+  X := 1;
+  while X <= ParamCount do
   begin
     if LowerCase(ParamStrUTF8(X)) = '--ipcname' then
     begin
@@ -788,11 +793,11 @@ begin
     begin
       IsHandled[X] := True;
       inc(X);
-      FHide:=true;
+      FHide := True;
     end
     else
     begin
-      IsHandled[X]:=copy(ParamStrUTF8(X),1,1)='-'; // ignore other parameters
+      IsHandled[X] := (Copy(ParamStrUTF8(X), 1, 1) = '-'); // ignore other parameters
       inc(X);
     end;
   end;
@@ -802,14 +807,14 @@ begin
     if not IsHandled[X] then
     begin
       //DoOpenChm(ParamStrUTF8(X));
-      URL:=ParamStrUTF8(X);
+      URL := ParamStrUTF8(X);
       if Pos('://', URL) = 0 then
         URL := 'file://'+URL;
       Filename:=URL;
-      if copy(Filename,1,length('file://'))='file://' then
+      if Copy(Filename, 1, Length('file://')) = 'file://' then
       begin
-        System.Delete(Filename,1,length('file://'));
-        Filename:=SetDirSeparators(Filename);
+        System.Delete(Filename, 1, Length('file://'));
+        Filename := SetDirSeparators(Filename);
         if not FileExistsUTF8(Filename) then
         begin
           DebugLn('THelpForm.ReadCommandLineOptions file not found "' + Filename + '"');

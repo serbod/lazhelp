@@ -1047,8 +1047,7 @@ begin
   MoveToFirstLeafNode();
   LastWord := '';
   repeat
-    if (ReadLeafNodeEntry(LastWord, TheWord, InTitle, WLCCount, WLCOffset, WLCSize) =
-      False) then
+    if (ReadLeafNodeEntry(LastWord, TheWord, InTitle, WLCCount, WLCOffset, WLCSize) = False) then
     begin
       if FnextLeafNode <> 0 then
       begin

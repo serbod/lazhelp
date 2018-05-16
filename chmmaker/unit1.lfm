@@ -3,8 +3,8 @@ object CHMForm: TCHMForm
   Height = 555
   Top = 246
   Width = 616
-  HorzScrollBar.Page = 600
-  VertScrollBar.Page = 475
+  HorzScrollBar.Page = 608
+  VertScrollBar.Page = 453
   AutoScroll = True
   Caption = 'Compiled HTML Help Project - [Made with Freepascal]'
   ClientHeight = 535
@@ -27,9 +27,9 @@ object CHMForm: TCHMForm
     Height = 512
     Top = 0
     Width = 616
-    ActivePage = tsContext
+    ActivePage = tsMain
     Align = alClient
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 1
     object tsMain: TTabSheet
       Caption = 'Main page'
