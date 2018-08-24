@@ -61,6 +61,8 @@ type
     lbProjectDir: TLabel;
     lbCodepage: TLabel;
     lbTitle: TLabel;
+    lboxWindows: TListBox;
+    lvWindows: TListView;
     lvAliases: TListView;
     MemoLog: TMemo;
     miProjectImport: TMenuItem;
@@ -98,6 +100,7 @@ type
     SaveDialog1: TSaveDialog;
     StatusBar1: TStatusBar;
     edTOCFilename: TFileNameEdit;
+    tsWindows: TTabSheet;
     tmrImport: TTimer;
     tsContext: TTabSheet;
     tsLog: TTabSheet;
@@ -125,6 +128,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure edIndexFilenameAcceptFileName(Sender: TObject; var Value: string);
     procedure btnIndexEditClick(Sender: TObject);
+    procedure lboxWindowsSelectionChange(Sender: TObject; User: boolean);
     procedure lvAliasesData(Sender: TObject; Item: TListItem);
     procedure RemoveFilesBtnClick(Sender: TObject);
     procedure edTOCFilenameAcceptFileName(Sender: TObject; var Value: string);
@@ -145,6 +149,8 @@ type
     procedure InitFileDialog(Dlg: TFileDialog);
     procedure ProjectDirChanged();
     procedure UpdateAliasesList();
+    procedure UpdateWindowsList();
+    procedure UpdateWindowParamList(ChmWindow: TChmWindow);
 
     procedure SetStatusStr(const AText: string);
 
@@ -702,6 +708,23 @@ begin
   end;
 end;
 
+procedure TCHMForm.lboxWindowsSelectionChange(Sender: TObject; User: boolean);
+var
+  ChmWindow: TChmWindow;
+  i: Integer;
+begin
+  if (not User) or (not Assigned(Project)) then Exit;
+
+  for i := 0 to lboxWindows.Count-1 do
+  begin
+    if lboxWindows.Selected[i] then
+    begin
+      ChmWindow := Project.Windows.Items[i];
+      UpdateWindowParamList(ChmWindow);
+    end;
+  end;
+end;
+
 procedure TCHMForm.lvAliasesData(Sender: TObject; Item: TListItem);
 var
   ContextItem: TContextItem;
@@ -931,6 +954,8 @@ begin
 
   UpdateAliasesList();
 
+  UpdateWindowsList();
+
   ProjectDirChanged();
 end;
 
@@ -991,6 +1016,138 @@ begin
     lvAliases.Items.Count := 0;
 
   lvAliases.Invalidate();
+end;
+
+procedure TCHMForm.UpdateWindowsList();
+var
+  i: Integer;
+  ChmWindow: TCHMWindow;
+begin
+  if not Assigned(Project) then Exit;
+
+  lboxWindows.Clear();
+  for i := 0 to Project.Windows.Count-1 do
+  begin
+    ChmWindow := Project.Windows.Items[i];
+    lboxWindows.Items.AddObject(ChmWindow.window_type, ChmWindow);
+  end;
+end;
+
+procedure TCHMForm.UpdateWindowParamList(ChmWindow: TChmWindow);
+
+procedure AddItem(AName, AValue: string);
+var
+  li: TListItem;
+begin
+  li := lvWindows.Items.Add();
+  li.Caption := AName;
+  li.SubItems.Add(AValue);
+end;
+
+function BoolToStr(Value: Boolean): string;
+begin
+  if Value then
+    Result := 'On'
+  else
+    Result := 'Off';
+end;
+
+var
+  NavStyle: TCHMNavPaneStyle;
+  Buttons: TCHMToolbarButtons;
+  s: string;
+begin
+  if not Assigned(ChmWindow) then Exit;
+
+  lvWindows.Items.BeginUpdate();
+  lvWindows.Items.Clear();
+
+  AddItem('Window type', ChmWindow.window_type);
+  AddItem('Title bar text', ChmWindow.Title_bar_text);
+  AddItem('TOC file', ChmWindow.Toc_file);
+  AddItem('Index file', ChmWindow.index_file);
+  AddItem('Default file', ChmWindow.Default_File);
+  AddItem('Home button file', ChmWindow.Home_button_file);
+  AddItem('Jump 1 button file', ChmWindow.Jumpbutton_1_File);
+  AddItem('Jump 1 button text', ChmWindow.Jumpbutton_1_Text);
+  AddItem('Jump 2 button file', ChmWindow.Jumpbutton_2_File);
+  AddItem('Jump 2 button text', ChmWindow.Jumpbutton_2_Text);
+
+  AddItem('Navigation panel closed', BoolToStr(ChmWindow.navpane_initially_closed <> 0));
+  s := 'Unknown';
+  case ChmWindow.navpane_default of
+    0: s := 'TOC';
+    1: s := 'Index';
+    2: s := 'Search';
+    3: s := 'Favorites';
+    4: s := 'History';
+    5: s := 'Author';
+    11..19: s := 'Custom tab ' + IntToStr(ChmWindow.navpane_default - 10);
+  end;
+  AddItem('Default tab', s);
+
+  // Nav panel style
+  Move(ChmWindow.nav_style, NavStyle, SizeOf(NavStyle));
+  AddItem('Auto-hide', BoolToStr(NavStyle.AutoHide));
+  AddItem('Keep on top', BoolToStr(NavStyle.KeepOnTop));
+  AddItem('No title bar', BoolToStr(NavStyle.NoTitleBar));
+  AddItem('No default styles', BoolToStr(NavStyle.NoDefaultStyles));
+  AddItem('No default extended styles', BoolToStr(NavStyle.NoDefaultExtStyles));
+  AddItem('Use navigation panel', BoolToStr(NavStyle.UseNavPane));
+  AddItem('No text on buttons', BoolToStr(NavStyle.NoTextOnButtons));
+  AddItem('Post WM_QUIT on close', BoolToStr(NavStyle.PostWmQuitOnClose));
+  AddItem('Auto sync on topic change', BoolToStr(NavStyle.AutoSyncOnTopicChange));
+  AddItem('Send tracking messages', BoolToStr(NavStyle.SendTrackingMessages));
+  AddItem('Include Search tab', BoolToStr(NavStyle.IncludeSearchTab));
+  AddItem('Include History tab', BoolToStr(NavStyle.IncludeHistoryTab));
+  AddItem('Include Favorites tab', BoolToStr(NavStyle.IncludeFavoritesTab));
+  AddItem('Show topic title', BoolToStr(NavStyle.ShowTopicTitle));
+  AddItem('Show empty panel', BoolToStr(NavStyle.ShowEmptyPane));
+  AddItem('Disable toolbar', BoolToStr(NavStyle.DisableToolbar));
+  AddItem('MSDN menu', BoolToStr(NavStyle.MSDNMenu));
+  AddItem('Advanced FTS UI', BoolToStr(NavStyle.AdvancedFTS_UI));
+  AddItem('Allow change size/position', BoolToStr(NavStyle.AllowChangePaneRect));
+  AddItem('Use custom tab 1', BoolToStr(NavStyle.UseCustomTab1));
+  AddItem('Use custom tab 2', BoolToStr(NavStyle.UseCustomTab2));
+  AddItem('Use custom tab 3', BoolToStr(NavStyle.UseCustomTab3));
+  AddItem('Use custom tab 4', BoolToStr(NavStyle.UseCustomTab4));
+  AddItem('Use custom tab 5', BoolToStr(NavStyle.UseCustomTab5));
+  AddItem('Use custom tab 6', BoolToStr(NavStyle.UseCustomTab6));
+  AddItem('Use custom tab 7', BoolToStr(NavStyle.UseCustomTab7));
+  AddItem('Use custom tab 8', BoolToStr(NavStyle.UseCustomTab8));
+  AddItem('Use custom tab 9', BoolToStr(NavStyle.UseCustomTab9));
+  AddItem('EnableMargin', BoolToStr(NavStyle.EnableMargin));
+
+  // Toolbar buttons
+  Move(ChmWindow.buttons, Buttons, SizeOf(Buttons));
+  AddItem('Hide/show button', BoolToStr(Buttons.HideShowBtn));
+  AddItem('Back button', BoolToStr(Buttons.BackBtn));
+  AddItem('Forward button', BoolToStr(Buttons.ForwardBtn));
+  AddItem('Stop button', BoolToStr(Buttons.StopBtn));
+  AddItem('Refresh button', BoolToStr(Buttons.RefreshBtn));
+  AddItem('Home button', BoolToStr(Buttons.HomeBtn));
+  AddItem('Next button', BoolToStr(Buttons.NextBtn));
+  AddItem('Previous button', BoolToStr(Buttons.PreviousBtn));
+  AddItem('Notes button', BoolToStr(Buttons.NotesBtn));
+  AddItem('Contents button', BoolToStr(Buttons.ContentsBtn));
+  AddItem('Locate button', BoolToStr(Buttons.LocateBtn));
+  AddItem('Options button', BoolToStr(Buttons.OptionsBtn));
+  AddItem('Print button', BoolToStr(Buttons.PrintBtn));
+  AddItem('Index button', BoolToStr(Buttons.IndexBtn));
+  AddItem('Search button', BoolToStr(Buttons.SearchBtn));
+  AddItem('History button', BoolToStr(Buttons.HistoryBtn));
+  AddItem('Favorites button', BoolToStr(Buttons.FavoritesBtn));
+  AddItem('Jump 1 button', BoolToStr(Buttons.Jump1Btn));
+  AddItem('Jump 2 button', BoolToStr(Buttons.Jump2Btn));
+  AddItem('Font button', BoolToStr(Buttons.FontBtn));
+  AddItem('Next Topic button', BoolToStr(Buttons.NextTopicBtn));
+  AddItem('Previous Topic button', BoolToStr(Buttons.PreviousTopicBtn));
+
+
+  //AddItem('', ChmWindow.);
+  //AddItem('', ChmWindow.);
+
+  lvWindows.Items.EndUpdate();
 end;
 
 procedure TCHMForm.SetStatusStr(const AText: string);

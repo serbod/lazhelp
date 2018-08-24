@@ -1290,7 +1290,7 @@ begin
   end;
 end;
 
-function TChmReader.ReadStringsEntryFromStream (strm: TStream): String;
+function TChmReader.ReadStringsEntryFromStream(strm: TStream): String;
 var
   APosition : DWord;
 begin

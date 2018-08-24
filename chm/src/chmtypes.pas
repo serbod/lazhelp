@@ -148,6 +148,69 @@ type
 
   TValidWindowFields     = Set Of TValidWindowFieldsEnum;
 
+  TCHMNavPaneStyle = bitpacked record
+    AutoHide: Boolean;              // False (recommended)
+    KeepOnTop: Boolean;             // False
+    NoTitleBar: Boolean;            // False
+    NoDefaultStyles: Boolean;
+    NoDefaultExtStyles: Boolean;
+    UseNavPane: Boolean;            // True
+    NoTextOnButtons: Boolean;       // True
+    PostWmQuitOnClose: Boolean;     // False
+    AutoSyncOnTopicChange: Boolean; // True
+    SendTrackingMessages: Boolean;  // False
+    IncludeSearchTab: Boolean;      // True
+    IncludeHistoryTab: Boolean;     // False
+    IncludeFavoritesTab: Boolean;   // True
+    ShowTopicTitle: Boolean;        // True
+    ShowEmptyPane: Boolean;         // False
+    DisableToolbar: Boolean;        // False
+    MSDNMenu: Boolean;              // False
+    AdvancedFTS_UI: Boolean;        // True
+    AllowChangePaneRect: Boolean;   // True
+    UseCustomTab1: Boolean;         // False
+    UseCustomTab2: Boolean;         // False
+    UseCustomTab3: Boolean;         // False
+    UseCustomTab4: Boolean;         // False
+    UseCustomTab5: Boolean;         // False
+    UseCustomTab6: Boolean;         // False
+    UseCustomTab7: Boolean;         // False
+    UseCustomTab8: Boolean;         // False
+    UseCustomTab9: Boolean;         // False
+    EnableMargin: Boolean;          // True
+    Unknown1: Boolean;
+    Unknown2: Boolean;
+    Unknown3: Boolean;
+  end;
+
+  TCHMToolbarButtons = bitpacked record
+    Unknown1: Boolean;              // True (recommended)
+    HideShowBtn: Boolean;           // True
+    BackBtn: Boolean;               // True
+    ForwardBtn: Boolean;            // True
+    StopBtn: Boolean;               // True
+    RefreshBtn: Boolean;            // True
+    HomeBtn: Boolean;               // True
+    NextBtn: Boolean;               // False
+    PreviousBtn: Boolean;           // False
+    NotesBtn: Boolean;              // False
+    ContentsBtn: Boolean;           // False
+    LocateBtn: Boolean;             // True
+    OptionsBtn: Boolean;            // True
+    PrintBtn: Boolean;              // True
+    IndexBtn: Boolean;              // False
+    SearchBtn: Boolean;             // False
+    HistoryBtn: Boolean;            // False
+    FavoritesBtn: Boolean;          // False
+    Jump1Btn: Boolean;
+    Jump2Btn: Boolean;
+    FontBtn: Boolean;               // True
+    NextTopicBtn: Boolean;          // True
+    PreviousTopicBtn: Boolean;      // True
+    Unknown2: Boolean;
+    Unknown3: Byte;
+  end;
+
   { TCHMWindow }
 
   TCHMWindow = class
@@ -874,9 +937,10 @@ end;
 
 constructor TCHMWindow.Create(s: string = '');
 begin
- flags := DefValidFlags;
- if s <> '' then
-   LoadFromIni(s);
+  inherited Create;
+  flags := DefValidFlags;
+  if s <> '' then
+    LoadFromIni(s);
 end;
 
 
