@@ -199,6 +199,7 @@ var
   s, sProjectFileName, sProjectDir: string;
   fsChm, fs: TFileStream;
   SiteMap: TChmSiteMap;
+  ChmWindow: TCHMWindow;
   sl: TStringList;
   i: Integer;
   ContextItem: TContextItem;
@@ -218,6 +219,10 @@ begin
     Project.DefaultPage := StripPath(ChmReader.DefaultPage);
     Project.LocaleID := ChmReader.LocaleID;
     Project.DefaultFont := ChmReader.PreferedFont;
+    Project.DefaultWindow := ChmReader.DefaultWindow;
+    Project.MakeBinaryIndex := ChmReader.HasBinaryIndex;
+    Project.MakeBinaryTOC := ChmReader.HasBinaryTOC;
+    Project.MakeSearchable := ChmReader.HasSearch;
 
     // extract TOC
     Project.TableOfContentsFileName := StripPath(ChmReader.TOCFile);
@@ -248,24 +253,27 @@ begin
     end;
 
     // extract Aliases (Context)
-    sl := TStringList.Create();
-    //fs := TFileStream.Create(sProjectDir + '_alias.ini', fmCreate);
-    try
-      SetStatusStr('Extracting: Constext');
-      for i := 0 to ChmReader.ContextList.Count-1 do
-      begin
-        ContextItem := ChmReader.ContextList.GetItem(i);
-        if Assigned(ContextItem) then
+    if ChmReader.HasContextList() then
+    begin
+      sl := TStringList.Create();
+      //fs := TFileStream.Create(sProjectDir + '_alias.ini', fmCreate);
+      try
+        SetStatusStr('Extracting: Context');
+        for i := 0 to ChmReader.ContextList.Count-1 do
         begin
-          Project.ContextList.AddContext(ContextItem.ContextID, ContextItem.UrlAlias, ContextItem.Url);
-          sl.Add(ContextItem.UrlAlias + '=' + ContextItem.Url);
+          ContextItem := ChmReader.ContextList.GetItem(i);
+          if Assigned(ContextItem) then
+          begin
+            Project.ContextList.AddContext(ContextItem.ContextID, ContextItem.UrlAlias, ContextItem.Url);
+            sl.Add(ContextItem.UrlAlias + '=' + ContextItem.Url);
+          end;
         end;
+        if sl.Count > 0 then
+          sl.SaveToFile(sProjectDir + '_context.ali');
+      finally
+        //FreeAndNil(fs);
+        FreeAndNil(sl);
       end;
-      if sl.Count > 0 then
-        sl.SaveToFile(sProjectDir + '_context.ali');
-    finally
-      //FreeAndNil(fs);
-      FreeAndNil(sl);
     end;
 
     // extract files
@@ -301,6 +309,17 @@ begin
         end;
       end;
 
+      // extract windows entry
+      if ChmReader.Windows.Count > 0 then
+      begin
+        SetStatusStr('Extracting: Windows');
+        for i := 0 to ChmReader.Windows.Count-1 do
+        begin
+          ChmWindow := TCHMWindow.Create();
+          ChmWindow.Assign(ChmReader.Windows.Items[i]);
+          Project.Windows.Add(ChmWindow);
+        end;
+      end;
     finally
       sl.Free();
     end;
@@ -310,6 +329,9 @@ begin
     fsChm.Free();
   end;
   SetStatusStr('Saving project..');
+  Project.SaveToFile(sProjectFileName);
+  // HHP
+  sProjectFileName := sProjectDir + ExtractFileNameOnly(ChmFilename)+'.hhp';
   Project.SaveToFile(sProjectFileName);
   //CloseProject();
   SetStatusStr('');

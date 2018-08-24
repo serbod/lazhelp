@@ -139,6 +139,10 @@ type
     FPreferedFont: String;
     FLocaleID: DWord;
     FDefaultWindow: String;
+    FCompilerName: String;
+    FHasBinaryIndex: Boolean;
+    FHasBinaryTOC: Boolean;
+    FHasSearch: Boolean;
     { Read item from STRINGS section from APosition offset }
     function ReadStringsEntry(APosition: DWord): String;
     function ReadStringsEntryFromStream(strm: TStream): String;
@@ -181,14 +185,20 @@ type
     property DefaultPage: String read FDefaultPage;
     { Index file name (.hhk) }
     property IndexFile: String read FIndexFile;
+    { Binary Index enabled }
+    property HasBinaryIndex: Boolean read FHasBinaryIndex;
     { TOC file name (.hhc) }
     property TOCFile: String read FTOCFile;
+    { Binary TOC enabled }
+    property HasBinaryTOC: Boolean read FHasBinaryTOC;
     { CHM Title }
     property Title: String read FTitle write FTitle;
     { Default font name }
     property PreferedFont: String read FPreferedFont;
     { MS Windows locale ID code }
     property LocaleID: DWord read FLocaleID;
+    { Full-text search enabled }
+    property HasSearch: Boolean read FHasSearch;
     { Full-text search reader (optional). Do CheckSearchReader() before using SearchReader!
       It returns TopicID arrays as result, so use LookupTopicByID() for converting TopicID to URL }
     property SearchReader: TChmSearchReader read FSearchReader;
@@ -196,8 +206,10 @@ type
     property ContextList: TContextList read FContextList;
     { Help window appearance defenitions (TChmWindow) list }
     property Windows: TCHMWindowList read FWindowsList;
-    { not used }
+    { Default window apperiance entry name }
     property DefaultWindow: string read FDefaultWindow;
+    { CHM compiler name and version }
+    property CompilerName: String read FCompilerName;
   end;
 
   TChmFileList = class;
@@ -1114,6 +1126,16 @@ var
   Data: array[0..511] of Char;
   ms: TMemoryStream;
   Tmp: String;
+  TmpDW: LongWord;
+
+function ReadTextEntry(): string;
+begin
+  if EntryLength > 511 then EntryLength := 511;
+  ms.Read(Data[0], EntryLength);
+  Data[EntryLength] := #0;
+  Result := Data;
+end;
+
 begin
   Data[0] := #0;
   ms := TMemoryStream.Create();
@@ -1129,36 +1151,31 @@ begin
         case EntryType of
           0: // Table of contents
           begin
-            if EntryLength > 511 then EntryLength := 511;
-            ms.Read(Data[0], EntryLength);
-            Data[EntryLength] := #0;
-            FTOCFile := '/'+Data;
+            FTOCFile := '/' + ReadTextEntry();
           end;
           1: // Index File
           begin
-            if EntryLength > 511 then EntryLength := 511;
-            ms.Read(Data[0], EntryLength);
-            Data[EntryLength] := #0;
-            FIndexFile := '/'+Data;
+            FIndexFile := '/' + ReadTextEntry();
           end;
           2: // DefaultPage
           begin
-            if EntryLength > 511 then EntryLength := 511;
-            ms.Read(Data[0], EntryLength);
-            Data[EntryLength] := #0;
-            FDefaultPage := '/'+Data;
+            FDefaultPage := '/' + ReadTextEntry();
           end;
           3: // Title of chm
           begin
-            if EntryLength > 511 then EntryLength := 511;
-            ms.Read(Data[0], EntryLength);
-            Data[EntryLength] := #0;
-            FTitle := Data;
+            FTitle := ReadTextEntry();
           end;
           4: // Locale ID
           begin
             FLocaleID := LEtoN(ms.ReadDWord);
-            ms.Position := (ms.Position + EntryLength) - SizeOf(DWord);
+            LEtoN(ms.ReadDWord()); // DBCS flag
+            TmpDW := LEtoN(ms.ReadDWord); // One if full-text search is on
+            FHasSearch := (TmpDW <> 0);
+            ms.Position := (ms.Position + EntryLength) - (SizeOf(DWord) * 3);
+          end;
+          5: // Default window
+          begin
+            FDefaultWindow := ReadTextEntry();
           end;
           6: // chm file name. use this to get the index and toc name
           begin
@@ -1182,12 +1199,25 @@ begin
               end;
             end;
           end;
+          7: // Binary Index pointer
+          begin
+            TmpDW := LEtoN(ms.ReadDWord);
+            FHasBinaryIndex := (TmpDW <> 0);
+            ms.Position := (ms.Position + EntryLength) - SizeOf(DWord);
+          end;
+          9: // Compiler name and version
+          begin
+            FCompilerName := ReadTextEntry();
+          end;
+          11: // Binary TOC pointer
+          begin
+            TmpDW := LEtoN(ms.ReadDWord);
+            FHasBinaryTOC := (TmpDW <> 0);
+            ms.Position := (ms.Position + EntryLength) - SizeOf(DWord);
+          end;
           16: // Prefered font
           begin
-            if EntryLength > 511 then EntryLength := 511;
-            ms.Read(Data[0], EntryLength);
-            Data[EntryLength] := #0;
-            FPreferedFont := Data;
+            FPreferedFont := ReadTextEntry();
             // todo:  the first number is the point size & the last number is the character set
           end;
         else
@@ -1622,6 +1652,7 @@ begin
               ParseSiteMapListingBlock(SiteMap, @block);
             end;
           end;
+          FHasBinaryIndex := True;
           ForceXML := False;
           Result := True;
         end;
