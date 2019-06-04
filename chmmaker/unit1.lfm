@@ -14,7 +14,7 @@ object CHMForm: TCHMForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   ShowInTaskBar = stAlways
-  LCLVersion = '1.9.0.0'
+  LCLVersion = '2.0.2.0'
   object StatusBar1: TStatusBar
     Left = 0
     Height = 23
@@ -476,6 +476,43 @@ object CHMForm: TCHMForm
         OnData = lvAliasesData
       end
     end
+    object tsWindows: TTabSheet
+      Caption = 'Windows'
+      ClientHeight = 484
+      ClientWidth = 608
+      object lboxWindows: TListBox
+        Left = 8
+        Height = 104
+        Top = 8
+        Width = 586
+        Anchors = [akTop, akLeft, akRight]
+        ItemHeight = 0
+        OnSelectionChange = lboxWindowsSelectionChange
+        TabOrder = 0
+      end
+      object lvWindows: TListView
+        Left = 8
+        Height = 351
+        Top = 120
+        Width = 586
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        Columns = <        
+          item
+            Caption = 'Name'
+            Width = 350
+          end        
+          item
+            AutoSize = True
+            Caption = 'Value'
+            Width = 44
+          end>
+        GridLines = True
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 1
+        ViewStyle = vsReport
+      end
+    end
     object tsLog: TTabSheet
       Caption = 'Error log'
       ClientHeight = 484
@@ -494,18 +531,18 @@ object CHMForm: TCHMForm
     Filter = 'Help File Project (*.hfp)|*.hfp|HTML Help Project (*.hhp)|*.hhp'
     FilterIndex = 0
     Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
-    Left = 10
-    Top = 20
+    left = 10
+    top = 20
   end
   object SaveDialog1: TSaveDialog
     Filter = 'HTML Help Project (*.hhp)|*.hhp|Help File Project (*.hfp)|*.hfp'
     FilterIndex = 0
-    Left = 40
-    Top = 20
+    left = 40
+    top = 20
   end
   object MainMenu1: TMainMenu
-    Left = 75
-    Top = 20
+    left = 75
+    top = 20
     object miProjectMenu: TMenuItem
       Caption = 'Project'
       object miProjectNew: TMenuItem
@@ -561,12 +598,12 @@ object CHMForm: TCHMForm
   object OpenDialog2: TOpenDialog
     FilterIndex = 0
     Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
-    Left = 12
-    Top = 304
+    left = 12
+    top = 304
   end
   object alMain: TActionList
-    Left = 144
-    Top = 20
+    left = 144
+    top = 20
     object actProjectNew: TAction
       Category = 'Project'
       Caption = 'New Project'
@@ -621,14 +658,14 @@ object CHMForm: TCHMForm
   object OpenDialogImportChm: TOpenDialog
     DefaultExt = '.chm'
     Filter = 'CHM files (*.chm)|*.chm'
-    Left = 12
-    Top = 72
+    left = 12
+    top = 72
   end
   object tmrImport: TTimer
     Enabled = False
     Interval = 250
     OnTimer = tmrImportTimer
-    Left = 115
-    Top = 81
+    left = 115
+    top = 81
   end
 end

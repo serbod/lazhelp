@@ -49,6 +49,18 @@ implementation
 
 {$R *.lfm}
 
+procedure StreamToFile(AStream: TStream; AFileName: string);
+var
+  fs: TFileStream;
+begin
+  fs := TFileStream.Create(AFileName, fmCreate);
+  try
+    fs.CopyFrom(AStream, AStream.Size - AStream.Position);
+  finally
+    fs.Free();
+  end;
+end;
+
 { TFormMain }
 
 procedure TFormMain.FormCreate(Sender: TObject);
@@ -106,7 +118,7 @@ begin
         try
           ChmReader.ReadFileContent(ChmEntry.Name, ss);
           Memo1.Text := Memo1.Text + ss.DataString;
-          ss.SaveToFile('tmp_file.txt');
+          StreamToFile(ss, 'tmp_file.txt');
         finally
           ss.Free();
         end;
@@ -132,7 +144,7 @@ begin
         try
           ChmReader.ReadFileContent('/'+TOCItem.Local, ss);
           Memo1.Text := Memo1.Text + ss.DataString;
-          ss.SaveToFile('tmp_file.txt');
+          StreamToFile(ss, 'tmp_file.txt');
         finally
           ss.Free();
         end;
