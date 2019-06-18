@@ -56,11 +56,11 @@ function GetNameValPair_cs(tag, attribname: string): string;
 
 implementation
 
-function CopyBuffer(StartIndex: PChar; Length: Integer): string;
+function CopyBuffer(StartIndex: PChar; ALength: Integer): string;
 begin
   // works faster, than SetString() and Move()
-  SetLength(Result, Length);
-  StrLCopy(PChar(Result), StartIndex, Length);
+  SetLength(Result, ALength);
+  StrLCopy(PChar(Result), StartIndex, ALength);
 end;
 
 { Return tag name, case preserved }

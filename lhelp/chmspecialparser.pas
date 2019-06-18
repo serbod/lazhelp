@@ -67,33 +67,54 @@ end;
 
 function FixEscapedHTML(const AText: string): string;
 var
-  i, len: Integer;
-  ampstr: string;
+  i, iPosAmpersand, iLenAText: Integer;
+  bFoundClosureSemiColon: Boolean;
+  ampStr: string;
   ws: widestring;
   entity: widechar;
 begin
   Result := '';
-  entity := ' ';
   i := 1;
-  len := Length(AText);
-  while i <= len do
+  iLenAText:= Length(AText);
+  while i <= iLenAText do
   begin
-    if AText[i]='&' then
+    if AText[i] = '&' then
     begin
+      iPosAmpersand := i;
       ampStr := '';
       Inc(i);
-      if i > len then Break;
-      while AText[i] <> ';' do
+      while (i <= iLenAText) and (AText[i] <> ';') do
       begin
         ampStr := ampStr + AText[i];
         Inc(i);
-        if i > len then Break;
       end;
-      ws := UTF8Decode(ampStr);
-      if ResolveHTMLEntityReference(ws, entity) then
-        Result := Result + UnicodeToUTF8(cardinal(entity))
+      //is there a Char ';', closing a possible HTML entity like '&{#x}~~~{~~};'?
+      bFoundClosureSemiColon := False;
+      if (i > iLenAText) then
+      begin
+        if (AText[i-1] = ';') then
+          bFoundClosureSemiColon := True;
+      end
       else
-        Result := Result + '?';
+      begin
+        if (AText[i] = ';') then
+          bFoundClosureSemiColon := True;
+      end;
+
+      if bFoundClosureSemiColon then
+      begin
+        //only if it's a possible HTML encoded character like "&xxx;" ...
+        ws := UTF8Encode(ampStr);
+        if ResolveHTMLEntityReference(ws, entity) then
+          Result := Result + UnicodeToUTF8(cardinal(entity))
+        else
+          Result := Result + '?';
+      end
+      else
+      begin
+        //it's not an HTML entity; only an ampersand by itself
+	Result := Result + RightStr(AText, iLenAText - (iPosAmpersand-1));
+      end;
     end
     else
       Result := Result + AText[i];
