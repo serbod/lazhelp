@@ -65,7 +65,7 @@ type
 
     procedure AddHistory(const AURL: String);
     procedure DoOpenChm(AFile: String; ACloseCurrent: Boolean = True);
-    procedure DoCloseChm();
+    procedure DoCloseChm;
     procedure DoLoadContext(Context: THelpContext);
     procedure DoLoadUri(const AUri: String; AChm: TChmReader = nil);
     procedure DoError({%H-}Error: Integer);
@@ -576,7 +576,7 @@ begin
       {$IFDEF CHM_BINARY_INDEX_TOC}
       CHMReader.ReadTOCSitemap(SM);
       {$ELSE}
-      fFillingIndex := True;
+      FFillingIndex := True;
       Stream := TMemoryStream(CHMReader.GetObject(CHMReader.TOCFile));
       if Stream <> nil then
       begin
@@ -628,12 +628,14 @@ begin
         {$ENDIF}
         StatusText := slhelp_IndexLoading;
         ContentsFiller := TContentsFiller.Create(FChmFrame.tvIndex, SM, @FStopTimer, CHMReader);
+        FChmFrame.tvIndex.BeginUpdate;
         try
           ContentsFiller.DoFill(nil);
+          FChmFrame.tvIndex.FullExpand();
         finally
+          FChmFrame.tvIndex.EndUpdate;
           ContentsFiller.Free();
         end;
-        FChmFrame.tvIndex.FullExpand();
 
       finally
         SM.Free();
@@ -796,7 +798,7 @@ begin
   NewTitle := FActiveChmTitle +' [';
   while Item <> nil do
   begin
-    if ITem.Text <> FActiveChmTitle then
+    if Item.Text <> FActiveChmTitle then
     begin
       NewTitle := NewTitle + Item.Text;
       if (Item.GetNextSibling <> nil)
@@ -1095,7 +1097,7 @@ begin
       FChmFrame.tvSearchResults.Items.Add(nil, slhelp_NoResults);
     end;
   finally
-    SearchWords.Free();
+    SearchWords.Free;
     FChmFrame.tvSearchResults.EndUpdate();
   end;
 

@@ -315,7 +315,7 @@ begin
         Delete(Result, X, 1);
     until X = 0;
   finally
-    ParentDirs.Free();
+    ParentDirs.Free;
   end;
   //WriteLn('res = ', Result);
 end;

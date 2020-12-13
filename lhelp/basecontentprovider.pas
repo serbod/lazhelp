@@ -23,7 +23,7 @@ type
     FImageList: TImageList;
     function GetTitle: String; virtual;
     procedure SetTitle(const AValue: String); virtual;
-    function IsUpdating(): Boolean;
+    function IsUpdating: Boolean;
   public
     function CanGoBack: Boolean; virtual; abstract;
     function CanGoForward: Boolean; virtual; abstract;
@@ -100,7 +100,7 @@ begin
     FOnTitleChange(Self);
 end;
 
-function TBaseContentProvider.IsUpdating(): Boolean;
+function TBaseContentProvider.IsUpdating: Boolean;
 begin
   Result := FUpdateCount <> 0;
 end;

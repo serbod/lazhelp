@@ -161,7 +161,7 @@ type
     // It is used both for starting up the local server and to ID the remote server
     procedure StartComms(ServerName: String);
     // Stop simple IPC server/client
-    procedure StopComms();
+    procedure StopComms;
     // Open specified URL in viewer window
     function OpenURL(const AURL: String; AContext: THelpContext=-1): DWord;
     // Open specified URL - presumably used to queue URLs for delayed opening
@@ -327,7 +327,7 @@ begin
   begin
     if OpenURL(sRes) = Ord(srSuccess) then
       AddRecentFile(sRes);
-    RefreshState();
+    RefreshState;
   end;
 end;
 
@@ -434,7 +434,7 @@ begin
   if (not Assigned(FConfig)) then exit;
   if (not FHide) and (not FLayoutApplied) then
   begin
-    if (FConfig.GetValue('Position/Maximized', False) = True) then
+    if FConfig.GetValue('Position/Maximized', False) then
     begin
       Windowstate := wsMaximized
     end
@@ -610,7 +610,7 @@ begin
       FOutputIPC.SendMessage(mtUnknown, Stream);
     end;
   finally
-    Stream.Free();
+    Stream.Free;
   end;
 end;
 
@@ -652,7 +652,7 @@ begin
         if UrlReq.FileRequest.FileName <> '' then
         begin
           Url := 'file://' + UrlReq.FileRequest.FileName;
-          Res := OpenUrl(URL+'://'+UrlReq.Url)
+          Res := OpenUrl(URL+'://' + UrlReq.Url);
         end
         else
         begin
@@ -811,7 +811,8 @@ begin
       if Pos('://', URL) = 0 then
         URL := 'file://'+URL;
       Filename:=URL;
-      if Copy(Filename, 1, Length('file://')) = 'file://' then
+      //if Copy(Filename, 1, Length('file://')) = 'file://' then
+      if Pos('file://', FileName) = 1 then
       begin
         System.Delete(Filename, 1, Length('file://'));
         Filename := SetDirSeparators(Filename);
