@@ -2,7 +2,7 @@
 {*     IPHTML.PAS - HTML Browser and associated classes           *}
 {******************************************************************}
 
-{ $Id: iphtml.pas 64099 2020-11-02 10:04:43Z juha $ }
+{ $Id: iphtml.pas 64202 2020-12-13 21:12:10Z wp $ }
 
 (* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1
@@ -2215,7 +2215,12 @@ type
     function getControlCount:integer;
     function getControl(i:integer):TIpHtmlNode;
   public
+    //! options for test
     NeedResize: Boolean;
+    UseTextOut: Boolean;
+    RestoreWordStyle: Boolean;
+    KeepFontsStyle: Boolean;
+
     constructor Create;
     destructor Destroy; override;
     function PagePtToScreen(const Pt: TPoint): TPoint;
@@ -2315,6 +2320,7 @@ type
     InPrint: Integer;
     {$ENDIF}
     SettingPageRect : Boolean;
+    FPaintingLock: Integer;
     MouseDownX, MouseDownY : Integer;
     HaveSelection,
     MouseIsDown,
@@ -2348,7 +2354,7 @@ type
     procedure DoCurElementChange;
     procedure DoHotInvoke;
     procedure DoClick;
-    procedure Resize; override;
+    procedure DoOnResize; override;
     procedure ScrollInView(R : TRect);
     procedure ScrollInViewRaw(R : TRect);
     function PagePtToScreen(const Pt : TPoint): TPoint;
@@ -10441,10 +10447,13 @@ begin
                     end;
 
                     // set TR color, Render override them anyway if TD/TH have own settings
-                    Props.BGColor := TrBgColor;
-                    Props.FontColor := TrTextColor;
+                    if FOwner.NeedResize then
+                    begin
+                      Props.BGColor := TrBgColor;
+                      Props.FontColor := TrTextColor;
 
-                    Props.VAlignment := Al;
+                      Props.VAlignment := Al;
+                    end;
                     Render(Props);
                     {paint left rule if selected}
                     case Rules of
@@ -13648,32 +13657,42 @@ procedure TIpHtmlInternalPanel.Paint;
 var
   CR: TRect;
 begin
-  CR := GetClientRect;
-  if not ScaleBitmaps {printing} and (Hyper <> nil) then
-  begin
-    // update layout
-    GetPageRect;
-    // render
-    Hyper.Render(Canvas,
-      Rect(
-        ViewLeft, ViewTop,
-        ViewLeft + (CR.Right - CR.Left),
-        ViewTop + (CR.Bottom - CR.Top)
-      ),
-      ViewTop,
-      ViewTop + (CR.Bottom - CR.Top),
-      True,
-      Point(0, 0)
-    )
-  end
-  else
-    Canvas.FillRect(CR);
-  //debugln(['TIpHtmlInternalPanel.Paint ',dbgs(CR)]);
-  FHyper.NeedResize:=False;
-  {$IFDEF IP_LAZARUS_DBG}
-  DebugBox(Canvas, CR, clYellow);
-  Debugbox(Canvas, Canvas.ClipRect, clLime, true);
-  {$ENDIF}
+  if FPaintingLock > 0 then
+    exit;
+  inc(FPaintingLock);
+
+  try
+    if Assigned(HTMLPanel.OnPaint) then HTMLPanel.OnPaint(HTMLPanel);
+
+    CR := GetClientRect;
+    if not ScaleBitmaps {printing} and (Hyper <> nil) then
+    begin
+      // update layout
+      GetPageRect;
+      // render
+      Hyper.Render(Canvas,
+        Rect(
+          ViewLeft, ViewTop,
+          ViewLeft + (CR.Right - CR.Left),
+          ViewTop + (CR.Bottom - CR.Top)
+        ),
+        ViewTop,
+        ViewTop + (CR.Bottom - CR.Top),
+        True,
+        Point(0, 0)
+      )
+    end
+    else
+      Canvas.FillRect(CR);
+    //debugln(['TIpHtmlInternalPanel.Paint ',dbgs(CR)]);
+    {$IFDEF IP_LAZARUS_DBG}
+    DebugBox(Canvas, CR, clYellow);
+    Debugbox(Canvas, Canvas.ClipRect, clLime, true);
+    {$ENDIF}
+    FHyper.NeedResize := False;
+  finally
+    dec(FPaintingLock);
+  end;
 end;
 
 {$IFDEF Html_Print}
@@ -13877,15 +13896,16 @@ end;
 procedure TIpHtmlInternalPanel.InvalidateSize;
 begin
   FPageRectValid:=false;
-  Invalidate;
+  if FPaintingLock = 0 then
+    Invalidate;
 end;
 
-procedure TIpHtmlInternalPanel.Resize;
+procedure TIpHtmlInternalPanel.DoOnResize;
 begin
   inherited;
   InvalidateSize;
   if Assigned(FHyper) then
-    FHyper.NeedResize:=True;
+    FHyper.NeedResize := True;
 end;
 
 function TIpHtmlInternalPanel.PagePtToScreen(const Pt : TPoint): TPoint;

@@ -74,6 +74,7 @@ type
     procedure CalcMinMaxQueueWidth(var aMin, aMax: Integer);
     // Used by RenderQueue :
     procedure DoRenderFont(var aCurWord: PIpHtmlElement);
+    procedure DoRenderFont2();
     procedure DoRenderElemWord(aCurWord: PIpHtmlElement; aCurTabFocus: TIpHtmlNode);
     procedure RenderQueue;
   public
@@ -184,7 +185,7 @@ begin
     RemoveLeadingLFs;
   ProcessDuplicateLFs;
 
-  if FOwner.Owner.NeedResize and (not RenderProps.IsEqualTo(Props)) then
+  if not RenderProps.IsEqualTo(Props) then
   begin
     Props.Assign(RenderProps);
     FOwner.LoadAndApplyCSSProps;
@@ -1204,12 +1205,9 @@ begin
     aMax := FBlockMax;
     Exit;
   end;
-  if FOwner.Owner.NeedResize then
-  begin
-    Props.Assign(RenderProps);
-    FOwner.LoadAndApplyCSSProps;
-    FOwner.SetProps(Props);
-  end;
+  Props.Assign(RenderProps);
+  FOwner.LoadAndApplyCSSProps;
+  FOwner.SetProps(Props);
   if FElementQueue.Count = 0 then
     FOwner.Enqueue;
   CalcMinMaxQueueWidth(aMin, aMax);
@@ -1237,6 +1235,25 @@ begin
   FIpHtml.Target.Font.Quality := FIpHtml.FontQuality;
   FIpHtml.Target.Font.EndUpdate;
   FCurProps := aCurWord.Props;
+end;
+
+procedure TIpNodeBlockLayouter.DoRenderFont2();
+begin
+  FCanvas.Font.BeginUpdate; // for speedup
+  with FCurProps do begin
+    FCanvas.Font.Name := FontName;
+    if ScaleFonts then
+      FCanvas.Font.Size := round(FontSize * Aspect)
+    else
+      FCanvas.Font.Size := FontSize;
+    FCanvas.Font.Style := FontStyle;
+  end;
+  if ScaleBitmaps and BWPRinter then
+    FIpHtml.Target.Font.Color := clBlack
+  else
+    FCanvas.Font.Color := FCurProps.FontColor;
+  FIpHtml.Target.Font.Quality := FIpHtml.FontQuality;
+  FIpHtml.Target.Font.EndUpdate;
 end;
 
 procedure TIpNodeBlockLayouter.DoRenderElemWord(aCurWord: PIpHtmlElement;
@@ -1279,7 +1296,8 @@ begin
     exit;
 
   //if (LastOwner <> aCurWord.Owner) then LastPoint := P;
-  saveCanvasProperties;
+  if FOwner.Owner.RestoreWordStyle then
+    saveCanvasProperties;
   TextStyle := FCanvas.TextStyle;
   //debugln(['TIpHtmlNodeBlock.RenderQueue ',aCurWord.AnsiWord]);
   FIpHtml.PageRectToScreen(aCurWord.WordRect2, R);
@@ -1307,8 +1325,12 @@ begin
     FCanvas.Font.Color := clBlack;
   FCanvas.Font.Quality := FOwner.Owner.FontQuality;
   if aCurWord.AnsiWord <> NAnchorChar then
-    FCanvas.TextRect(R, P.x, P.y, NoBreakToSpace(aCurWord.AnsiWord), TextStyle);
-  RestoreCanvasProperties;
+    if FOwner.Owner.UseTextOut then
+      FCanvas.TextOut(P.x, P.y, NoBreakToSpace(aCurWord.AnsiWord))
+    else
+      FCanvas.TextRect(R, P.x, P.y, NoBreakToSpace(aCurWord.AnsiWord), TextStyle);
+  if FOwner.Owner.RestoreWordStyle then
+    RestoreCanvasProperties;
 
   FIpHtml.AddRect(aCurWord.WordRect2, aCurWord, FBlockOwner);
 end;
@@ -1336,7 +1358,10 @@ begin
   for i := 0 to pred(FElementQueue.Count) do begin
     CurWord := PIpHtmlElement(FElementQueue[i]);
     if (CurWord.Props <> nil) and (CurWord.Props <> FCurProps) then
-      DoRenderFont(CurWord);
+      if FOwner.Owner.KeepFontsStyle then
+        FCurProps := CurWord.Props
+      else
+        DoRenderFont(CurWord);
 
     {$IFDEF IP_LAZARUS_DBG}
     //DumpTIpHtmlProps(FCurProps);
@@ -1351,6 +1376,8 @@ begin
       and IntersectRect(R, CurWord.WordRect2, FIpHtml.PageViewRect);
 
     if isVisible then begin
+      if FOwner.Owner.KeepFontsStyle then
+        DoRenderFont2();
       case CurWord.ElementType of
       etWord :
         DoRenderElemWord(CurWord, CurTabFocus);
