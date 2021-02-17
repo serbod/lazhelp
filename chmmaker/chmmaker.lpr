@@ -17,6 +17,10 @@ var
 {$R *.res}
 
 begin
+  {$if declared(useHeapTrace)}
+  globalSkipIfNoLeaks := true; // supported as of debugger version 3.2.0
+  setHeapTraceOutput('chmmaker_trace.log'); // supported as of debugger version 3.2.0
+  {$endIf}
   Application.Initialize;
   Application.CreateForm(TCHMForm, CHMForm);
   Application.CreateForm(TSitemapEditForm, SitemapEditForm);

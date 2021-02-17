@@ -2,35 +2,35 @@
 <CONFIG>
   <ProjectSession>
     <PathDelim Value="\"/>
-    <Version Value="10"/>
+    <Version Value="12"/>
     <BuildModes Active="debug"/>
-    <Units Count="82">
+    <Units Count="120">
       <Unit0>
         <Filename Value="lhelp.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="11"/>
-        <TopLine Value="24"/>
-        <CursorPos X="32" Y="57"/>
-        <UsageCount Value="142"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="48"/>
+        <CursorPos Y="74"/>
+        <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="chmdataprovider.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ChmDataProvider"/>
-        <TopLine Value="187"/>
-        <CursorPos X="49" Y="187"/>
-        <UsageCount Value="142"/>
+        <EditorIndex Value="3"/>
+        <CursorPos X="5" Y="360"/>
+        <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="chmspecialparser.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ChmSpecialParser"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="64"/>
-        <CursorPos X="22" Y="94"/>
-        <UsageCount Value="142"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="141"/>
+        <CursorPos X="39" Y="155"/>
+        <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
@@ -38,7 +38,7 @@
         <IsPartOfProject Value="True"/>
         <ComponentName Value="HelpPopupForm"/>
         <ResourceBaseClass Value="Form"/>
-        <UsageCount Value="142"/>
+        <UsageCount Value="201"/>
       </Unit3>
       <Unit4>
         <Filename Value="lhelpcore.pas"/>
@@ -46,9 +46,9 @@
         <ComponentName Value="HelpForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="12"/>
-        <CursorPos X="87" Y="644"/>
-        <UsageCount Value="142"/>
+        <TopLine Value="142"/>
+        <CursorPos X="41" Y="725"/>
+        <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit4>
@@ -57,7 +57,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LNetHTTPDataProvider"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="142"/>
+        <UsageCount Value="201"/>
       </Unit5>
       <Unit6>
         <Filename Value="basecontentprovider.pas"/>
@@ -65,15 +65,15 @@
         <UnitName Value="BaseContentProvider"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="42" Y="42"/>
-        <UsageCount Value="142"/>
+        <UsageCount Value="201"/>
       </Unit6>
       <Unit7>
         <Filename Value="chmcontentprovider.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <TopLine Value="979"/>
-        <CursorPos Y="995"/>
-        <UsageCount Value="142"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="427"/>
+        <CursorPos X="13" Y="436"/>
+        <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit7>
       <Unit8>
@@ -82,12 +82,12 @@
         <UnitName Value="HTTPContentProvider"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="13" Y="22"/>
-        <UsageCount Value="142"/>
+        <UsageCount Value="201"/>
       </Unit8>
       <Unit9>
         <Filename Value="lhelpstrconsts.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="142"/>
+        <UsageCount Value="201"/>
       </Unit9>
       <Unit10>
         <Filename Value="chmframe.pas"/>
@@ -95,10 +95,10 @@
         <ComponentName Value="FrameChm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <EditorIndex Value="5"/>
-        <TopLine Value="26"/>
-        <CursorPos X="41" Y="35"/>
-        <UsageCount Value="118"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="111"/>
+        <CursorPos X="47" Y="130"/>
+        <UsageCount Value="191"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit10>
@@ -108,14 +108,14 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="146"/>
         <CursorPos X="35" Y="25"/>
-        <UsageCount Value="55"/>
+        <UsageCount Value="128"/>
       </Unit11>
       <Unit12>
         <Filename Value="..\chm\src\chmreader.pas"/>
-        <EditorIndex Value="6"/>
-        <TopLine Value="350"/>
-        <CursorPos X="19" Y="371"/>
-        <UsageCount Value="68"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="235"/>
+        <CursorPos X="14" Y="248"/>
+        <UsageCount Value="81"/>
         <Loaded Value="True"/>
       </Unit12>
       <Unit13>
@@ -123,635 +123,924 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="850"/>
         <CursorPos X="20" Y="860"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="2"/>
       </Unit13>
       <Unit14>
         <Filename Value="..\chm\src\paslzx.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="451"/>
         <CursorPos X="5" Y="453"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="3"/>
       </Unit14>
       <Unit15>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\inc\systemh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1049"/>
         <CursorPos X="13" Y="1068"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="3"/>
       </Unit15>
       <Unit16>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\inc\generic.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1066"/>
         <CursorPos X="26" Y="1083"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="3"/>
       </Unit16>
       <Unit17>
         <Filename Value="..\chm\src\chmtypes.pas"/>
-        <EditorIndex Value="4"/>
-        <CursorPos X="37" Y="15"/>
-        <UsageCount Value="50"/>
+        <EditorIndex Value="15"/>
+        <TopLine Value="14"/>
+        <CursorPos X="22" Y="28"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
       </Unit17>
       <Unit18>
         <Filename Value="..\chm\src\chmsitemap.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="72"/>
-        <CursorPos X="37" Y="107"/>
-        <UsageCount Value="46"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="152"/>
+        <CursorPos X="25" Y="165"/>
+        <UsageCount Value="58"/>
+        <Loaded Value="True"/>
       </Unit18>
       <Unit19>
         <Filename Value="..\chm\src\chmfiftimain.pas"/>
         <UnitName Value="chmFiftiMain"/>
-        <EditorIndex Value="7"/>
-        <TopLine Value="937"/>
-        <CursorPos X="7" Y="959"/>
-        <UsageCount Value="51"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="1137"/>
+        <CursorPos X="33" Y="1153"/>
+        <UsageCount Value="64"/>
         <Loaded Value="True"/>
       </Unit19>
       <Unit20>
         <Filename Value="..\chm\src\chmbase.pas"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="205"/>
         <CursorPos X="21" Y="233"/>
-        <UsageCount Value="50"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="45"/>
       </Unit20>
       <Unit21>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\classes\streams.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="185"/>
         <CursorPos X="5" Y="191"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="2"/>
       </Unit21>
       <Unit22>
         <Filename Value="C:\lazarus\components\turbopower_ipro\iphtml.pas"/>
         <UnitName Value="IpHtml"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="14395"/>
-        <CursorPos X="45" Y="14425"/>
-        <UsageCount Value="6"/>
+        <TopLine Value="2799"/>
+        <CursorPos X="16" Y="2812"/>
+        <UsageCount Value="8"/>
       </Unit22>
       <Unit23>
         <Filename Value="filecontentprovider.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="85" Y="10"/>
-        <UsageCount Value="34"/>
+        <UsageCount Value="28"/>
       </Unit23>
       <Unit24>
-        <Filename Value="C:\lazarus\lcl\lclintf.pas"/>
-        <UnitName Value="LCLIntf"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="57"/>
-        <CursorPos X="10" Y="81"/>
-        <UsageCount Value="1"/>
-      </Unit24>
-      <Unit25>
         <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\pagecontrol.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="6"/>
         <CursorPos Y="33"/>
-        <UsageCount Value="9"/>
-      </Unit25>
-      <Unit26>
+        <UsageCount Value="3"/>
+      </Unit24>
+      <Unit25>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\turbopower_ipro\iphtml.pas"/>
         <UnitName Value="IpHtml"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="3141"/>
-        <CursorPos X="65" Y="3157"/>
+        <TopLine Value="328"/>
+        <CursorPos X="5" Y="337"/>
         <UsageCount Value="18"/>
-      </Unit26>
-      <Unit27>
+      </Unit25>
+      <Unit26>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-process\src\simpleipc.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="187"/>
         <CursorPos X="22" Y="203"/>
-        <UsageCount Value="6"/>
-      </Unit27>
-      <Unit28>
+        <UsageCount Value="10"/>
+      </Unit26>
+      <Unit27>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-process\src\winall\simpleipc.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="307"/>
         <CursorPos X="22" Y="398"/>
-        <UsageCount Value="6"/>
-      </Unit28>
-      <Unit29>
+        <UsageCount Value="10"/>
+      </Unit27>
+      <Unit28>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\classes\classesh.inc"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="945"/>
-        <CursorPos X="20" Y="966"/>
-        <UsageCount Value="9"/>
-      </Unit29>
-      <Unit30>
+        <TopLine Value="281"/>
+        <CursorPos X="3" Y="296"/>
+        <UsageCount Value="13"/>
+      </Unit28>
+      <Unit29>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\chmhelp\packages\help\lhelpcontrol.pas"/>
         <UnitName Value="LHelpControl"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="149"/>
         <CursorPos X="3" Y="151"/>
-        <UsageCount Value="7"/>
-      </Unit30>
-      <Unit31>
+        <UsageCount Value="1"/>
+      </Unit29>
+      <Unit30>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\chmhelp\packages\idehelp\lazchmhelp.pas"/>
         <UnitName Value="LazChmHelp"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="22" Y="656"/>
-        <UsageCount Value="21"/>
-      </Unit31>
-      <Unit32>
+        <UsageCount Value="15"/>
+      </Unit30>
+      <Unit31>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\lazlogger.pas"/>
         <UnitName Value="LazLogger"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="126"/>
-        <CursorPos X="40" Y="144"/>
-        <UsageCount Value="7"/>
-      </Unit32>
-      <Unit33>
+        <EditorIndex Value="16"/>
+        <CursorPos X="22" Y="15"/>
+        <UsageCount Value="30"/>
+        <Loaded Value="True"/>
+      </Unit31>
+      <Unit32>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\LazLoggerImpl.inc"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="24" Y="13"/>
-        <UsageCount Value="7"/>
-      </Unit33>
-      <Unit34>
+        <UsageCount Value="1"/>
+      </Unit32>
+      <Unit33>
         <Filename Value="logger.pas"/>
         <UnitName Value="Logger"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="202"/>
         <CursorPos X="19" Y="217"/>
-        <UsageCount Value="6"/>
-      </Unit34>
-      <Unit35>
+        <UsageCount Value="10"/>
+      </Unit33>
+      <Unit34>
         <Filename Value="C:\fpcupdeluxe\lazarus\lcl\lclproc.pas"/>
         <UnitName Value="LCLProc"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="1479"/>
-        <CursorPos X="3" Y="1481"/>
-        <UsageCount Value="5"/>
-      </Unit35>
-      <Unit36>
+        <TopLine Value="1354"/>
+        <CursorPos X="3" Y="1368"/>
+        <UsageCount Value="20"/>
+      </Unit34>
+      <Unit35>
         <Filename Value="C:\lazarus\components\lazutils\lazfileutils.pas"/>
         <UnitName Value="LazFileUtils"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="102"/>
         <CursorPos X="10" Y="126"/>
-        <UsageCount Value="5"/>
-      </Unit36>
-      <Unit37>
+        <UsageCount Value="9"/>
+      </Unit35>
+      <Unit36>
         <Filename Value="..\chm\src\htmlutil.pas"/>
         <UnitName Value="HTMLUtil"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="58"/>
-        <CursorPos Y="59"/>
-        <UsageCount Value="11"/>
-      </Unit37>
-      <Unit38>
+        <EditorIndex Value="6"/>
+        <TopLine Value="302"/>
+        <CursorPos X="18" Y="333"/>
+        <UsageCount Value="25"/>
+        <Loaded Value="True"/>
+      </Unit36>
+      <Unit37>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\sysutils\sysstrh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="194"/>
         <CursorPos X="16" Y="218"/>
-        <UsageCount Value="5"/>
-      </Unit38>
-      <Unit39>
+        <UsageCount Value="9"/>
+      </Unit37>
+      <Unit38>
         <Filename Value="..\chm\src\fasthtmlparser.pas"/>
         <UnitName Value="FastHTMLParser"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="87" Y="99"/>
-        <UsageCount Value="7"/>
-      </Unit39>
-      <Unit40>
+        <UsageCount Value="1"/>
+      </Unit38>
+      <Unit39>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\systemh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1170"/>
         <CursorPos X="12" Y="1186"/>
-        <UsageCount Value="13"/>
-      </Unit40>
-      <Unit41>
+        <UsageCount Value="7"/>
+      </Unit39>
+      <Unit40>
         <Filename Value="C:\fpcupdeluxe\lazarus\lcl\forms.pp"/>
         <UnitName Value="Forms"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="25"/>
         <CursorPos X="38" Y="36"/>
-        <UsageCount Value="6"/>
-      </Unit41>
-      <Unit42>
+        <UsageCount Value="10"/>
+      </Unit40>
+      <Unit41>
         <Filename Value="C:\fpcupdeluxe\lazarus\lcl\clipbrd.pp"/>
         <UnitName Value="Clipbrd"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="15"/>
         <CursorPos X="65" Y="30"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="10"/>
+      </Unit41>
+      <Unit42>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\contnrs.pp"/>
+        <UnitName Value="Contnrs"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1362"/>
+        <CursorPos X="49" Y="1363"/>
+        <UsageCount Value="21"/>
       </Unit42>
       <Unit43>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\contnrs.pp"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="68"/>
-        <CursorPos X="25" Y="92"/>
-        <UsageCount Value="15"/>
-      </Unit43>
-      <Unit44>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\lazloggerbase.pas"/>
         <UnitName Value="LazLoggerBase"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="109"/>
-        <CursorPos X="25" Y="123"/>
-        <UsageCount Value="7"/>
-      </Unit44>
-      <Unit45>
+        <CursorPos X="19" Y="9"/>
+        <UsageCount Value="20"/>
+      </Unit43>
+      <Unit44>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\LazLoggerIntf.inc"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="12" Y="2"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="1"/>
+      </Unit44>
+      <Unit45>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\turbopower_ipro\ipcss.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="37" Y="747"/>
+        <UsageCount Value="5"/>
       </Unit45>
       <Unit46>
-        <Filename Value="C:\fpcupdeluxe\lazarus\components\turbopower_ipro\ipcss.inc"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="8"/>
-        <TopLine Value="775"/>
-        <CursorPos Y="799"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit46>
-      <Unit47>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-xml\src\sax_html.pp"/>
         <UnitName Value="SAX_HTML"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="103"/>
         <CursorPos X="11" Y="117"/>
-        <UsageCount Value="7"/>
-      </Unit47>
-      <Unit48>
+        <UsageCount Value="1"/>
+      </Unit46>
+      <Unit47>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\lazutf8.pas"/>
         <UnitName Value="LazUTF8"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="11"/>
-      </Unit48>
-      <Unit49>
+        <TopLine Value="3777"/>
+        <CursorPos Y="3800"/>
+        <UsageCount Value="21"/>
+      </Unit47>
+      <Unit48>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\gettext.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="13"/>
-        <UsageCount Value="9"/>
-      </Unit49>
-      <Unit50>
+        <UsageCount Value="3"/>
+      </Unit48>
+      <Unit49>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\charmaps\cp1251.pas"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="9"/>
-      </Unit50>
-      <Unit51>
+        <UsageCount Value="3"/>
+      </Unit49>
+      <Unit50>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\charset.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="400"/>
-        <UsageCount Value="9"/>
-      </Unit51>
-      <Unit52>
+        <UsageCount Value="3"/>
+      </Unit50>
+      <Unit51>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\winlazutf8.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="347"/>
         <CursorPos X="27" Y="366"/>
-        <UsageCount Value="9"/>
-      </Unit52>
-      <Unit53>
+        <UsageCount Value="3"/>
+      </Unit51>
+      <Unit52>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\sysutils\sysinth.inc"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="10" Y="174"/>
-        <UsageCount Value="8"/>
-      </Unit53>
-      <Unit54>
+        <UsageCount Value="2"/>
+      </Unit52>
+      <Unit53>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-objpas\src\inc\convutils.pp"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="8"/>
-      </Unit54>
-      <Unit55>
+        <UsageCount Value="2"/>
+      </Unit53>
+      <Unit54>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-objpas\src\inc\convutil.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="270"/>
         <CursorPos Y="275"/>
-        <UsageCount Value="8"/>
-      </Unit55>
-      <Unit56>
+        <UsageCount Value="2"/>
+      </Unit54>
+      <Unit55>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\charmaps\cpall.pas"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="8"/>
-      </Unit56>
-      <Unit57>
+        <UsageCount Value="2"/>
+      </Unit55>
+      <Unit56>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\lconvencoding.pas"/>
         <UnitName Value="LConvEncoding"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="46" Y="82"/>
-        <UsageCount Value="9"/>
-      </Unit57>
-      <Unit58>
+        <UsageCount Value="3"/>
+      </Unit56>
+      <Unit57>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\classes\streams.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="165"/>
         <CursorPos Y="181"/>
-        <UsageCount Value="10"/>
-      </Unit58>
-      <Unit59>
+        <UsageCount Value="4"/>
+      </Unit57>
+      <Unit58>
         <Filename Value="..\chm\src\htmlindexer.pas"/>
         <UnitName Value="HTMLIndexer"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="214"/>
         <CursorPos Y="237"/>
-        <UsageCount Value="10"/>
-      </Unit59>
-      <Unit60>
+        <UsageCount Value="4"/>
+      </Unit58>
+      <Unit59>
         <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\customedit.inc"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="601"/>
-        <CursorPos Y="615"/>
-        <UsageCount Value="8"/>
-      </Unit60>
-      <Unit61>
+        <TopLine Value="536"/>
+        <CursorPos X="24" Y="559"/>
+        <UsageCount Value="22"/>
+      </Unit59>
+      <Unit60>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-unicode\src\collations\collation_ru.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="19"/>
         <CursorPos X="9" Y="45"/>
-        <UsageCount Value="8"/>
-      </Unit61>
-      <Unit62>
+        <UsageCount Value="2"/>
+      </Unit60>
+      <Unit61>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\unicodedata.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="2432"/>
-        <UsageCount Value="8"/>
-      </Unit62>
-      <Unit63>
+        <UsageCount Value="2"/>
+      </Unit61>
+      <Unit62>
         <Filename Value="C:\fpcupdeluxe\config_lazarus\onlinepackagemanager\packages\richmemo\richmemortf.pas"/>
         <UnitName Value="RichMemoRTF"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="15" Y="185"/>
-        <UsageCount Value="8"/>
-      </Unit63>
-      <Unit64>
+        <UsageCount Value="2"/>
+      </Unit62>
+      <Unit63>
         <Filename Value="C:\fpcupdeluxe\fpc300bootstrap\compiler\msgidx.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="954"/>
         <CursorPos X="31" Y="968"/>
-        <UsageCount Value="8"/>
-      </Unit64>
-      <Unit65>
+        <UsageCount Value="2"/>
+      </Unit63>
+      <Unit64>
         <Filename Value="C:\fpcupdeluxe\fpc300bootstrap\rtl\charmaps\cp1251.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="421"/>
         <CursorPos X="19" Y="435"/>
-        <UsageCount Value="8"/>
-      </Unit65>
-      <Unit66>
+        <UsageCount Value="2"/>
+      </Unit64>
+      <Unit65>
         <Filename Value="C:\fpcupdeluxe\fpc300bootstrap\rtl\objpas\unicodedata.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="919"/>
         <CursorPos X="26" Y="258"/>
-        <UsageCount Value="8"/>
-      </Unit66>
-      <Unit67>
+        <UsageCount Value="2"/>
+      </Unit65>
+      <Unit66>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\odata\src\sharepoint.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="23512"/>
         <CursorPos X="22" Y="23524"/>
-        <UsageCount Value="8"/>
-      </Unit67>
-      <Unit68>
+        <UsageCount Value="2"/>
+      </Unit66>
+      <Unit67>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\winunits-jedi\src\jwalmwksta.pas"/>
         <UnitName Value="JwaLmWkSta"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="83"/>
         <CursorPos X="53" Y="523"/>
-        <UsageCount Value="8"/>
-      </Unit68>
-      <Unit69>
+        <UsageCount Value="2"/>
+      </Unit67>
+      <Unit68>
         <Filename Value="..\chm\chmcontentprovider.xml"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="2"/>
         <DefaultSyntaxHighlighter Value="XML"/>
-      </Unit69>
-      <Unit70>
+      </Unit68>
+      <Unit69>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\chm\src\fasthtmlparser.pas"/>
         <UnitName Value="FastHTMLParser"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="164"/>
         <CursorPos X="10" Y="177"/>
-        <UsageCount Value="19"/>
-        <Loaded Value="True"/>
-      </Unit70>
-      <Unit71>
+        <UsageCount Value="13"/>
+      </Unit69>
+      <Unit70>
         <Filename Value="C:\fpcupdeluxe\lazarus\docs\xml\fasthtmlparser.xml"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="85" Y="4"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="2"/>
         <DefaultSyntaxHighlighter Value="XML"/>
-      </Unit71>
-      <Unit72>
+      </Unit70>
+      <Unit71>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\win32\classes.pp"/>
         <UnitName Value="Classes"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="30"/>
         <CursorPos X="35" Y="49"/>
-        <UsageCount Value="10"/>
-      </Unit72>
-      <Unit73>
+        <UsageCount Value="4"/>
+      </Unit71>
+      <Unit72>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\classes\classes.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="993"/>
         <CursorPos X="13" Y="997"/>
-        <UsageCount Value="8"/>
-      </Unit73>
-      <Unit74>
+        <UsageCount Value="2"/>
+      </Unit72>
+      <Unit73>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-xml\src\htmldefs.pp"/>
         <UnitName Value="HTMLDefs"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="773"/>
         <CursorPos X="3" Y="794"/>
-        <UsageCount Value="17"/>
-        <Loaded Value="True"/>
-      </Unit74>
-      <Unit75>
+        <UsageCount Value="11"/>
+      </Unit73>
+      <Unit74>
         <Filename Value="..\chm\src\chmwriter.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="139"/>
         <CursorPos X="52" Y="144"/>
-        <UsageCount Value="8"/>
-      </Unit75>
-      <Unit76>
+        <UsageCount Value="2"/>
+      </Unit74>
+      <Unit75>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\sysutils\sysstrh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="63"/>
         <CursorPos X="16" Y="79"/>
-        <UsageCount Value="9"/>
-      </Unit76>
-      <Unit77>
+        <UsageCount Value="3"/>
+      </Unit75>
+      <Unit76>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\sysutils\sysstr.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="169"/>
         <CursorPos X="3" Y="172"/>
-        <UsageCount Value="9"/>
-      </Unit77>
-      <Unit78>
+        <UsageCount Value="3"/>
+      </Unit76>
+      <Unit77>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\objpas.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="19"/>
         <CursorPos X="8" Y="35"/>
-        <UsageCount Value="9"/>
-      </Unit78>
-      <Unit79>
+        <UsageCount Value="3"/>
+      </Unit77>
+      <Unit78>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\sstrings.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="340"/>
         <CursorPos X="13" Y="350"/>
-        <UsageCount Value="9"/>
-      </Unit79>
-      <Unit80>
+        <UsageCount Value="3"/>
+      </Unit78>
+      <Unit79>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\ustringh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="124"/>
         <CursorPos X="14" Y="140"/>
-        <UsageCount Value="10"/>
-      </Unit80>
-      <Unit81>
+        <UsageCount Value="4"/>
+      </Unit79>
+      <Unit80>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\ustrings.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="2116"/>
         <CursorPos X="5" Y="2123"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="4"/>
+      </Unit80>
+      <Unit81>
+        <Filename Value="C:\Users\s.bodrov\AppData\Local\Temp\Temp1_ChmSpecialParser.zip\ChmSpecialParser.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="55"/>
+        <CursorPos X="40" Y="113"/>
+        <UsageCount Value="4"/>
       </Unit81>
+      <Unit82>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\treeview.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="4159"/>
+        <CursorPos X="3" Y="4163"/>
+        <UsageCount Value="5"/>
+      </Unit82>
+      <Unit83>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\control.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="5050"/>
+        <CursorPos Y="5065"/>
+        <UsageCount Value="11"/>
+      </Unit83>
+      <Unit84>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\wincontrol.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="8347"/>
+        <CursorPos Y="8362"/>
+        <UsageCount Value="11"/>
+      </Unit84>
+      <Unit85>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\lclmessageglue.pas"/>
+        <UnitName Value="LCLMessageGlue"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="106"/>
+        <CursorPos Y="123"/>
+        <UsageCount Value="5"/>
+      </Unit85>
+      <Unit86>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\lclclasses.pp"/>
+        <UnitName Value="LCLClasses"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="167"/>
+        <CursorPos Y="183"/>
+        <UsageCount Value="5"/>
+      </Unit86>
+      <Unit87>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\interfaces\win32\win32callback.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="2761"/>
+        <CursorPos Y="2775"/>
+        <UsageCount Value="5"/>
+      </Unit87>
+      <Unit88>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\interfaces\win32\win32pagecontrol.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="129"/>
+        <CursorPos Y="105"/>
+        <UsageCount Value="5"/>
+      </Unit88>
+      <Unit89>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\interfaces\win32\win32wsforms.pp"/>
+        <UnitName Value="Win32WSForms"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="383"/>
+        <CursorPos X="57" Y="394"/>
+        <UsageCount Value="5"/>
+      </Unit89>
+      <Unit90>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\brush.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="22"/>
+        <CursorPos Y="37"/>
+        <UsageCount Value="11"/>
+      </Unit90>
+      <Unit91>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <UnitName Value="ipHtmlBlockLayout"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1288"/>
+        <CursorPos X="36" Y="1309"/>
+        <UsageCount Value="20"/>
+      </Unit91>
+      <Unit92>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\font.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="722"/>
+        <CursorPos Y="737"/>
+        <UsageCount Value="11"/>
+      </Unit92>
+      <Unit93>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\turbopower_ipro\iphtmlprop.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="336"/>
+        <CursorPos Y="351"/>
+        <UsageCount Value="6"/>
+      </Unit93>
+      <Unit94>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\classes\lists.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="292"/>
+        <CursorPos X="22" Y="230"/>
+        <UsageCount Value="9"/>
+      </Unit94>
+      <Unit95>
+        <Filename Value="..\turbopower_ipro\iphtml.pas"/>
+        <UnitName Value="IpHtml"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="205"/>
+        <CursorPos X="18" Y="227"/>
+        <UsageCount Value="40"/>
+        <Loaded Value="True"/>
+      </Unit95>
+      <Unit96>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <UnitName Value="ipHtmlBlockLayout"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="13"/>
+        <TopLine Value="450"/>
+        <CursorPos X="13" Y="471"/>
+        <UsageCount Value="28"/>
+        <Loaded Value="True"/>
+      </Unit96>
+      <Unit97>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\customcontrol.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="100"/>
+        <CursorPos X="47" Y="107"/>
+        <UsageCount Value="21"/>
+      </Unit97>
+      <Unit98>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\extctrls.pp"/>
+        <UnitName Value="ExtCtrls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1015"/>
+        <CursorPos X="14" Y="1028"/>
+        <UsageCount Value="15"/>
+      </Unit98>
+      <Unit99>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\stdctrls.pp"/>
+        <UnitName Value="StdCtrls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1585"/>
+        <CursorPos X="16" Y="1600"/>
+        <UsageCount Value="15"/>
+      </Unit99>
+      <Unit100>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\controls.pp"/>
+        <UnitName Value="Controls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1292"/>
+        <CursorPos X="20" Y="1306"/>
+        <UsageCount Value="15"/>
+      </Unit100>
+      <Unit101>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\interfaces\win32\win32wsstdctrls.pp"/>
+        <UnitName Value="Win32WSStdCtrls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1494"/>
+        <CursorPos Y="1514"/>
+        <UsageCount Value="6"/>
+      </Unit101>
+      <Unit102>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\interfaces\win32\win32wscontrols.pp"/>
+        <UnitName Value="Win32WSControls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="548"/>
+        <CursorPos Y="563"/>
+        <UsageCount Value="21"/>
+      </Unit102>
+      <Unit103>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\widgetset\wsproc.pp"/>
+        <UnitName Value="WSProc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="47"/>
+        <CursorPos Y="65"/>
+        <UsageCount Value="21"/>
+      </Unit103>
+      <Unit104>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\winapi.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="615"/>
+        <CursorPos Y="622"/>
+        <UsageCount Value="9"/>
+      </Unit104>
+      <Unit105>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\interfaces\win32\win32winapi.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="2536"/>
+        <CursorPos Y="2541"/>
+        <UsageCount Value="9"/>
+      </Unit105>
+      <Unit106>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\customlabel.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="422"/>
+        <CursorPos X="3" Y="430"/>
+        <UsageCount Value="14"/>
+      </Unit106>
+      <Unit107>
+        <Filename Value="C:\fpcupdeluxe\lazarus\lcl\include\custompage.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="211"/>
+        <CursorPos Y="226"/>
+        <UsageCount Value="13"/>
+      </Unit107>
+      <Unit108>
+        <Filename Value="..\turbopower_ipro\iphtmlprop.pas"/>
+        <EditorIndex Value="12"/>
+        <TopLine Value="28"/>
+        <CursorPos X="5" Y="46"/>
+        <UsageCount Value="37"/>
+        <Loaded Value="True"/>
+      </Unit108>
+      <Unit109>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\objpas.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="323"/>
+        <CursorPos X="9" Y="325"/>
+        <UsageCount Value="5"/>
+      </Unit109>
+      <Unit110>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\sysutils\datih.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="186"/>
+        <CursorPos X="7" Y="107"/>
+        <UsageCount Value="6"/>
+      </Unit110>
+      <Unit111>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazutils\lazstringutils.pas"/>
+        <UnitName Value="LazStringUtils"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="188"/>
+        <CursorPos Y="204"/>
+        <UsageCount Value="6"/>
+      </Unit111>
+      <Unit112>
+        <Filename Value="..\turbopower_ipro\iphtmltablelayout.pas"/>
+        <UnitName Value="ipHtmlTableLayout"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="644"/>
+        <CursorPos X="26" Y="661"/>
+        <UsageCount Value="28"/>
+        <Loaded Value="True"/>
+      </Unit112>
+      <Unit113>
+        <Filename Value="..\chm\src\lcid_conv.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="10"/>
+        <CursorPos Y="19"/>
+        <UsageCount Value="9"/>
+      </Unit113>
+      <Unit114>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <UnitName Value="Controls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1294"/>
+        <CursorPos X="19" Y="1306"/>
+        <UsageCount Value="8"/>
+      </Unit114>
+      <Unit115>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="5833"/>
+        <CursorPos X="31" Y="5846"/>
+        <UsageCount Value="8"/>
+      </Unit115>
+      <Unit116>
+        <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
+        <UnitName Value="ComCtrls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="2555"/>
+        <CursorPos X="84" Y="2567"/>
+        <UsageCount Value="8"/>
+      </Unit116>
+      <Unit117>
+        <Filename Value="C:\lazarus\fpc\3.2.0\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="84"/>
+        <CursorPos X="8" Y="97"/>
+        <UsageCount Value="8"/>
+      </Unit117>
+      <Unit118>
+        <Filename Value="C:\lazarus\fpc\3.2.0\source\rtl\inc\typshrdh.inc"/>
+        <EditorIndex Value="14"/>
+        <TopLine Value="123"/>
+        <CursorPos X="21" Y="148"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit118>
+      <Unit119>
+        <Filename Value="..\turbopower_ipro\ipcss.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="91"/>
+        <CursorPos X="2" Y="64"/>
+        <UsageCount Value="9"/>
+      </Unit119>
     </Units>
-    <OtherDefines Count="1">
-      <Define0 Value="DEBUG"/>
-    </OtherDefines>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="1000" TopLine="982"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="460" TopLine="448"/>
       </Position1>
       <Position2>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="1002" TopLine="982"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="462" TopLine="448"/>
       </Position2>
       <Position3>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="1003" TopLine="982"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="463" TopLine="448"/>
       </Position3>
       <Position4>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="991" TopLine="982"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="469" Column="23" TopLine="451"/>
       </Position4>
       <Position5>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="992" TopLine="982"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="460" TopLine="451"/>
       </Position5>
       <Position6>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="994" TopLine="982"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="462" TopLine="451"/>
       </Position6>
       <Position7>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="995" TopLine="982"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="463" TopLine="451"/>
       </Position7>
       <Position8>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="996" TopLine="982"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="469" TopLine="451"/>
       </Position8>
       <Position9>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="997" TopLine="982"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="462" TopLine="451"/>
       </Position9>
       <Position10>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="983" TopLine="961"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="463" TopLine="451"/>
       </Position10>
       <Position11>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="876" Column="33" TopLine="865"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="469" TopLine="451"/>
       </Position11>
       <Position12>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="142" Column="36" TopLine="128"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="462" TopLine="451"/>
       </Position12>
       <Position13>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="844" Column="48" TopLine="817"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="463" TopLine="451"/>
       </Position13>
       <Position14>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="864" Column="33" TopLine="837"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="465" TopLine="451"/>
       </Position14>
       <Position15>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="876" Column="33" TopLine="849"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="466" TopLine="451"/>
       </Position15>
       <Position16>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="493" Column="41" TopLine="479"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="467" TopLine="451"/>
       </Position16>
       <Position17>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="192" Column="15" TopLine="176"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="470" Column="11" TopLine="448"/>
       </Position17>
       <Position18>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="82" Column="36" TopLine="66"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="465" Column="17" TopLine="451"/>
       </Position18>
       <Position19>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="174" Column="22" TopLine="158"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="417" Column="34" TopLine="402"/>
       </Position19>
       <Position20>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="1106" Column="85" TopLine="1091"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="466" Column="25" TopLine="452"/>
       </Position20>
       <Position21>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="1493" Column="20" TopLine="1476"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="957" Column="18" TopLine="831"/>
       </Position21>
       <Position22>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="59" Column="70" TopLine="43"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="84" Column="18" TopLine="61"/>
       </Position22>
       <Position23>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="1124" Column="3" TopLine="1095"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="356" Column="47" TopLine="350"/>
       </Position23>
       <Position24>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="1251" Column="16" TopLine="1239"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="369" Column="60" TopLine="350"/>
       </Position24>
       <Position25>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="1621" Column="31" TopLine="1617"/>
+        <Filename Value="..\turbopower_ipro\iphtmltablelayout.pas"/>
+        <Caret Line="661" Column="17" TopLine="644"/>
       </Position25>
       <Position26>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="344" Column="24" TopLine="214"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="474" Column="61" TopLine="450"/>
       </Position26>
       <Position27>
-        <Filename Value="..\chm\src\chmreader.pas"/>
-        <Caret Line="371" Column="19" TopLine="350"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="470" Column="31" TopLine="460"/>
       </Position27>
       <Position28>
-        <Filename Value="chmspecialparser.pas"/>
-        <Caret Line="92" Column="19" TopLine="71"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="471" Column="13" TopLine="457"/>
       </Position28>
       <Position29>
-        <Filename Value="chmspecialparser.pas"/>
-        <Caret Line="94" Column="22" TopLine="64"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="472" TopLine="457"/>
       </Position29>
       <Position30>
-        <Filename Value="..\chm\src\chmfiftimain.pas"/>
-        <Caret Line="959" Column="7" TopLine="937"/>
+        <Filename Value="..\turbopower_ipro\iphtmlblocklayout.pas"/>
+        <Caret Line="86" Column="17" TopLine="73"/>
       </Position30>
     </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode="default"/>
+    </RunParams>
   </ProjectSession>
   <Debugging>
-    <Watches Count="4">
-      <Item1>
-        <Expression Value="bs"/>
-      </Item1>
-      <Item2>
-        <Expression Value="rs"/>
-      </Item2>
-      <Item3>
-        <Expression Value="RemainingBits"/>
-      </Item3>
-      <Item4>
-        <Expression Value="BitsInBuffer"/>
-      </Item4>
+    <BreakPoints>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\turbopower_ipro\iphtml.pas"/>
+        <InitialEnabled Value="False"/>
+        <Line Value="13082"/>
+      </Item>
+    </BreakPoints>
+    <Watches>
+      <Item>
+        <Expression Value="CurElem^.AnsiWord"/>
+        <DisplayStyle Value="wdfString"/>
+      </Item>
     </Watches>
   </Debugging>
 </CONFIG>

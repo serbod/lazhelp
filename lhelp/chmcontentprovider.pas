@@ -564,6 +564,10 @@ begin
   if CHMReader <> nil then
   begin
     FFillingToc := True;
+    if IsLCIDDirectionRTL(CHMReader.LocaleID) then
+      FChmFrame.tvContents.BiDiMode := bdRightToLeftReadingOnly
+    else
+      FChmFrame.tvContents.BiDiMode := bdLeftToRight;
     FChmFrame.tvContents.BeginUpdate();
 
     s := ConvToUTF8FromLCID(CHMReader.LocaleID, CHMReader.Title);
@@ -591,6 +595,7 @@ begin
       {$ENDIF}
       ContentsFiller := TContentsFiller.Create(FChmFrame.tvContents, SM, @FStopTimer, CHMReader);
       try
+        ContentsFiller.LocaleID := CHMReader.LocaleID;
         ContentsFiller.DoFill(ParentNode);
       finally
         ContentsFiller.Free();
@@ -627,6 +632,7 @@ begin
         end;
         {$ENDIF}
         StatusText := slhelp_IndexLoading;
+        FChmFrame.tvIndex.BeginUpdate;
         ContentsFiller := TContentsFiller.Create(FChmFrame.tvIndex, SM, @FStopTimer, CHMReader);
         FChmFrame.tvIndex.BeginUpdate;
         try
@@ -635,6 +641,7 @@ begin
         finally
           FChmFrame.tvIndex.EndUpdate;
           ContentsFiller.Free();
+          FChmFrame.tvIndex.EndUpdate;
         end;
 
       finally
@@ -854,6 +861,7 @@ begin
   URL      := GetURIURL(AUrl);
   FoundNode := nil;
   Node := nil;
+  RootNode := nil;
   for i := 0 to FChmFileList.Count-1 do
   begin
     if FileName = ExtractFileName(FChmFileList.FileName[i]) then

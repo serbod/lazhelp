@@ -45,6 +45,7 @@ type
     FLastNode: TTreeNode;
     procedure AddItem(AItem: TChmSiteMapItem; AParentNode: TTreeNode);
   public
+    LocaleID: DWord;
     constructor Create(ATreeView: TTreeView; ASitemap: TChmSiteMap; StopBoolean: PBoolean; AChm: TObject);
     procedure DoFill(ParentNode: TTreeNode);
   end;
@@ -52,7 +53,7 @@ type
 implementation
 
 uses
-  LConvEncoding, LazUTF8, HTMLDefs;
+  LConvEncoding, LazUTF8, HTMLDefs, lcid_conv;
 
 function ToUTF8(const AText: AnsiString): String;
 var
@@ -150,7 +151,9 @@ begin
   txt := AItem.KeyWord;
   // Fallback:
   if txt = '' then txt := AItem.Text;
-  txt := FixEscapedHTML(ToUTF8(Trim(txt)));
+  //txt := FixEscapedHTML(ToUTF8(Trim(txt)));
+  txt := ConvToUTF8FromLCID(LocaleID, Trim(txt));
+  txt := FixEscapedHTML(txt);
   if not Assigned(FLastNode) or (FLastNode.Text <> txt) then
   begin
     // Add new child node

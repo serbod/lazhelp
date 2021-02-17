@@ -1148,7 +1148,9 @@ begin
         LastWord := '';
         ReadNextResult := ReadLeafNodeEntry(LastWord, NewWord, InTitle,
           WLCCount, WLCOffset, WLCSize);
-      end;
+      end
+      else
+        ReadNextResult := False;
 
       if ReadNextResult and (NewWord = AWord) then
       begin

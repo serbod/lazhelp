@@ -354,7 +354,10 @@ begin
   else
     NewURL := URL;
 
-  Result := FChmFileList.GetObject(NewURL);
+  Result := TMemoryStream.Create();
+  if not FChmFileList.ReadFileContent(NewURL, Result) then
+    FreeAndNil(Result);
+  //Result := FChmFileList.GetObject(NewURL);
 end;
 
 constructor TIpChmDataProvider.Create(AOwner: TComponent; AChmFileList: TChmFileList);

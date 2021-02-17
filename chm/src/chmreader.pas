@@ -552,7 +552,7 @@ var
     NameLength := GetCompressedInteger(ChunkStream);
     SetLength(Result, NameLength);
     if NameLength > 0 then
-      ChunkStream.Read(PChar(Result)^, NameLength);
+      ChunkStream.Read(Result[1], NameLength);
   end;
 
 var
@@ -1302,6 +1302,7 @@ function TChmReader.ReadURLSTR(APosition: DWord): String;
 var
   URLOffset: DWord;
 begin
+  Result := '';
   if FURLTBLStream.Size = 0 then
     Exit;
 
@@ -1523,6 +1524,8 @@ begin
   //setlength (curitem,10);
   Name := '';
   SeeAlsoStr := '';
+  sTitle := '';
+  Topic := '';
   hdr := PBTreeBlockHeader(p);
   hdr^.Length           := LEToN(hdr^.Length);
   hdr^.NumberOfEntries  := LEToN(hdr^.NumberOfEntries);
@@ -1679,6 +1682,7 @@ var
   i: Integer;
   sTitle, sLocalUrl: string;
 begin
+  Result := False;
   if not Assigned(ATopicList) then
     Exit;
   for i := 0 to GetTopicsCount()-1 do
@@ -1904,6 +1908,8 @@ var
 begin
   Found := False;
   Result := 0;
+  URL := '';
+  AFileName := '';
   //Known META file link types
   //       ms-its:name.chm::/topic.htm
   //mk:@MSITStore:name.chm::/topic.htm

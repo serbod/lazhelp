@@ -156,7 +156,9 @@ begin
     Inc(S, Start);
 
     Result := CopyBuffer(S, L);
-  end;
+  end
+  else
+    Result := '';
 end;
 
 
@@ -191,7 +193,9 @@ begin
       Result := CopyBuffer(S, P - S)
     else
       Result := '';
-  end;
+  end
+  else
+    Result := '';
 end;
 
 
@@ -265,7 +269,9 @@ begin
     S := P;
     Inc(S, Start);
     Result := CopyBuffer(S, L);
-  end;
+  end
+  else
+    Result := '';
 end;
 
 
@@ -322,7 +328,9 @@ begin
       Result := CopyBuffer(S, P - S)
     else
       Result := '';
-  end;
+  end
+  else
+    Result := '';
 end;
 
 

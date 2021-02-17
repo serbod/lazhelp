@@ -15,6 +15,8 @@ function WinCPToLCID(AWinCP: Word): Word;
 function ConvToUTF8FromLCID(ALCID: Word; AStr: string): string;
 function ConvToUTF8FromCP(ACP: Word; AStr: string): string;
 
+function IsLCIDDirectionRTL(ALCID: Word): Boolean;
+
 implementation
 
 type
@@ -230,6 +232,21 @@ begin
   else
     Result := AStr;
   end;
+end;
+
+function IsLCIDDirectionRTL(ALCID: Word): Boolean;
+var
+  wcp: Word;
+begin
+  Result := False;
+  if (ALCID <> 0) or (ALCID <> 1033) then
+  begin
+    wcp := LCIDToWinCP(ALCID);
+    case wcp of
+      1255: Result := True; // Hebrew
+      1256: Result := True; // Arabic
+    end;
+  end
 end;
 
 end.

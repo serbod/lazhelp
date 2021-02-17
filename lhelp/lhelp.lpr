@@ -36,6 +36,10 @@ var
 {$R *.res}
 
 begin
+  {$if declared(useHeapTrace)}
+  globalSkipIfNoLeaks := true; // supported as of debugger version 3.2.0
+  setHeapTraceOutput('trace.log'); // supported as of debugger version 3.2.0
+  {$endIf}
   Application.Initialize;
   for X := 1 to ParamCount do
   begin
