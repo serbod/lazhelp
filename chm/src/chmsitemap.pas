@@ -491,6 +491,8 @@ procedure TChmSiteMap.SaveToFile(AFileName: string);
 var
   fs: TFileStream;
 begin
+  DoDirSeparators(AFileName);
+  ForceDirectories(ExtractFileDir(AFileName));
   fs := TFileStream.Create(AFileName, fmCreate);
   try
     SaveToStream(fs);

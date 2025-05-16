@@ -20,6 +20,7 @@ LHelp:
 
 chmmaker:
 
+- import project from CHM 
 - TOC and Index files without path, in same directory with project
 - added default codepage selection
 - added error log tab, with messages from CHM writer
