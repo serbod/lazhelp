@@ -202,7 +202,7 @@ end;
 procedure TProjImportThread.Execute();
 var
   ChmReader: TChmReader;
-  s, sProjectFileName, sProjectDir: string;
+  s, sProjectFileName, sProjectDir, sFileName: string;
   fsChm, fs: TFileStream;
   SiteMap: TChmSiteMap;
   ChmWindow: TCHMWindow;
@@ -304,7 +304,10 @@ begin
           if (s = Project.TableOfContentsFileName)
           or (s = Project.IndexFileName) then
             Continue;
-          fs := TFileStream.Create(sProjectDir + s, fmCreate);
+          sFileName := sProjectDir + s; // file name can contain subpath
+          DoDirSeparators(sFileName);
+          ForceDirectories(ExtractFileDir(sFileName));
+          fs := TFileStream.Create(sFileName, fmCreate);
           try
             ChmReader.ReadFileContent(sl[i], fs);
             if Project.Files.IndexOf(s) = -1 then
